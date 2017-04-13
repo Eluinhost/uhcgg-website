@@ -1,5 +1,6 @@
 import java.util.UUID
 
+import akka.actor.ActorSystem
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.HttpChallenges
 import akka.http.scaladsl.server.AuthenticationFailedRejection.CredentialsRejected
@@ -8,20 +9,22 @@ import com.softwaremill.session.{SessionConfig, SessionManager}
 
 import scala.concurrent.ExecutionContext
 
-class UserCreationService(private val redditConfig: RedditConfig)(
-    implicit executionContext: ExecutionContext
-) {
+class UserCreationService(
+    val redditConfig: RedditConfig
+  )(implicit executionContext: ExecutionContext,
+    actorSystem: ActorSystem) {
   import akka.http.scaladsl.server.Directives._
   import com.softwaremill.session.SessionDirectives._
   import com.softwaremill.session.SessionOptions._
 
-  implicit val sessionManager =
-    new SessionManager[String](SessionConfig.fromConfig())
+  implicit val sessionManager = new SessionManager[String](SessionConfig.fromConfig())
 
   private val redditAuthenticationError = new AuthenticationFailedRejection(
     CredentialsRejected,
     HttpChallenges.oAuth2("reddit")
   )
+
+  private val redditApi = new RedditApi(redditConfig)
 
   val redditOauth: Route = pathPrefix("reddit") {
     (pathEndOrSingleSlash & get) { // Root should redirect to reddit and start authentication flow
@@ -42,17 +45,27 @@ class UserCreationService(private val redditConfig: RedditConfig)(
         }
       } ~ (parameters('code, 'state) & requiredSession(oneOff, usingCookies)) { // Passed a valid code + state parameter + session is valid
         (code: String, state: String, session: String) ⇒
+          actorSystem.log.debug(s"Redirect starting $code / $state / ${session.toString}")
+
           // Invalidate the session now it is no longer required
           invalidateSession(oneOff, usingCookies) {
             if (state != session) { // Check the state sent to reddit matches what was in the session
               reject(redditAuthenticationError)
             } else {
-              complete {
-                code + " / " + state + " / " + session.toString
-              }
+              val usernameFuture = for {
+                accessToken ← redditApi.getAccessToken(authCode = code)
+                username    ← redditApi.queryUsername(accessToken)
+              } yield username
 
-              // TODO request access code from external service using code
-              // TODO verify scope
+              onComplete(usernameFuture) {
+                _.map { username ⇒
+                  complete {
+                    s"$username / $code / $state / $session"
+                  }
+                }.getOrElse {
+                  reject(redditAuthenticationError)
+                }
+              }
               // TODO lookup user name from external service using access code
               // TODO store user name in session
               // TODO show page with password creation form
@@ -61,6 +74,7 @@ class UserCreationService(private val redditConfig: RedditConfig)(
           }
       } ~ invalidateSession(oneOff, usingCookies) { // Invalidate the session as there was a failure
         reject(redditAuthenticationError)
+        // TODO stop using reject
       }
     }
   }

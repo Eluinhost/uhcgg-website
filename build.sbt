@@ -14,5 +14,6 @@ libraryDependencies ++= Seq(
   "org.postgresql" % "postgresql" % "9.4-1201-jdbc41",
   "org.flywaydb" % "flyway-core" % "3.2.1",
   "com.zaxxer" % "HikariCP" % "2.4.5",
-  "com.softwaremill.akka-http-session" %% "core" % "0.4.0"
+  "com.softwaremill.akka-http-session" %% "core" % "0.4.0",
+  "com.typesafe.akka" %% "akka-http-spray-json" % "10.0.4"
 )

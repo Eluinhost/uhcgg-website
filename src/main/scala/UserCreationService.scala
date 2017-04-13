@@ -35,18 +35,27 @@ class UserCreationService(private val redditConfig: RedditConfig)(implicit execu
             )
           }
         } ~
-        (pathPrefix("redirect") & pathEndOrSingleSlash & get & requiredSession(oneOff, usingCookies)) {
-          session ⇒
+        (pathPrefix("redirect") & pathEndOrSingleSlash & get) {
+          parameter('error) { error ⇒
             complete {
-              session.toString()
-              // TODO parse code/state from request
-              // TODO verify state
-              // TODO request access code from external service using code
-              // TODO verify scope
-              // TODO lookup user name from external service using access code
-              // TODO store user name in session
-              // TODO show page with password creation form
-              // TODO password creation form should then create user entry + log user in + clear session
+              s"Redirect error $error"
+            }
+          } ~
+          (parameters('code, 'state) & requiredSession(oneOff, usingCookies)) { // TODO different display errors if session missing
+            (code, state, session) ⇒
+              complete {
+                code + " / " + state + " / " + session.toString()
+                // TODO verify state
+                // TODO request access code from external service using code
+                // TODO verify scope
+                // TODO lookup user name from external service using access code
+                // TODO store user name in session
+                // TODO show page with password creation form
+                // TODO password creation form should then create user entry + log user in + clear session
+              }
+          } ~
+          complete {
+            "invalid response"
           }
         }
       } ~

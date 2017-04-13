@@ -20,7 +20,7 @@ object Main extends App with Config with CorsSupport {
   val databaseService = new DatabaseService(jdbcUrl, dbUser, dbPassword)
 
   val apiService = new ApiService(actorSystem)
-  val userCreationService = new UserCreationService()
+  val userCreationService = new UserCreationService(redditConfig)
 
   val routes = corsHandler {
     apiService.routes ~

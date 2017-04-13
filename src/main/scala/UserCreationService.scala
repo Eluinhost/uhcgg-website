@@ -6,15 +6,13 @@ import com.softwaremill.session.{SessionConfig, SessionManager}
 
 import scala.concurrent.ExecutionContext
 
-class UserCreationService(implicit executionContext: ExecutionContext) {
+class UserCreationService(private val redditConfig: RedditConfig)(implicit executionContext: ExecutionContext) {
   import akka.http.scaladsl.server.Directives._
   import com.softwaremill.session.SessionDirectives._
   import com.softwaremill.session.SessionOptions._
-
   import scala.concurrent.duration._
 
-  private val sessionConfig = SessionConfig.fromConfig() // TODO change to pull from config
-  implicit val sessionManager = new SessionManager[Map[String, String]](sessionConfig)
+  implicit val sessionManager = new SessionManager[Map[String, String]](SessionConfig.fromConfig())
 
   val routes: Route =
     pathPrefix("oauth") {
@@ -32,7 +30,7 @@ class UserCreationService(implicit executionContext: ExecutionContext) {
 
           setSession(oneOff, usingCookies, session) {
             redirect(
-              s"https://www.reddit.com/api/v1/authorize?client_id=CLIENT_ID&response_type=TYPE&state=$state&redirect_uri=test&duration=permanent&scope=$scope",
+              s"https://www.reddit.com/api/v1/authorize?client_id=${redditConfig.clientId}&response_type=code&state=$state&redirect_uri=${redditConfig.redirectUri}&duration=temporary&scope=$scope",
               StatusCodes.TemporaryRedirect
             )
           }

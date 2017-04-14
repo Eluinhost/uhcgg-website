@@ -1,13 +1,9 @@
-import akka.actor.ActorSystem
 import akka.http.scaladsl.server.Route
 
-import scala.concurrent.ExecutionContext
-
-class ApiService(private val actorSystem: ActorSystem)(implicit executionContext: ExecutionContext) {
+class ApiService() {
   import akka.http.scaladsl.server.Directives._
 
-  val routes: Route =
-    pathPrefix("v1") {
-      new SwaggerDocRoutes(actorSystem).routes
-    }
+  val routes: Route = pathPrefix("v1") {
+    complete("TODO")
+  }
 }

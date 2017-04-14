@@ -1,25 +1,16 @@
+package reddit
+
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{Authorization, BasicHttpCredentials, OAuth2BearerToken}
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
-import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
-
-case class AccessTokenResponse(access_token: String, token_type: String, expires_in: Int, scope: String)
-
-case class MeResponse(name: String)
-
-object RedditApiJsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
-  implicit val accessTokenResponseFormat: RootJsonFormat[AccessTokenResponse] = jsonFormat4(AccessTokenResponse)
-  implicit val meResponseFormat: RootJsonFormat[MeResponse]                   = jsonFormat1(MeResponse)
-}
 
 class RedditApi(config: RedditConfig)(implicit system: ActorSystem, ec: ExecutionContext) {
   import RedditApiJsonSupport._

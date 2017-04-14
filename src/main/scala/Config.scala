@@ -1,6 +1,5 @@
 import com.typesafe.config.ConfigFactory
-
-case class RedditConfig(clientId: String, clientSecret: String, redirectUri: String)
+import reddit.RedditConfig
 
 trait Config {
   private val config         = ConfigFactory.load()
@@ -15,6 +14,7 @@ trait Config {
   val dbPassword: String = databaseConfig.getString("password")
 
   private val redditConfigSection = config.getConfig("reddit")
+
   val redditConfig = RedditConfig(
     redditConfigSection.getString("clientId"),
     redditConfigSection.getString("clientSecret"),

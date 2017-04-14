@@ -4,10 +4,9 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.{ExceptionHandler, Route}
 import com.softwaremill.session.{SessionConfig, SessionManager}
+import reddit.{RedditApi, RedditAuthenticationException, RedditConfig}
 
 import scala.concurrent.ExecutionContext
-
-case class RedditAuthenticationException(message: String) extends Exception(message)
 
 class UserCreationService(
     val redditConfig: RedditConfig
@@ -79,9 +78,9 @@ class UserCreationService(
             onComplete(usernameFuture) {
               _.map { username ⇒
                 complete(s"$username / $code / $state / $session")
-                // TODO store user name in session
-                // TODO show page with password creation form
-                // TODO password creation form should then create user entry + log user in + clear session
+              // TODO store user name in session
+              // TODO show page with password creation form
+              // TODO password creation form should then create user entry + log user in + clear session
               }.getOrElse {
                 failWith(RedditAuthenticationException("Failed to lookup username"))
               }

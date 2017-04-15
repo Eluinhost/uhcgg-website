@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.{ExceptionHandler, Route}
 import com.softwaremill.session.{SessionConfig, SessionManager}
-import reddit.{RedditApi, RedditAuthenticationException, RedditConfig}
+import reddit.{RedditAuthenticationApiConsumer, RedditAuthenticationException, RedditConfig, RedditSecuredApiConsumer}
 
 import scala.concurrent.ExecutionContext
 
@@ -18,7 +18,8 @@ class UserCreationService(
 
   implicit val sessionManager = new SessionManager[String](SessionConfig.fromConfig())
 
-  val redditApi = new RedditApi(redditConfig)
+  val redditAuthenticationApi = new RedditAuthenticationApiConsumer(redditConfig)
+  val redditSecuredApi        = new RedditSecuredApiConsumer(redditConfig)
 
   /**
     * Sets the session to be a random state and then redirects off to reddit for authorization
@@ -71,8 +72,8 @@ class UserCreationService(
 
             // Look up username
             val usernameFuture = for {
-              accessToken ← redditApi.getAccessToken(authCode = code)
-              username    ← redditApi.queryUsername(accessToken)
+              accessToken ← redditAuthenticationApi.getAccessToken(authCode = code)
+              username    ← redditSecuredApi.getUsername(accessToken)
             } yield username
 
             onComplete(usernameFuture) {

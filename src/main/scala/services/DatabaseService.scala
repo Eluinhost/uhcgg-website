@@ -1,3 +1,5 @@
+package services
+
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 
 class DatabaseService(jdbcUrl: String, dbUser: String, dbPassword: String) {

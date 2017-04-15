@@ -1,3 +1,5 @@
+package services
+
 import org.flywaydb.core.Flyway
 
 class MigrationsService(jdbcUrl: String, dbUser: String, dbPassword: String) {

@@ -1,3 +1,5 @@
+package routes
+
 import java.util.UUID
 
 import akka.actor.ActorSystem
@@ -8,10 +10,10 @@ import reddit.{RedditAuthenticationApiConsumer, RedditAuthenticationException, R
 
 import scala.concurrent.ExecutionContext
 
-class UserCreationService(
-    val redditConfig: RedditConfig
-  )(implicit executionContext: ExecutionContext,
-    actorSystem: ActorSystem) {
+class RegisterEndpoints(val redditConfig: RedditConfig)(
+    implicit executionContext: ExecutionContext,
+    actorSystem: ActorSystem
+) extends HasRoutes {
   import akka.http.scaladsl.server.Directives._
   import com.softwaremill.session.SessionDirectives._
   import com.softwaremill.session.SessionOptions._
@@ -20,6 +22,16 @@ class UserCreationService(
 
   val redditAuthenticationApi = new RedditAuthenticationApiConsumer(redditConfig)
   val redditSecuredApi        = new RedditSecuredApiConsumer(redditConfig)
+
+  /**
+    * Handles RedditAuthenticationExceptions and sends an UNAUTHORIZED message in place
+    * TODO page styles
+    */
+  val redditExceptionHandler = ExceptionHandler {
+    case t: RedditAuthenticationException ⇒
+      actorSystem.log.error(t, "Unable to authenticate via reddit")
+      complete(HttpResponse(StatusCodes.Unauthorized, entity = s"Unable to authenticate via Reddit: ${t.message}"))
+  }
 
   /**
     * Sets the session to be a random state and then redirects off to reddit for authorization
@@ -36,19 +48,9 @@ class UserCreationService(
   }
 
   /**
-    * Handles RedditAuthenticationExceptions and sends an UNAUTHORIZED message in place
-    * TODO page styles
-    */
-  val redditExceptionHandler = ExceptionHandler {
-    case t: RedditAuthenticationException ⇒
-      actorSystem.log.error(t, "Unable to authenticate via reddit")
-      complete(HttpResponse(StatusCodes.Unauthorized, entity = s"Unable to authenticate via Reddit: ${t.message}"))
-  }
-
-  /**
     * Route that Reddit redirects users to after authorization
     */
-  def handleRedditLogin: Route =
+  def handleRedditCallback: Route =
     // Get the data from the session and immediately invalidate it
     requiredSession(oneOff, usingCookies) { session: String ⇒
       invalidateSession(oneOff, usingCookies) {
@@ -98,23 +100,24 @@ class UserCreationService(
     }
 
   val redditOauth: Route =
-    (pathEndOrSingleSlash & get) { // Root should redirect to reddit and start authentication flow
+    (pathEndOrSingleSlash & get) {
       startRedditOauthFlow
-    } ~ (pathPrefix("redirect") & pathEndOrSingleSlash & get) { // Redirect handles redirects after authorization
-      handleRedditLogin
+    } ~ (pathPrefix("redirect") & pathEndOrSingleSlash & get) {
+      handleRedditCallback
     }
 
-  val internalOauth: Route = pathPrefix("internal") {
-    complete {
-      "todo" // TODO entire route
+  val routes: Route =
+    (get & pathEndOrSingleSlash) {
+      complete("register") // TODO: show a page with a link to say 'register with Reddit'
+    } ~ (get & pathPrefix("initialise")) {
+      startRedditOauthFlow
+    } ~ (pathPrefix("callback") & pathEndOrSingleSlash & get) { // Handles redirects from Reddit after authorization
+      handleRedditCallback
+    } ~ (pathPrefix("finalise") & pathEndOrSingleSlash) { // TODO: this is the 'register' page with form fields
+      get {
+        complete("finalise")
+      } ~ post {
+        complete("finalise submit") // TODO: this is the 'register' page with form fields
+      }
     }
-  }
-
-  val routes: Route = pathPrefix("oauth") {
-    pathPrefix("reddit") {
-      redditOauth
-    } ~ pathPrefix("internal") {
-      internalOauth
-    }
-  }
 }

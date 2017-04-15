@@ -2,10 +2,12 @@ import akka.actor.ActorSystem
 import akka.event.{Logging, LoggingAdapter}
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
+import routes.{ApiRoutes, HasRoutes, RegisterEndpoints, SwaggerDocumentationEndpoints}
+import services.{DatabaseService, MigrationsService}
 
 import scala.concurrent.ExecutionContext
 
-object Main extends App with Config with CorsSupport {
+object Main extends App with Config with CorsSupport with HasRoutes {
   import akka.http.scaladsl.server.Directives._
 
   implicit val actorSystem                     = ActorSystem()
@@ -19,13 +21,15 @@ object Main extends App with Config with CorsSupport {
 
   val databaseService = new DatabaseService(jdbcUrl, dbUser, dbPassword)
 
-  val apiService          = new ApiService()
-  val userCreationService = new UserCreationService(redditConfig)
-  val docs                = new SwaggerDocRoutes()
+  val apiRoutes           = new ApiRoutes()
+  val registrationRoutes  = new RegisterEndpoints(redditConfig)
+  val documentationRotues = new SwaggerDocumentationEndpoints()
 
-  val routes = corsHandler {
-    apiService.routes ~ userCreationService.routes ~ docs.routes
-  }
+  override val routes = corsHandler(
+    pathPrefix("api")(apiRoutes.routes) ~
+      pathPrefix("register")(registrationRoutes.routes) ~
+      documentationRotues.routes
+  )
 
   Http().bindAndHandle(routes, httpHost, httpPort)
 }

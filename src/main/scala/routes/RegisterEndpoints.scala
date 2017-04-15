@@ -3,8 +3,9 @@ package routes
 import java.util.UUID
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.{ExceptionHandler, Route}
+import akkahttptwirl.TwirlSupport
 import com.softwaremill.session.{SessionConfig, SessionManager}
 import reddit.{RedditAuthenticationApiConsumer, RedditAuthenticationException, RedditConfig, RedditSecuredApiConsumer}
 
@@ -13,7 +14,8 @@ import scala.concurrent.ExecutionContext
 class RegisterEndpoints(val redditConfig: RedditConfig)(
     implicit executionContext: ExecutionContext,
     actorSystem: ActorSystem
-) extends HasRoutes {
+) extends HasRoutes
+    with TwirlSupport {
   import akka.http.scaladsl.server.Directives._
   import com.softwaremill.session.SessionDirectives._
   import com.softwaremill.session.SessionOptions._
@@ -30,7 +32,7 @@ class RegisterEndpoints(val redditConfig: RedditConfig)(
   val redditExceptionHandler = ExceptionHandler {
     case t: RedditAuthenticationException ⇒
       actorSystem.log.error(t, "Unable to authenticate via reddit")
-      complete(HttpResponse(StatusCodes.Unauthorized, entity = s"Unable to authenticate via Reddit: ${t.message}"))
+      complete(StatusCodes.Unauthorized, html.registerError.render(s"Unable to authenticate via Reddit: ${t.message}"))
   }
 
   /**
@@ -82,8 +84,7 @@ class RegisterEndpoints(val redditConfig: RedditConfig)(
               _.map { username ⇒
                 complete(s"$username / $code / $state / $session")
               // TODO store user name in session
-              // TODO show page with password creation form
-              // TODO password creation form should then create user entry + log user in + clear session
+              // TODO redirect to page with password creation form
               }.getOrElse {
                 failWith(RedditAuthenticationException("Failed to lookup username"))
               }
@@ -108,16 +109,19 @@ class RegisterEndpoints(val redditConfig: RedditConfig)(
 
   val routes: Route =
     (get & pathEndOrSingleSlash) {
-      complete("register") // TODO: show a page with a link to say 'register with Reddit'
-    } ~ (get & pathPrefix("initialise")) {
       startRedditOauthFlow
-    } ~ (pathPrefix("callback") & pathEndOrSingleSlash & get) { // Handles redirects from Reddit after authorization
+    } ~ (get & pathPrefix("callback") & pathEndOrSingleSlash) { // Handles redirects from Reddit after authorization
       handleRedditCallback
     } ~ (pathPrefix("finalise") & pathEndOrSingleSlash) { // TODO: this is the 'register' page with form fields
+
+      // TODO must have a valid session with user name stored in it
+      // TODO session should probably be encrypted for this to be secure...
+      // TODO password creation form should then create user entry + log user in + clear session
       get {
-        complete("finalise")
+        complete(html.register.render())
       } ~ post {
-        complete("finalise submit") // TODO: this is the 'register' page with form fields
+        // TODO process data and only rerender if there was an error
+        complete(html.register.render())
       }
     }
 }

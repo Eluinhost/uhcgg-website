@@ -99,21 +99,27 @@ class RegisterEndpoints(val redditConfig: RedditConfig)(
       }
     }
 
+  val finaliseRoutes: Route =
+    requiredSession(oneOff, usingCookies) { session: Map[String, String] ⇒
+      session.get("username") match {
+        case Some(username) ⇒
+          // TODO check if username is already registered
+          get {
+            complete(html.register.render(username))
+          } ~ post {
+            complete(html.register.render(username)) // TODO: handle data and redirect after creation
+          }
+        case None ⇒
+          redirect("register", StatusCodes.TemporaryRedirect) // redirect to start of the flow, we have no username in session
+      }
+    }
+
   val routes: Route =
     (get & pathEndOrSingleSlash) {
       startRedditOauthFlow
     } ~ (get & pathPrefix("callback") & pathEndOrSingleSlash) { // Handles redirects from Reddit after authorization
       handleRedditCallback
-    } ~ (pathPrefix("finalise") & pathEndOrSingleSlash) { // TODO: this is the 'register' page with form fields
-
-      // TODO must have a valid session with user name stored in it
-      // TODO session should probably be encrypted for this to be secure...
-      // TODO password creation form should then create user entry + log user in + clear session
-      get {
-        complete(html.register.render())
-      } ~ post {
-        // TODO process data and only rerender if there was an error
-        complete(html.register.render())
-      }
+    } ~ ((get | post) & pathPrefix("finalise") & pathEndOrSingleSlash) {
+      finaliseRoutes
     }
 }

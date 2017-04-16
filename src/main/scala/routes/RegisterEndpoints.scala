@@ -20,7 +20,7 @@ class RegisterEndpoints(val redditConfig: RedditConfig)(
   import com.softwaremill.session.SessionDirectives._
   import com.softwaremill.session.SessionOptions._
 
-  implicit val sessionManager = new SessionManager[String](SessionConfig.fromConfig())
+  implicit val sessionManager = new SessionManager[Map[String, String]](SessionConfig.fromConfig())
 
   val redditAuthenticationApi = new RedditAuthenticationApiConsumer(redditConfig)
   val redditSecuredApi        = new RedditSecuredApiConsumer(redditConfig)
@@ -39,11 +39,11 @@ class RegisterEndpoints(val redditConfig: RedditConfig)(
     * Sets the session to be a random state and then redirects off to reddit for authorization
     */
   def startRedditOauthFlow: Route = {
-    val session = UUID.randomUUID().toString
+    val state = UUID.randomUUID().toString
 
-    setSession(oneOff, usingCookies, session) {
+    setSession(oneOff, usingCookies, Map("state" → state)) {
       redirect(
-        s"https://www.reddit.com/api/v1/authorize?client_id=${redditConfig.clientId}&response_type=code&state=$session&redirect_uri=${redditConfig.redirectUri}&duration=temporary&scope=identity",
+        s"https://www.reddit.com/api/v1/authorize?client_id=${redditConfig.clientId}&response_type=code&state=$state&redirect_uri=${redditConfig.redirectUri}&duration=temporary&scope=identity",
         StatusCodes.TemporaryRedirect
       )
     }
@@ -54,7 +54,7 @@ class RegisterEndpoints(val redditConfig: RedditConfig)(
     */
   def handleRedditCallback: Route =
     // Get the data from the session and immediately invalidate it
-    requiredSession(oneOff, usingCookies) { session: String ⇒
+    requiredSession(oneOff, usingCookies) { session: Map[String, String] ⇒
       invalidateSession(oneOff, usingCookies) {
 
         // Handle RedditAuthenticationExceptions that happen under this route
@@ -69,27 +69,26 @@ class RegisterEndpoints(val redditConfig: RedditConfig)(
           val process = parameters('code, 'state) { (code: String, state: String) ⇒
             actorSystem.log.debug(s"Handling redirect from reddit. code:$code state:$state session:$session")
 
-            // Validate the state sent to reddit matches what was in the session
-            if (state != session) {
-              return failWith(RedditAuthenticationException("State Mismatch"))
+            // Check state matches what is in the session
+            session.get("state") match {
+              case Some(stored) if state == stored ⇒
+                // Look up username
+                val usernameFuture = for {
+                  accessToken ← redditAuthenticationApi.getAccessToken(authCode = code)
+                  username    ← redditSecuredApi.getUsername(accessToken)
+                } yield username
+
+                onComplete(usernameFuture) {
+                  _.map { username ⇒
+                    complete(s"$username / $code / $state / $session")
+                  // TODO store user name in session
+                  // TODO redirect to page with password creation form
+                  }.getOrElse {
+                    failWith(RedditAuthenticationException("Failed to lookup username"))
+                  }
+                }
+              case _ ⇒ failWith(RedditAuthenticationException("Invalid state"))
             }
-
-            // Look up username
-            val usernameFuture = for {
-              accessToken ← redditAuthenticationApi.getAccessToken(authCode = code)
-              username    ← redditSecuredApi.getUsername(accessToken)
-            } yield username
-
-            onComplete(usernameFuture) {
-              _.map { username ⇒
-                complete(s"$username / $code / $state / $session")
-              // TODO store user name in session
-              // TODO redirect to page with password creation form
-              }.getOrElse {
-                failWith(RedditAuthenticationException("Failed to lookup username"))
-              }
-            }
-
           }
 
           // If neither match show error for no data in request

@@ -80,9 +80,9 @@ class RegisterEndpoints(val redditConfig: RedditConfig)(
 
                 onComplete(usernameFuture) {
                   _.map { username ⇒
-                    complete(s"$username / $code / $state / $session")
-                  // TODO store user name in session
-                  // TODO redirect to page with password creation form
+                    setSession(oneOff, usingCookies, Map("username" → username)) {
+                      redirect("register/finalise", StatusCodes.TemporaryRedirect)
+                    }
                   }.getOrElse {
                     failWith(RedditAuthenticationException("Failed to lookup username"))
                   }
@@ -97,13 +97,6 @@ class RegisterEndpoints(val redditConfig: RedditConfig)(
           errors ~ process ~ fallback
         }
       }
-    }
-
-  val redditOauth: Route =
-    (pathEndOrSingleSlash & get) {
-      startRedditOauthFlow
-    } ~ (pathPrefix("redirect") & pathEndOrSingleSlash & get) {
-      handleRedditCallback
     }
 
   val routes: Route =

@@ -25,11 +25,14 @@ object Main extends App with Config with CorsSupport with HasRoutes {
   val registrationRoutes  = new RegisterEndpoints(redditConfig)
   val documentationRotues = new SwaggerDocumentationEndpoints()
 
-  override val routes = corsHandler(
-    pathPrefix("api")(apiRoutes.routes) ~
-      pathPrefix("register")(registrationRoutes.routes) ~
-      documentationRotues.routes
-  )
+  override val routes =
+    pathPrefix("resources") {
+      getFromResourceDirectory("build")
+    } ~ corsHandler {
+      pathPrefix("api")(apiRoutes.routes) ~
+        pathPrefix("register")(registrationRoutes.routes) ~
+        documentationRotues.routes
+    }
 
   Http().bindAndHandle(routes, httpHost, httpPort)
 }

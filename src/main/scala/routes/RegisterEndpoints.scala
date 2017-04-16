@@ -11,10 +11,11 @@ import reddit.{RedditAuthenticationApiConsumer, RedditAuthenticationException, R
 
 import scala.concurrent.ExecutionContext
 
-class RegisterEndpoints(val redditConfig: RedditConfig)(
-    implicit executionContext: ExecutionContext,
-    actorSystem: ActorSystem
-) extends HasRoutes
+class RegisterEndpoints(
+    val redditConfig: RedditConfig
+  )(implicit executionContext: ExecutionContext,
+    actorSystem: ActorSystem)
+    extends HasRoutes
     with TwirlSupport {
   import akka.http.scaladsl.server.Directives._
   import com.softwaremill.session.SessionDirectives._
@@ -105,9 +106,9 @@ class RegisterEndpoints(val redditConfig: RedditConfig)(
         case Some(username) ⇒
           // TODO check if username is already registered
           get {
-            complete(html.register.render(username))
+            complete(html.react("register"))
           } ~ (post & parameters("password", "email")) { (password: String, email: String) ⇒
-            complete(html.register.render(username)) // TODO: handle data and redirect after creation
+            complete(StatusCodes.NotImplemented, "todo")
           }
         case None ⇒
           redirect("/register", StatusCodes.TemporaryRedirect) // redirect to start of the flow, we have no username in session

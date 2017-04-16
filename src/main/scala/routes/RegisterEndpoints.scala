@@ -81,7 +81,7 @@ class RegisterEndpoints(val redditConfig: RedditConfig)(
                 onComplete(usernameFuture) {
                   _.map { username ⇒
                     setSession(oneOff, usingCookies, Map("username" → username)) {
-                      redirect("register/finalise", StatusCodes.TemporaryRedirect)
+                      redirect("/register/finalise", StatusCodes.TemporaryRedirect)
                     }
                   }.getOrElse {
                     failWith(RedditAuthenticationException("Failed to lookup username"))
@@ -106,11 +106,11 @@ class RegisterEndpoints(val redditConfig: RedditConfig)(
           // TODO check if username is already registered
           get {
             complete(html.register.render(username))
-          } ~ post {
+          } ~ (post & parameters("password", "email")) { (password: String, email: String) ⇒
             complete(html.register.render(username)) // TODO: handle data and redirect after creation
           }
         case None ⇒
-          redirect("register", StatusCodes.TemporaryRedirect) // redirect to start of the flow, we have no username in session
+          redirect("/register", StatusCodes.TemporaryRedirect) // redirect to start of the flow, we have no username in session
       }
     }
 

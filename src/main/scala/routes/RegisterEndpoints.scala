@@ -3,23 +3,31 @@ package routes
 import java.util.UUID
 
 import akka.actor.ActorSystem
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.{ExceptionHandler, Route}
 import akkahttptwirl.TwirlSupport
 import com.softwaremill.session.{SessionConfig, SessionManager}
 import reddit.{RedditAuthenticationApiConsumer, RedditAuthenticationException, RedditConfig, RedditSecuredApiConsumer}
+import spray.json.DefaultJsonProtocol
 
 import scala.concurrent.ExecutionContext
+
+case class RegisterRequest(email: String, password: String, confirm: String)
 
 class RegisterEndpoints(
     val redditConfig: RedditConfig
   )(implicit executionContext: ExecutionContext,
     actorSystem: ActorSystem)
     extends HasRoutes
-    with TwirlSupport {
+    with TwirlSupport
+    with SprayJsonSupport
+    with DefaultJsonProtocol {
   import akka.http.scaladsl.server.Directives._
   import com.softwaremill.session.SessionDirectives._
   import com.softwaremill.session.SessionOptions._
+
+  implicit val registerRequestParser = jsonFormat3(RegisterRequest)
 
   implicit val sessionManager = new SessionManager[Map[String, String]](SessionConfig.fromConfig())
 
@@ -106,8 +114,13 @@ class RegisterEndpoints(
         case Some(username) ⇒
           // TODO check if username is already registered
           get {
-            complete(html.react("register"))
-          } ~ (post & parameters("password", "email")) { (password: String, email: String) ⇒
+            logRequest("register form") {
+              complete(html.react("register"))
+            }
+          } ~ (post & entity(as[RegisterRequest])) { request ⇒
+            // TODO check password + confirm match
+            // TODO check username not already claimed
+            // TODO create new user entry
             complete(StatusCodes.NotImplemented, "todo")
           }
         case None ⇒

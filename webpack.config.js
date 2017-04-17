@@ -60,7 +60,7 @@ module.exports = function(env) {
         },
         plugins: [
             new ExtractTextPlugin({
-                filename: 'app.bundle.css',
+                filename: '[name].bundle.css',
                 disable: false,
                 allChunks: true
             }),

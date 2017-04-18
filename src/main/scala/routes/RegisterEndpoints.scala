@@ -9,7 +9,7 @@ import akka.http.scaladsl.server.{ExceptionHandler, Route}
 import akkahttptwirl.TwirlSupport
 import com.softwaremill.session.{SessionConfig, SessionManager}
 import reddit.{RedditAuthenticationApiConsumer, RedditAuthenticationException, RedditConfig, RedditSecuredApiConsumer}
-import spray.json.DefaultJsonProtocol
+import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 
 import scala.concurrent.ExecutionContext
 
@@ -27,7 +27,7 @@ class RegisterEndpoints(
   import com.softwaremill.session.SessionDirectives._
   import com.softwaremill.session.SessionOptions._
 
-  implicit val registerRequestParser = jsonFormat3(RegisterRequest)
+  implicit val registerRequestParser: RootJsonFormat[RegisterRequest] = jsonFormat3(RegisterRequest)
 
   implicit val sessionManager = new SessionManager[Map[String, String]](SessionConfig.fromConfig())
 
@@ -112,16 +112,19 @@ class RegisterEndpoints(
     requiredSession(oneOff, usingCookies) { session: Map[String, String] ⇒
       session.get("username") match {
         case Some(username) ⇒
-          // TODO check if username is already registered
+          // TODO check if username is already registered (both get & post)
           get {
-            logRequest("register form") {
-              complete(html.react("register"))
-            }
-          } ~ (post & entity(as[RegisterRequest])) { request ⇒
-            // TODO check password + confirm match
-            // TODO check username not already claimed
-            // TODO create new user entry
-            complete(StatusCodes.NotImplemented, "todo")
+            complete(html.react("register"))
+          } ~ (post & entity(as[RegisterRequest])) {
+            case RegisterRequest(_, password, confirm) if password != confirm ⇒
+              complete(StatusCodes.BadRequest, "Passwords do not match")
+            case RegisterRequest(_, password, _) if password.length == 0 ⇒ // TODO real password rules
+              complete(StatusCodes.BadRequest, "Password does not match password rules")
+            case RegisterRequest(email, _, _) if email.length == 0 ⇒ // TODO real email rules
+              complete(StatusCodes.BadRequest, "Invalid email")
+            case RegisterRequest(email, password, confirm) ⇒
+              complete(s"$email $password $confirm")
+            // TODO create user entry
           }
         case None ⇒
           redirect("/register", StatusCodes.TemporaryRedirect) // redirect to start of the flow, we have no username in session

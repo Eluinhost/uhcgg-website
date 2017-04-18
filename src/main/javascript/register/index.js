@@ -1,4 +1,5 @@
 import 'antd/dist/antd.css'
+import '../../css/styles.css'
 
 import ReactDOM from 'react-dom';
 
@@ -8,7 +9,7 @@ const { Content, Footer, Sider } = Layout;
 import { RegisterForm } from './RegisterForm'
 
 ReactDOM.render(
-    <Layout>
+    <Layout style={{minHeight: '100%'}}>
         <Content style={{ padding: '0 50px' }}>
             <Breadcrumb style={{ margin: '12px 0' }}>
                 <Breadcrumb.Item>Home</Breadcrumb.Item>

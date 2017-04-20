@@ -13,7 +13,31 @@ import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 
 import scala.concurrent.ExecutionContext
 
-case class RegisterRequest(email: String, password: String, confirm: String)
+case class RegisterRequest(email: String, password: String, confirm: String) {
+  require(password == confirm, "Passwords do not match")
+  require(
+    "[a-z]+".r.findFirstIn(password).isDefined,
+    "Password does not contain at least 1 lower case character"
+  )
+  require(
+    "[A-Z]+".r.findFirstIn(password).isDefined,
+    "Password does not contain at least 1 upper case character"
+  )
+  require(
+    "[0-9]+".r.findFirstIn(password).isDefined,
+    "Password does not contain at least 1 digit character"
+  )
+  require(
+    "[^a-zA-Z0-9]+".r.findFirstIn(password).isDefined,
+    "Password does not contain at least 1 special character"
+  )
+  require(
+    email.matches("HAH"),
+    "Invalid email provided"
+  )
+}
+
+case class ParameterException(message: String) extends Exception(message)
 
 class RegisterEndpoints(
     val redditConfig: RedditConfig
@@ -115,16 +139,8 @@ class RegisterEndpoints(
           // TODO check if username is already registered (both get & post)
           get {
             complete(html.react("register"))
-          } ~ (post & entity(as[RegisterRequest])) {
-            case RegisterRequest(_, password, confirm) if password != confirm ⇒
-              complete(StatusCodes.BadRequest, "Passwords do not match")
-            case RegisterRequest(_, password, _) if password.length == 0 ⇒ // TODO real password rules
-              complete(StatusCodes.BadRequest, "Password does not match password rules")
-            case RegisterRequest(email, _, _) if email.length == 0 ⇒ // TODO real email rules
-              complete(StatusCodes.BadRequest, "Invalid email")
-            case RegisterRequest(email, password, confirm) ⇒
-              complete(s"$email $password $confirm")
-            // TODO create user entry
+          } ~ (post & entity(as[RegisterRequest])) { request ⇒
+            complete(s"$request")
           }
         case None ⇒
           redirect("/register", StatusCodes.TemporaryRedirect) // redirect to start of the flow, we have no username in session

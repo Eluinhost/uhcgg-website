@@ -14,28 +14,32 @@ import validation.Emails
 
 import scala.concurrent.ExecutionContext
 
-case class RegisterRequest(email: String, password: String, confirm: String) {
-  require(password == confirm, "Passwords do not match")
-  require(
-    "[a-z]+".r.findFirstIn(password).isDefined,
-    "Password does not contain at least 1 lower case character"
-  )
-  require(
-    "[A-Z]+".r.findFirstIn(password).isDefined,
-    "Password does not contain at least 1 upper case character"
-  )
-  require(
-    "[0-9]+".r.findFirstIn(password).isDefined,
-    "Password does not contain at least 1 digit character"
-  )
-  require(
-    "[^a-zA-Z0-9]+".r.findFirstIn(password).isDefined,
-    "Password does not contain at least 1 special character"
-  )
-  require(
-    Emails.isValid(email),
-    "Invalid email provided"
-  )
+object RegistrationProtocol extends DefaultJsonProtocol {
+  case class RegisterRequest(email: String, password: String, confirm: String) {
+    require(password == confirm, "Passwords do not match")
+    require(
+      "[a-z]+".r.findFirstIn(password).isDefined,
+      "Password does not contain at least 1 lower case character"
+    )
+    require(
+      "[A-Z]+".r.findFirstIn(password).isDefined,
+      "Password does not contain at least 1 upper case character"
+    )
+    require(
+      "[0-9]+".r.findFirstIn(password).isDefined,
+      "Password does not contain at least 1 digit character"
+    )
+    require(
+      "[^a-zA-Z0-9]+".r.findFirstIn(password).isDefined,
+      "Password does not contain at least 1 special character"
+    )
+    require(
+      Emails.isValid(email),
+      "Invalid email provided"
+    )
+  }
+
+  implicit val registerRequestParser: RootJsonFormat[RegisterRequest] = jsonFormat3(RegisterRequest)
 }
 
 case class ParameterException(message: String) extends Exception(message)
@@ -46,13 +50,11 @@ class RegisterEndpoints(
     actorSystem: ActorSystem)
     extends HasRoutes
     with TwirlSupport
-    with SprayJsonSupport
-    with DefaultJsonProtocol {
+    with SprayJsonSupport {
   import akka.http.scaladsl.server.Directives._
   import com.softwaremill.session.SessionDirectives._
   import com.softwaremill.session.SessionOptions._
-
-  implicit val registerRequestParser: RootJsonFormat[RegisterRequest] = jsonFormat3(RegisterRequest)
+  import RegistrationProtocol._
 
   implicit val sessionManager = new SessionManager[Map[String, String]](SessionConfig.fromConfig())
 

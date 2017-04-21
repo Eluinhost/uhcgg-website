@@ -1,9 +1,11 @@
 package reddit
 
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 
-object RedditApiJsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
+object RedditApiProtocol extends DefaultJsonProtocol {
+  case class MeResponse(name: String)
+  case class AccessTokenResponse(access_token: String, token_type: String, expires_in: Int, scope: String)
+
   implicit val accessTokenResponseFormat: RootJsonFormat[AccessTokenResponse] = jsonFormat4(AccessTokenResponse)
   implicit val meResponseFormat: RootJsonFormat[MeResponse]                   = jsonFormat1(MeResponse)
 }

@@ -10,6 +10,7 @@ import akkahttptwirl.TwirlSupport
 import com.softwaremill.session.{SessionConfig, SessionManager}
 import reddit.{RedditAuthenticationApiConsumer, RedditAuthenticationException, RedditConfig, RedditSecuredApiConsumer}
 import spray.json.{DefaultJsonProtocol, RootJsonFormat}
+import validation.Emails
 
 import scala.concurrent.ExecutionContext
 
@@ -32,7 +33,7 @@ case class RegisterRequest(email: String, password: String, confirm: String) {
     "Password does not contain at least 1 special character"
   )
   require(
-    email.matches("HAH"),
+    Emails.isValid(email),
     "Invalid email provided"
   )
 }

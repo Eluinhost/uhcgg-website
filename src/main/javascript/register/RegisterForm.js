@@ -13,11 +13,10 @@ class RegisterFormComponent extends React.Component {
         },
     };
 
-    emailRules = [{
-        type: 'email',
-        required: true,
-        message: 'Please input a valid email address'
-    }];
+    emailRules = [
+        { required: true, message: 'An email must be provided' },
+        { pattern: /^^[a-zA-Z0-9\.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/, message: 'Invalid email provided' }
+    ];
 
     passwordRules = [
         { required: true, message: 'Please input your chosen password' },

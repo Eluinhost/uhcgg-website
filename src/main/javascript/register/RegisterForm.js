@@ -24,6 +24,7 @@ class RegisterFormComponent extends React.Component {
         { pattern: /[A-Z]+/, message: 'Must contain at least 1 upper case character'},
         { pattern: /[0-9]+/, message: 'Must contain at least 1 digit'},
         { pattern: /[^a-zA-Z0-9]+/, message: 'Must contain at least 1 special character'},
+        { min: 8, message: 'Must contain at least 8 characters'}
     ];
 
     repeatPasswordRules = [

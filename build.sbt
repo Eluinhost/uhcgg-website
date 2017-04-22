@@ -19,5 +19,7 @@ libraryDependencies ++= Seq(
   "com.zaxxer"                         % "HikariCP"              % "2.4.5",
   "com.softwaremill.akka-http-session" %% "core"                 % "0.4.0",
   "com.typesafe.akka"                  %% "akka-http-spray-json" % "10.0.4",
-  "btomala"                            %% "akka-http-twirl"      % "1.2.0"
+  "btomala"                            %% "akka-http-twirl"      % "1.2.0",
+  "org.tpolecat"                       %% "doobie-core"          % "0.4.1",
+  "org.tpolecat"                       %% "doobie-hikari"        % "0.4.1"
 )

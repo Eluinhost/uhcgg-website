@@ -3,7 +3,7 @@ import akka.event.{Logging, LoggingAdapter}
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import routes.{ApiRoutes, HasRoutes, RegisterEndpoints, SwaggerDocumentationEndpoints}
-import services.{DatabaseService, MigrationsService}
+import services.{DatabaseService, MigrationsService, UserService}
 
 import scala.concurrent.ExecutionContext
 
@@ -20,9 +20,10 @@ object Main extends App with Config with CorsSupport with HasRoutes {
   migrations.migrate()
 
   val databaseService = new DatabaseService(jdbcUrl, dbUser, dbPassword)
+  val userService     = new UserService()
 
   val apiRoutes           = new ApiRoutes()
-  val registrationRoutes  = new RegisterEndpoints(redditConfig)
+  val registrationRoutes  = new RegisterEndpoints(redditConfig, databaseService, userService)
   val documentationRotues = new SwaggerDocumentationEndpoints()
 
   override val routes =

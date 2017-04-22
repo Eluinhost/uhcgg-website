@@ -9,10 +9,12 @@ import akka.http.scaladsl.server.{ExceptionHandler, Route}
 import akkahttptwirl.TwirlSupport
 import com.softwaremill.session.{SessionConfig, SessionManager}
 import reddit.{RedditAuthenticationApiConsumer, RedditAuthenticationException, RedditConfig, RedditSecuredApiConsumer}
+import services.{DatabaseService, UserService}
 import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 import validation.Emails
 
 import scala.concurrent.ExecutionContext
+import scala.util.Success
 
 object RegistrationProtocol extends DefaultJsonProtocol {
   case class RegisterRequest(email: String, password: String, confirm: String) {
@@ -45,16 +47,18 @@ object RegistrationProtocol extends DefaultJsonProtocol {
 case class ParameterException(message: String) extends Exception(message)
 
 class RegisterEndpoints(
-    val redditConfig: RedditConfig
+    val redditConfig: RedditConfig,
+    val databaseService: DatabaseService,
+    val userService: UserService
   )(implicit executionContext: ExecutionContext,
     actorSystem: ActorSystem)
     extends HasRoutes
     with TwirlSupport
     with SprayJsonSupport {
+  import RegistrationProtocol._
   import akka.http.scaladsl.server.Directives._
   import com.softwaremill.session.SessionDirectives._
   import com.softwaremill.session.SessionOptions._
-  import RegistrationProtocol._
 
   implicit val sessionManager = new SessionManager[Map[String, String]](SessionConfig.fromConfig())
 
@@ -139,11 +143,15 @@ class RegisterEndpoints(
     requiredSession(oneOff, usingCookies) { session: Map[String, String] ⇒
       session.get("username") match {
         case Some(username) ⇒
-          // TODO check if username is already registered (both get & post)
-          get {
-            complete(html.react("register"))
-          } ~ (post & entity(as[RegisterRequest])) { request ⇒
-            complete(s"$request")
+          onComplete(databaseService.run(userService.isUsernameInUse(username))) {
+            case Success(false) ⇒
+              get {
+                complete(html.react("register"))
+              } ~ (post & entity(as[RegisterRequest])) { request ⇒
+                complete(s"$request")
+              }
+            case _ ⇒
+              failWith(RedditAuthenticationException("Username already in use"))
           }
         case None ⇒
           redirect("/register", StatusCodes.TemporaryRedirect) // redirect to start of the flow, we have no username in session

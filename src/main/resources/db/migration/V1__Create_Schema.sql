@@ -15,6 +15,15 @@ CREATE TABLE users (
   created TIMESTAMPTZ NOT NULL
 );
 
+CREATE TABLE bans (
+  id BIGSERIAL NOT NULL CONSTRAINT "PK__bans" PRIMARY KEY,
+  userId UUID NOT NULL CONSTRAINT "FK__bans__users__userId" REFERENCES users(id),
+  author UUID NOT NULL CONSTRAINT "FK__bans__users__author" REFERENCES users(id),
+  reason TEXT NOT NULL,
+  created TIMESTAMPTZ NOT NULL,
+  expires TIMESTAMPTZ NOT NULL
+);
+
 CREATE TABLE user_roles (
   userId UUID NOT NULL CONSTRAINT "FK__user_roles__users__userId" REFERENCES users(id),
   roleId INT NOT NULL CONSTRAINT "FK__user_roles__roles__roleId" REFERENCES roles(id)

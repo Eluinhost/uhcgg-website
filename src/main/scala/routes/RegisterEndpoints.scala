@@ -36,6 +36,10 @@ object RegistrationProtocol extends DefaultJsonProtocol {
       "Password does not contain at least 1 special character"
     )
     require(
+      password.length >= 8,
+      "Password must contain at least 8 characters"
+    )
+    require(
       Emails.isValid(email),
       "Invalid email provided"
     )
@@ -78,7 +82,7 @@ class RegisterEndpoints(
   /**
     * Sets the session to be a random state and then redirects off to reddit for authorization
     */
-  def startRedditOauthFlow: Route = {
+  val startRedditOauthFlow: Route = (get & pathEndOrSingleSlash) {
     val state = UUID.randomUUID().toString
 
     setSession(oneOff, usingCookies, Map("state" → state)) {
@@ -92,7 +96,7 @@ class RegisterEndpoints(
   /**
     * Route that Reddit redirects users to after authorization
     */
-  def handleRedditCallback: Route =
+  val handleRedditCallback: Route = (get & path("callback")) {
     // Get the data from the session and immediately invalidate it
     requiredSession(oneOff, usingCookies) { session: Map[String, String] ⇒
       invalidateSession(oneOff, usingCookies) {
@@ -138,32 +142,37 @@ class RegisterEndpoints(
         }
       }
     }
+  }
 
-  val finaliseRoutes: Route =
+  val finaliseForm: Route = (get & path("complete")) {
     requiredSession(oneOff, usingCookies) { session: Map[String, String] ⇒
       session.get("username") match {
         case Some(username) ⇒
           onComplete(databaseService.run(userService.isUsernameInUse(username))) {
-            case Success(false) ⇒
-              get {
-                complete(html.react("register"))
-              } ~ (post & entity(as[RegisterRequest])) { request ⇒
-                complete(s"$request")
-              }
+            case Success(false) ⇒ // Username not in use
+              complete(html.react("register"))
             case _ ⇒
-              failWith(RedditAuthenticationException("Username already in use"))
+              complete(html.registerError("Username is already registered")) // TODO login automatically instead?
           }
-        case None ⇒
+        case _ ⇒
           redirect("/register", StatusCodes.TemporaryRedirect) // redirect to start of the flow, we have no username in session
       }
     }
+  }
 
-  val routes: Route =
-    (get & pathEndOrSingleSlash) {
-      startRedditOauthFlow
-    } ~ (get & pathPrefix("callback") & pathEndOrSingleSlash) { // Handles redirects from Reddit after authorization
-      handleRedditCallback
-    } ~ ((get | post) & pathPrefix("finalise") & pathEndOrSingleSlash) {
-      finaliseRoutes
+  val finaliseFormSubmit: Route = (post & path("complete") & entity(as[RegisterRequest])) { request ⇒
+    requiredSession(oneOff, usingCookies) { session: Map[String, String] ⇒
+      session.get("username") match {
+        case Some(username) ⇒
+          // TODO insert new row
+          complete(s"$request $username")
+        case _ ⇒
+          complete(StatusCodes.Unauthorized)
+      }
     }
+  }
+
+  val routes: Route = pathPrefix("/register") {
+    startRedditOauthFlow ~ handleRedditCallback ~ finaliseForm ~ finaliseFormSubmit
+  }
 }

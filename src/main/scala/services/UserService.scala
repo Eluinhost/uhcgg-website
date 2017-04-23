@@ -5,6 +5,7 @@ import java.util.UUID
 class UserService {
   import doobie.imports._
   import doobie.postgres.imports._
+  import com.github.t3hnar.bcrypt._
 
   def isUsernameInUse(username: String): ConnectionIO[Boolean] =
     sql"SELECT COUNT(*) AS COUNT FROM users WHERE username = $username"
@@ -14,7 +15,7 @@ class UserService {
       .map(_ > 0)
 
   def createUser(username: String, email: String, password: String): ConnectionIO[UUID] =
-    sql"INSERT INTO users (username, email, password) VALUES ($username, $email, $password)" // TODO hashing
+    sql"INSERT INTO users (username, email, password) VALUES ($username, $email, ${password.bcrypt})" // TODO hashing
       .asInstanceOf[Fragment]
       .update
       .withUniqueGeneratedKeys("id")

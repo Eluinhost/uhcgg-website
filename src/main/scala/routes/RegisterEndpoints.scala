@@ -5,16 +5,16 @@ import java.util.UUID
 import akka.actor.ActorSystem
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.{ExceptionHandler, Route}
+import akka.http.scaladsl.server.Route
 import akkahttptwirl.TwirlSupport
 import com.softwaremill.session.{SessionConfig, SessionManager}
-import reddit.{RedditAuthenticationApiConsumer, RedditAuthenticationException, RedditConfig, RedditSecuredApiConsumer}
+import reddit.{RedditAuthenticationApiConsumer, RedditConfig, RedditSecuredApiConsumer}
 import services.{DatabaseService, UserService}
 import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 import validation.Emails
 
 import scala.concurrent.ExecutionContext
-import scala.util.Success
+import scala.util.{Failure, Success}
 
 object RegistrationProtocol extends DefaultJsonProtocol {
   case class RegisterRequest(email: String, password: String, confirm: String) {
@@ -70,16 +70,6 @@ class RegisterEndpoints(
   val redditSecuredApi        = new RedditSecuredApiConsumer(redditConfig)
 
   /**
-    * Handles RedditAuthenticationExceptions and sends an UNAUTHORIZED message in place
-    * TODO page styles
-    */
-  val redditExceptionHandler = ExceptionHandler {
-    case t: RedditAuthenticationException ⇒
-      actorSystem.log.error(t, "Unable to authenticate via reddit")
-      complete(StatusCodes.Unauthorized, html.registerError.render(s"Unable to authenticate via Reddit: ${t.message}"))
-  }
-
-  /**
     * Sets the session to be a random state and then redirects off to reddit for authorization
     */
   val startRedditOauthFlow: Route = (get & pathEndOrSingleSlash) {
@@ -93,6 +83,34 @@ class RegisterEndpoints(
     }
   }
 
+  def callbackFailure(message: String): Route = complete {
+    actorSystem.log.error(s"Unable to authenticate via reddit: $message")
+    StatusCodes.Unauthorized → html.registerError(s"Unable to authenticate via Reddit: $message").toString
+  }
+
+  def callback(session: Map[String, String]): Route = parameters('code, 'state) { (code: String, state: String) ⇒
+    session
+      .get("state")
+      .filter(_ == state)
+      .map[Route] { _ ⇒
+        // Look up username
+        val usernameFuture = for {
+          accessToken ← redditAuthenticationApi.getAccessToken(authCode = code)
+          username    ← redditSecuredApi.getUsername(accessToken)
+        } yield username
+
+        onComplete(usernameFuture) {
+          case Success(username) ⇒
+            setSession(oneOff, usingCookies, Map("username" → username)) {
+              redirect("/register/complete", StatusCodes.TemporaryRedirect)
+            }
+          case Failure(_) ⇒
+            callbackFailure("Failed to lookup username")
+        }
+      }
+      .getOrElse[Route](callbackFailure("Failed to lookup username"))
+  }
+
   /**
     * Route that Reddit redirects users to after authorization
     */
@@ -100,46 +118,12 @@ class RegisterEndpoints(
     // Get the data from the session and immediately invalidate it
     requiredSession(oneOff, usingCookies) { session: Map[String, String] ⇒
       invalidateSession(oneOff, usingCookies) {
-
-        // Handle RedditAuthenticationExceptions that happen under this route
-        handleExceptions(redditExceptionHandler) {
-
-          // If an error sent back, reject
-          val errors = parameter('error) { error ⇒
-            failWith(RedditAuthenticationException(message = error))
-          }
-
-          // Valid is code/state combo sent back
-          val process = parameters('code, 'state) { (code: String, state: String) ⇒
-            actorSystem.log.debug(s"Handling redirect from reddit. code:$code state:$state session:$session")
-
-            // Check state matches what is in the session
-            session.get("state") match {
-              case Some(stored) if state == stored ⇒
-                // Look up username
-                val usernameFuture = for {
-                  accessToken ← redditAuthenticationApi.getAccessToken(authCode = code)
-                  username    ← redditSecuredApi.getUsername(accessToken)
-                } yield username
-
-                onComplete(usernameFuture) {
-                  _.map { username ⇒
-                    setSession(oneOff, usingCookies, Map("username" → username)) {
-                      redirect("/register/finalise", StatusCodes.TemporaryRedirect)
-                    }
-                  }.getOrElse {
-                    failWith(RedditAuthenticationException("Failed to lookup username"))
-                  }
-                }
-              case _ ⇒ failWith(RedditAuthenticationException("Invalid state"))
-            }
-          }
-
-          // If neither match show error for no data in request
-          val fallback = failWith(RedditAuthenticationException("No provided data"))
-
-          errors ~ process ~ fallback
-        }
+        // check error paramter first
+        parameter('error)(callbackFailure) ~
+          // actual callback
+          callback(session) ~
+          // fallback when code/state/error are not provided
+          callbackFailure("No data provided")
       }
     }
   }
@@ -172,7 +156,7 @@ class RegisterEndpoints(
     }
   }
 
-  val routes: Route = pathPrefix("/register") {
+  val routes: Route = pathPrefix("register") {
     startRedditOauthFlow ~ handleRedditCallback ~ finaliseForm ~ finaliseFormSubmit
   }
 }

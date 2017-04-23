@@ -31,7 +31,7 @@ object Main extends App with Config with CorsSupport with HasRoutes {
       getFromResourceDirectory("build")
     } ~ corsHandler {
       pathPrefix("api")(apiRoutes.routes) ~
-        pathPrefix("register")(registrationRoutes.routes) ~
+        registrationRoutes.routes ~
         documentationRotues.routes
     }
 

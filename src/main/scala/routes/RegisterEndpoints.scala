@@ -17,8 +17,7 @@ import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
 object RegistrationProtocol extends DefaultJsonProtocol {
-  case class RegisterRequest(email: String, password: String, confirm: String) {
-    require(password == confirm, "Passwords do not match")
+  case class RegisterRequest(email: String, password: String) {
     require(
       "[a-z]+".r.findFirstIn(password).isDefined,
       "Password does not contain at least 1 lower case character"
@@ -45,7 +44,7 @@ object RegistrationProtocol extends DefaultJsonProtocol {
     )
   }
 
-  implicit val registerRequestParser: RootJsonFormat[RegisterRequest] = jsonFormat3(RegisterRequest)
+  implicit val registerRequestParser: RootJsonFormat[RegisterRequest] = jsonFormat2(RegisterRequest)
 }
 
 case class ParameterException(message: String) extends Exception(message)

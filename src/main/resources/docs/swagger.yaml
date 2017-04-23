@@ -30,15 +30,12 @@ paths:
 definitions:
   RegisterRequest:
     type: "object"
-    required: ["email", "password", "confirm"]
+    required: ["email", "password"]
     properties:
       email:
         type: "string"
       password:
         type: "string"
-      confirm:
-        type: "string"
     example:
       email: "example@example.com"
       password: "hunter2"
-      confirm: "hunter2"

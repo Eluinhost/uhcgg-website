@@ -9,10 +9,11 @@ CREATE TABLE roles (
 );
 
 CREATE TABLE users (
-  id       UUID        NOT NULL CONSTRAINT "PK__users" PRIMARY KEY,
+  id       UUID        NOT NULL CONSTRAINT "PK__users" PRIMARY KEY DEFAULT uuid.uuid_generate_v4(),
   username TEXT        NOT NULL CONSTRAINT "UQ__users__username" UNIQUE,
   email    TEXT        NOT NULL,
-  created  TIMESTAMPTZ NOT NULL
+  password TEXT        NOT NULL,
+  created  TIMESTAMPTZ NOT NULL                                    DEFAULT NOW()
 );
 
 CREATE TABLE bans (
@@ -123,8 +124,10 @@ INSERT INTO regions (id, short, long) VALUES
 
 INSERT INTO roles (id, name, permissions) VALUES
   (1, 'default', '{"login", "scenario.create", "scenario.edit.own", "scenario.delete.own", "accounts.edit.own"}'),
-  (2, 'host', '{"network.create", "network.edit.own", "network.delete.own", "network.hosts.add.own", "network.hosts.remove.own", "network.owners.add.own", "network.owners.remove.own", "network.servers.add.own", "network.servers.remove.own", "servers.create", "servers.edit.own", "servers.delete.own", "matches.create", "matches.edit.own", "matches.delete.own"}'),
-  (3, 'mod', '{"network.edit", "network.delete", "network.hosts.add", "network.hosts.remove", "network.owners.add", "network.owners.remove", "network.servers.add", "network.servers.remove", "servers.edit", "servers.delete", "matches.edit", "matches.delete", "accounts.edit", "accounts.ban", "accounts.roles", "scenario.edit", "scenario.delete"}'),
+  (2, 'host',
+   '{"network.create", "network.edit.own", "network.delete.own", "network.hosts.add.own", "network.hosts.remove.own", "network.owners.add.own", "network.owners.remove.own", "network.servers.add.own", "network.servers.remove.own", "servers.create", "servers.edit.own", "servers.delete.own", "matches.create", "matches.edit.own", "matches.delete.own"}'),
+  (3, 'mod',
+   '{"network.edit", "network.delete", "network.hosts.add", "network.hosts.remove", "network.owners.add", "network.owners.remove", "network.servers.add", "network.servers.remove", "servers.edit", "servers.delete", "matches.edit", "matches.delete", "accounts.edit", "accounts.ban", "accounts.roles", "scenario.edit", "scenario.delete"}'),
   (4, 'admin', '{"versions", "styles"}');
 
 INSERT INTO styles (id, shortName, fullName, requiresSize, description) VALUES

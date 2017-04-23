@@ -20,5 +20,6 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka"                  %% "akka-http-spray-json" % "10.0.4",
   "btomala"                            %% "akka-http-twirl"      % "1.2.0",
   "org.tpolecat"                       %% "doobie-core"          % "0.4.1",
-  "org.tpolecat"                       %% "doobie-hikari"        % "0.4.1"
+  "org.tpolecat"                       %% "doobie-hikari"        % "0.4.1",
+  "org.tpolecat"                       %% "doobie-postgres"      % "0.4.1"
 )

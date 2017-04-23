@@ -148,8 +148,12 @@ class RegisterEndpoints(
     requiredSession(oneOff, usingCookies) { session: Map[String, String] ⇒
       session.get("username") match {
         case Some(username) ⇒
-          // TODO insert new row
-          complete(s"$request $username")
+          onComplete(databaseService.run(userService.createUser(username, request.email, request.password))) {
+            case Success(_) ⇒
+              complete(StatusCodes.Created)
+            case Failure(_) ⇒
+              complete(StatusCodes.InternalServerError)
+          }
         case _ ⇒
           complete(StatusCodes.Unauthorized)
       }

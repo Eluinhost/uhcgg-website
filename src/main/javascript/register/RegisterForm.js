@@ -43,7 +43,7 @@ class RegisterFormComponent extends React.Component {
             if (!err) {
                 console.log('Received values of form: ', values);
 
-                fetch('/register/finalise', {
+                fetch('/register/complete', {
                     method: 'POST',
                     body: JSON.stringify(values),
                     credentials: 'same-origin',

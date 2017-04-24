@@ -21,12 +21,12 @@ class ApiRoutes(
   val registerRoutes = new RegisterEndpoints(redditConfig, db, userService)
 
   val v1: Route = pathPrefix("v1") {
-    registerRoutes.routes
+    complete(StatusCodes.NotFound)
   }
 
   val docs = new SwaggerDocumentationEndpoints()
 
   override val routes: Route = pathPrefix("api") {
-    v1 ~ docs.routes ~ complete(StatusCodes.NotFound) // Return 404 for anything else starting /api
+    registerRoutes.routes ~ v1 ~ docs.routes ~ complete(StatusCodes.NotFound) // Return 404 for anything else starting /api
   }
 }

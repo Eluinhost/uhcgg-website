@@ -7,8 +7,10 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
 import akkahttptwirl.TwirlSupport
-import com.softwaremill.session.{SessionConfig, SessionManager}
+import com.softwaremill.session.SessionManager
 import reddit.{RedditAuthenticationApiConsumer, RedditConfig, RedditSecuredApiConsumer}
+import security.Sessions
+import security.Sessions.{PostAuthRegistrationSession, PreAuthRegistrationSession, RegistrationSession}
 import services.{DatabaseService, UserService}
 import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 import validation.Emails
@@ -63,7 +65,7 @@ class RegisterEndpoints(
   import com.softwaremill.session.SessionDirectives._
   import com.softwaremill.session.SessionOptions._
 
-  implicit val sessionManager = new SessionManager[Map[String, String]](SessionConfig.fromConfig())
+  implicit val _: SessionManager[RegistrationSession] = Sessions.registrationSessionManager
 
   val redditAuthenticationApi = new RedditAuthenticationApiConsumer(redditConfig)
   val redditSecuredApi        = new RedditSecuredApiConsumer(redditConfig)
@@ -74,7 +76,7 @@ class RegisterEndpoints(
   val startRedditOauthFlow: Route = (get & pathEndOrSingleSlash) {
     val state = UUID.randomUUID().toString
 
-    setSession(oneOff, usingCookies, Map("state" → state)) {
+    setSession(oneOff, usingCookies, PreAuthRegistrationSession(state)) {
       redirect(
         s"https://www.reddit.com/api/v1/authorize?client_id=${redditConfig.clientId}&response_type=code&state=$state&redirect_uri=${redditConfig.redirectUri}&duration=temporary&scope=identity",
         StatusCodes.TemporaryRedirect
@@ -87,75 +89,75 @@ class RegisterEndpoints(
     StatusCodes.Unauthorized → html.registerError(s"Unable to authenticate via Reddit: $message").toString
   }
 
-  def callback(session: Map[String, String]): Route = parameters('code, 'state) { (code: String, state: String) ⇒
-    session
-      .get("state")
-      .filter(_ == state)
-      .map[Route] { _ ⇒
-        // Look up username
-        val usernameFuture = for {
-          accessToken ← redditAuthenticationApi.getAccessToken(authCode = code)
-          username    ← redditSecuredApi.getUsername(accessToken)
-        } yield username
+  def callback(session: PreAuthRegistrationSession): Route = parameters('code, 'state) {
+    case (_, state) if state != session.state ⇒
+      callbackFailure("Mismatched state")
+    case (code, _) ⇒
+      // Look up username
+      val usernameFuture = for {
+        accessToken ← redditAuthenticationApi.getAccessToken(authCode = code)
+        username    ← redditSecuredApi.getUsername(accessToken)
+      } yield username
 
-        onComplete(usernameFuture) {
-          case Success(username) ⇒
-            setSession(oneOff, usingCookies, Map("username" → username)) {
-              redirect("/register/complete", StatusCodes.TemporaryRedirect)
-            }
-          case Failure(_) ⇒
-            callbackFailure("Failed to lookup username")
-        }
+      onComplete(usernameFuture) {
+        case Success(username) ⇒
+          setSession(oneOff, usingCookies, PostAuthRegistrationSession(username)) {
+            redirect("/register/complete", StatusCodes.TemporaryRedirect)
+          }
+        case Failure(_) ⇒
+          callbackFailure("Failed to lookup username")
       }
-      .getOrElse[Route](callbackFailure("Failed to lookup username"))
   }
 
   /**
     * Route that Reddit redirects users to after authorization
     */
   val handleRedditCallback: Route = (get & path("callback")) {
-    // Get the data from the session and immediately invalidate it
-    requiredSession(oneOff, usingCookies) { session: Map[String, String] ⇒
-      invalidateSession(oneOff, usingCookies) {
-        // check error paramter first
-        parameter('error)(callbackFailure) ~
-          // actual callback
-          callback(session) ~
-          // fallback when code/state/error are not provided
+    // Always invalidate session after request
+    invalidateSession(oneOff, usingCookies) {
+      requiredSession(oneOff, usingCookies) {
+        case session: PreAuthRegistrationSession ⇒
+          actorSystem.log.debug("preauth")
+
+          // check error paramter first
+          parameter('error)(callbackFailure) ~
+            // actual callback
+            callback(session) ~
+            // fallback when code/state/error are not provided
+            callbackFailure("No data provided")
+        case _ ⇒
+          actorSystem.log.debug("other")
+
           callbackFailure("No data provided")
       }
     }
   }
 
   val finaliseForm: Route = (get & path("complete")) {
-    requiredSession(oneOff, usingCookies) { session: Map[String, String] ⇒
-      session.get("username") match {
-        case Some(username) ⇒
-          onComplete(databaseService.run(userService.isUsernameInUse(username))) {
-            case Success(false) ⇒ // Username not in use
-              complete(html.react("register"))
-            case _ ⇒
-              complete(html.registerError("Username is already registered")) // TODO login automatically instead?
-          }
-        case _ ⇒
-          redirect("/register", StatusCodes.TemporaryRedirect) // redirect to start of the flow, we have no username in session
-      }
+    requiredSession(oneOff, usingCookies) {
+      case PostAuthRegistrationSession(username) ⇒
+        onComplete(databaseService.run(userService.isUsernameInUse(username))) {
+          case Success(false) ⇒ // Username not in use
+            complete(html.react("register"))
+          case _ ⇒
+            complete(html.registerError("Username is already registered")) // TODO login automatically instead?
+        }
+      case _ ⇒
+        redirect("/register", StatusCodes.TemporaryRedirect) // redirect to start of the flow, we have no username in session
     }
   }
 
   val finaliseFormSubmit: Route = (post & path("complete") & entity(as[RegisterRequest])) { request ⇒
-    requiredSession(oneOff, usingCookies) { session: Map[String, String] ⇒
-      session.get("username") match {
-        case Some(username) ⇒
-          onComplete(databaseService.run(userService.createUser(username, request.email, request.password))) {
-            case Success(_) ⇒
-              complete(StatusCodes.Created)
-            case Failure(_) ⇒
-              complete(StatusCodes.InternalServerError)
-          }
-        case _ ⇒
-          complete(StatusCodes.Unauthorized)
-      }
+    requiredSession(oneOff, usingCookies) {
+      case PostAuthRegistrationSession(username) ⇒
+        onComplete(databaseService.run(userService.createUser(username, request.email, request.password))) {
+          case Success(_) ⇒
+            complete(StatusCodes.Created)
+          case Failure(_) ⇒
+            complete(StatusCodes.InternalServerError)
+        }
+      case _ ⇒
+        complete(StatusCodes.Unauthorized)
     }
   }
 

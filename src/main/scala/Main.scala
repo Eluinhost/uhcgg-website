@@ -1,13 +1,15 @@
 import akka.actor.ActorSystem
 import akka.event.{Logging, LoggingAdapter}
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
-import routes.{ApiRoutes, HasRoutes, RegisterEndpoints, SwaggerDocumentationEndpoints}
-import services.{DatabaseService, MigrationsService, UserService}
+import akkahttptwirl.TwirlSupport
+import routes.{ApiRoutes, HasRoutes}
+import services.{DatabaseService, MigrationsService}
 
 import scala.concurrent.ExecutionContext
 
-object Main extends App with Config with CorsSupport with HasRoutes {
+object Main extends App with Config with CorsSupport with HasRoutes with TwirlSupport {
   import akka.http.scaladsl.server.Directives._
 
   implicit val actorSystem                     = ActorSystem()
@@ -20,20 +22,22 @@ object Main extends App with Config with CorsSupport with HasRoutes {
   migrations.migrate()
 
   val databaseService = new DatabaseService(jdbcUrl, dbUser, dbPassword)
-  val userService     = new UserService()
 
-  val apiRoutes           = new ApiRoutes()
-  val registrationRoutes  = new RegisterEndpoints(redditConfig, databaseService, userService)
-  val documentationRotues = new SwaggerDocumentationEndpoints()
+  val apiRoutes = new ApiRoutes(redditConfig, databaseService)
+
+  val resourcesRoute: Route = pathPrefix("resources") {
+    getFromResourceDirectory("build")
+  }
 
   override val routes =
-    pathPrefix("resources") {
-      getFromResourceDirectory("build")
-    } ~ corsHandler {
-      pathPrefix("api")(apiRoutes.routes) ~
-        registrationRoutes.routes ~
-        documentationRotues.routes
-    }
+    // check for resources first
+    resourcesRoute ~
+      // check for api endpoint
+      apiRoutes.routes ~
+      // All other routes get passed to frontend to handle
+      complete {
+        html.react("app")
+      }
 
   Http().bindAndHandle(routes, httpHost, httpPort)
 }

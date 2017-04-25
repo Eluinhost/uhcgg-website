@@ -1,5 +1,6 @@
 package routes
 
+import java.net.URLEncoder
 import java.util.UUID
 
 import akka.actor.ActorSystem
@@ -84,28 +85,34 @@ class RegisterEndpoints(
     }
   }
 
-  def callbackFailure(message: String): Route = complete {
-    actorSystem.log.error(s"Unable to authenticate via reddit: $message")
-    StatusCodes.Unauthorized → html.registerError(s"Unable to authenticate via Reddit: $message").toString
+  val redirectToFrontend: Route = redirect("/register", StatusCodes.TemporaryRedirect)
+
+  def redirectToFrontend(error: String): Route = pass {
+    val message = s"Unable to authenticate via Reddit: $error"
+    redirect(s"/register/error?message=${URLEncoder.encode(message, "utf-8")}", StatusCodes.TemporaryRedirect)
   }
 
   def callback(session: PreAuthRegistrationSession): Route = parameters('code, 'state) {
     case (_, state) if state != session.state ⇒
-      callbackFailure("Mismatched state")
+      redirectToFrontend(error = "Mismatched state")
     case (code, _) ⇒
       // Look up username
       val usernameFuture = for {
         accessToken ← redditAuthenticationApi.getAccessToken(authCode = code)
         username    ← redditSecuredApi.getUsername(accessToken)
-      } yield username
+        inUse       ← databaseService.run(userService.isUsernameInUse(username))
+      } yield (username, inUse)
 
       onComplete(usernameFuture) {
-        case Success(username) ⇒
+        case Success((_, inUse)) if inUse ⇒
+          redirectToFrontend(error = "Username is already in use")
+        case Success((username, _)) ⇒
+          // Set username in session and redirect to the frontend for finalisation
           setSession(oneOff, usingCookies, PostAuthRegistrationSession(username)) {
-            redirect("/register/complete", StatusCodes.TemporaryRedirect)
+            redirectToFrontend
           }
         case Failure(_) ⇒
-          callbackFailure("Failed to lookup username")
+          redirectToFrontend(error = "Failed to lookup username")
       }
   }
 
@@ -117,37 +124,19 @@ class RegisterEndpoints(
     invalidateSession(oneOff, usingCookies) {
       requiredSession(oneOff, usingCookies) {
         case session: PreAuthRegistrationSession ⇒
-          actorSystem.log.debug("preauth")
-
           // check error paramter first
-          parameter('error)(callbackFailure) ~
+          parameter('error)(error ⇒ redirectToFrontend(error)) ~
             // actual callback
             callback(session) ~
             // fallback when code/state/error are not provided
-            callbackFailure("No data provided")
+            redirectToFrontend("No data provided")
         case _ ⇒
-          actorSystem.log.debug("other")
-
-          callbackFailure("No data provided")
+          redirectToFrontend("No data provided")
       }
     }
   }
 
-  val finaliseForm: Route = (get & path("complete")) {
-    requiredSession(oneOff, usingCookies) {
-      case PostAuthRegistrationSession(username) ⇒
-        onComplete(databaseService.run(userService.isUsernameInUse(username))) {
-          case Success(false) ⇒ // Username not in use
-            complete(html.react("register"))
-          case _ ⇒
-            complete(html.registerError("Username is already registered")) // TODO login automatically instead?
-        }
-      case _ ⇒
-        redirect("/register", StatusCodes.TemporaryRedirect) // redirect to start of the flow, we have no username in session
-    }
-  }
-
-  val finaliseFormSubmit: Route = (post & path("complete") & entity(as[RegisterRequest])) { request ⇒
+  val registerFormSubmit: Route = (post & pathEndOrSingleSlash & entity(as[RegisterRequest])) { request ⇒
     requiredSession(oneOff, usingCookies) {
       case PostAuthRegistrationSession(username) ⇒
         onComplete(databaseService.run(userService.createUser(username, request.email, request.password))) {
@@ -162,6 +151,6 @@ class RegisterEndpoints(
   }
 
   val routes: Route = pathPrefix("register") {
-    startRedditOauthFlow ~ handleRedditCallback ~ finaliseForm ~ finaliseFormSubmit
+    startRedditOauthFlow ~ handleRedditCallback ~ registerFormSubmit
   }
 }

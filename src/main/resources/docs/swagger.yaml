@@ -11,7 +11,7 @@ produces: [ "application/json" ]
 consumes: [ "application/json" ]
 
 paths:
-  /api/v1/register:
+  /api/register:
     post:
       summary: "Complete a registration"
       description: "Must have a valid session after Reddit OAuth"

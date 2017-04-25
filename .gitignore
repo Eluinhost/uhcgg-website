@@ -14,5 +14,5 @@ dist
 /.settings
 /src/main/resources/application.conf
 /log
-/src/main/resources/build
+/build
 node_modules

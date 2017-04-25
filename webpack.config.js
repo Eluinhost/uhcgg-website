@@ -4,7 +4,7 @@ const webpack = require('webpack');
 const { map } = require('lodash');
 const fs = require('fs');
 
-const outputBase = path.resolve(__dirname, 'src/main/resources/build');
+const outputBase = path.resolve(__dirname, 'build');
 const appBase = path.resolve(__dirname, 'src', 'main', 'javascript');
 
 const entry = fs

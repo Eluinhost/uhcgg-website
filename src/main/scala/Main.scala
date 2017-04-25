@@ -26,7 +26,7 @@ object Main extends App with Config with CorsSupport with HasRoutes with TwirlSu
   val apiRoutes = new ApiRoutes(redditConfig, databaseService)
 
   val resourcesRoute: Route = pathPrefix("resources") {
-    getFromResourceDirectory("build")
+    getFromDirectory("build")
   }
 
   override val routes =

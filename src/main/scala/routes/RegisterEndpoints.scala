@@ -89,7 +89,7 @@ class RegisterEndpoints(
 
   def redirectToFrontend(error: String): Route = pass {
     val message = s"Unable to authenticate via Reddit: $error"
-    redirect(s"/register/error?message=${URLEncoder.encode(message, "utf-8")}", StatusCodes.TemporaryRedirect)
+    redirect(s"/register/error#${URLEncoder.encode(message, "utf-8")}", StatusCodes.TemporaryRedirect)
   }
 
   def callback(session: PreAuthRegistrationSession): Route = parameters('code, 'state) {

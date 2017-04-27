@@ -3,7 +3,7 @@ import '../../css/styles.css'
 
 import ReactDOM from 'react-dom';
 import { pure } from 'recompose';
-import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Link, Switch } from 'react-router-dom';
 import { Layout, Menu, Breadcrumb } from 'antd';
 const { Content, Footer, Sider } = Layout;
 
@@ -18,6 +18,10 @@ const Register = pure(() => <div>
 </div>);
 
 const Home = pure(() => <h1>HOME</h1>);
+
+const RegisterError = pure(({ location: { hash }}) =>
+    <h1>Error: {hash ? decodeURIComponent(hash.substring(1)) : 'Unknown error' }</h1>
+);
 
 const App = pure(() => <Router>
     <Layout style={{minHeight: '100%'}}>
@@ -41,13 +45,16 @@ const App = pure(() => <Router>
                 </Sider>
                 <Content style={{ padding: '0 24px', minHeight: 280, textAlign: 'center' }}>
 
-                    <Route exact path="/" component={Home} />
-                    <Route path="/register" component={Register} />
+                    <Switch>
+                        <Route exact path="/" component={Home} />
+                        <Route path="/register/error" component={RegisterError} />
+                        <Route path="/register" component={Register} />
+                    </Switch>
                 </Content>
             </Layout>
         </Content>
         <Footer style={{ textAlign: 'center' }}>
-            uhc.gg ©2016 Created by Eluinhost
+            uhc.gg ©2016 Created by Eluinhosts
         </Footer>
     </Layout>
 </Router>);

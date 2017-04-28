@@ -4,6 +4,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
 import reddit.RedditConfig
+import security.CorsSupport
 import services.{DatabaseService, UserService}
 
 import scala.concurrent.ExecutionContext
@@ -13,7 +14,8 @@ class ApiRoutes(
     db: DatabaseService
   )(implicit actorSystem: ActorSystem,
     ec: ExecutionContext)
-    extends HasRoutes {
+    extends HasRoutes
+    with CorsSupport {
   import akka.http.scaladsl.server.Directives._
 
   val userService = new UserService()
@@ -27,6 +29,8 @@ class ApiRoutes(
   val docs = new SwaggerDocumentationEndpoints()
 
   override val routes: Route = pathPrefix("api") {
-    registerRoutes.routes ~ v1 ~ docs.routes ~ complete(StatusCodes.NotFound) // Return 404 for anything else starting /api
+    corsHandler {
+      registerRoutes.routes ~ v1 ~ docs.routes ~ complete(StatusCodes.NotFound) // Return 404 for anything else starting /api
+    }
   }
 }

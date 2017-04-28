@@ -9,7 +9,7 @@ import services.{DatabaseService, MigrationsService}
 
 import scala.concurrent.ExecutionContext
 
-object Main extends App with Config with CorsSupport with HasRoutes with TwirlSupport {
+object Main extends App with Config with HasRoutes with TwirlSupport {
   import akka.http.scaladsl.server.Directives._
 
   implicit val actorSystem                     = ActorSystem()

@@ -7,14 +7,14 @@ import { BrowserRouter as Router, Route, Link, Switch } from 'react-router-dom';
 import { Layout, Menu, Breadcrumb } from 'antd';
 const { Content, Footer, Sider } = Layout;
 
-import { RegisterForm } from '../register/RegisterForm';
+import { RegisterForm } from './RegisterForm';
 
-const Register = pure(() => <div>
+const Register = pure(({ username, location: { hash }}) => <div>
     <h1>Final Step!</h1>
     <p style={{fontSize: '120%', marginBottom: 30}}>
         To create your account please provide your chosen email address and password.
     </p>
-    <RegisterForm />
+    <RegisterForm username={decodeURIComponent(hash.substring(1)) /* TODO redireect if none in hash? */ } />
 </div>);
 
 const Home = pure(() => <h1>HOME</h1>);

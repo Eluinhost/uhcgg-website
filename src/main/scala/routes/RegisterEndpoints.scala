@@ -85,16 +85,16 @@ class RegisterEndpoints(
     }
   }
 
-  val redirectToFrontend: Route = redirect("/register", StatusCodes.TemporaryRedirect)
+  def redirectToFrontend(username: String): Route = redirect(s"/register#${URLEncoder.encode(username, "utf-8")}", StatusCodes.TemporaryRedirect)
 
-  def redirectToFrontend(error: String): Route = pass {
+  def redirectToFrontendWithError(error: String): Route = pass {
     val message = s"Unable to authenticate via Reddit: $error"
     redirect(s"/register/error#${URLEncoder.encode(message, "utf-8")}", StatusCodes.TemporaryRedirect)
   }
 
   def callback(session: PreAuthRegistrationSession): Route = parameters('code, 'state) {
     case (_, state) if state != session.state ⇒
-      redirectToFrontend(error = "Mismatched state")
+      redirectToFrontendWithError("Mismatched state")
     case (code, _) ⇒
       // Look up username
       val usernameFuture = for {
@@ -105,14 +105,14 @@ class RegisterEndpoints(
 
       onComplete(usernameFuture) {
         case Success((_, inUse)) if inUse ⇒
-          redirectToFrontend(error = "Username is already in use")
+          redirectToFrontendWithError("Username is already in use")
         case Success((username, _)) ⇒
           // Set username in session and redirect to the frontend for finalisation
           setSession(oneOff, usingCookies, PostAuthRegistrationSession(username)) {
-            redirectToFrontend
+            redirectToFrontend(username)
           }
         case Failure(_) ⇒
-          redirectToFrontend(error = "Failed to lookup username")
+          redirectToFrontendWithError("Failed to lookup username")
       }
   }
 
@@ -125,14 +125,14 @@ class RegisterEndpoints(
       optionalSession(oneOff, usingCookies) {
         case Some(session: PreAuthRegistrationSession) ⇒
           // check error paramter first
-          parameter('error)(error ⇒ redirectToFrontend(error)) ~
+          parameter('error)(error ⇒ redirectToFrontendWithError(error)) ~
             // actual callback
             callback(session) ~
             // fallback when code/state/error are not provided
-            redirectToFrontend("No data provided")
+            redirectToFrontendWithError("No data provided")
         case _ ⇒
           // Either no session or invalid type
-          redirectToFrontend("No data provided")
+          redirectToFrontendWithError("No data provided")
       }
     }
   }
@@ -143,7 +143,8 @@ class RegisterEndpoints(
         onComplete(databaseService.run(userService.createUser(username, request.email, request.password))) {
           case Success(_) ⇒
             complete(StatusCodes.Created)
-          case Failure(_) ⇒
+          case Failure(ex) ⇒
+            actorSystem.log.error(ex, "Failed to add account")
             complete(StatusCodes.InternalServerError)
         }
       case _ ⇒

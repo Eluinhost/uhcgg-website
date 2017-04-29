@@ -58,17 +58,20 @@ class RegisterFormComponent extends React.Component {
     };
 
     render = () => <Form className="login-form" onSubmit={this.handleSubmit}>
-        <FormItem {...this.formItemLayout} hasFeedback label="Email">
+        <FormItem { ...this.formItemLayout} label="Username">
+            <Input prefix={<Icon type="user" style={{fontSize: 13}}/>} value={this.props.username} disabled={true} />
+        </FormItem>
+        <FormItem {...this.formItemLayout} label="Email">
             {this.props.form.getFieldDecorator('email', {rules: this.emailRules})(
                 <Input prefix={<Icon type="user" style={{fontSize: 13}}/>} placeholder="Email"/>
             )}
         </FormItem>
-        <FormItem {...this.formItemLayout} hasFeedback label="Password">
+        <FormItem {...this.formItemLayout} label="Password">
             {this.props.form.getFieldDecorator('password', {rules: this.passwordRules})(
                 <Input prefix={<Icon type="lock" style={{fontSize: 13}}/>} type="password" placeholder="Password"/>
             )}
         </FormItem>
-        <FormItem {...this.formItemLayout} hasFeedback label="Repeat Password">
+        <FormItem {...this.formItemLayout} label="Repeat Password">
             {this.props.form.getFieldDecorator('confirm', {rules: this.repeatPasswordRules})(
                 <Input prefix={<Icon type="lock" style={{fontSize: 13}}/>} type="password" placeholder="Repeat Password"/>
             )}

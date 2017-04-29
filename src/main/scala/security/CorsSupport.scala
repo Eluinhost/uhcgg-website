@@ -11,9 +11,9 @@ trait CorsSupport {
 
   val defaultOrigin: `Access-Control-Allow-Origin` = ConfigFactory.load().getString("cors.allowed-origin")
 
-  implicit def stringToAccessControlOrigin(s: String): `Access-Control-Allow-Origin` = {
+  implicit def stringToAccessControlOrigin(s: String): `Access-Control-Allow-Origin` = s match {
     case "*" ⇒ `Access-Control-Allow-Origin`.*
-    case _ ⇒ `Access-Control-Allow-Origin`(HttpOrigin(s))
+    case _   ⇒ `Access-Control-Allow-Origin`(HttpOrigin(s))
   }
 
   private def addAccessControlHeaders(origin: `Access-Control-Allow-Origin`): Directive0 = {

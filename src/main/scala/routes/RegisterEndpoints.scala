@@ -122,8 +122,8 @@ class RegisterEndpoints(
   val handleRedditCallback: Route = (get & path("callback")) {
     // Always invalidate session after request
     invalidateSession(oneOff, usingCookies) {
-      requiredSession(oneOff, usingCookies) {
-        case session: PreAuthRegistrationSession ⇒
+      optionalSession(oneOff, usingCookies) {
+        case Some(session: PreAuthRegistrationSession) ⇒
           // check error paramter first
           parameter('error)(error ⇒ redirectToFrontend(error)) ~
             // actual callback
@@ -131,14 +131,15 @@ class RegisterEndpoints(
             // fallback when code/state/error are not provided
             redirectToFrontend("No data provided")
         case _ ⇒
+          // Either no session or invalid type
           redirectToFrontend("No data provided")
       }
     }
   }
 
   val registerFormSubmit: Route = (post & pathEndOrSingleSlash & entity(as[RegisterRequest])) { request ⇒
-    requiredSession(oneOff, usingCookies) {
-      case PostAuthRegistrationSession(username) ⇒
+    optionalSession(oneOff, usingCookies) {
+      case Some(PostAuthRegistrationSession(username)) ⇒
         onComplete(databaseService.run(userService.createUser(username, request.email, request.password))) {
           case Success(_) ⇒
             complete(StatusCodes.Created)
@@ -146,6 +147,7 @@ class RegisterEndpoints(
             complete(StatusCodes.InternalServerError)
         }
       case _ ⇒
+        // Either no session or invalid type
         complete(StatusCodes.Unauthorized)
     }
   }

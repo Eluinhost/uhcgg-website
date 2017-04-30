@@ -1,23 +1,30 @@
-package reddit
+package helpers.reddit
 
-import akka.actor.ActorSystem
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{Authorization, BasicHttpCredentials}
 import akka.http.scaladsl.unmarshalling.Unmarshal
+import com.softwaremill.tagging.@@
+import configuration.{RedditClientIdConfig, RedditRedirectUriConfig, RedditSecretConfig}
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
 
 import scala.concurrent.Future
 
-class RedditAuthenticationApiConsumer(config: RedditConfig)(implicit system: ActorSystem)
-    extends ApiConsumer("www.reddit.com", 10)
+class RedditAuthenticationApi(
+    clientId: String @@ RedditClientIdConfig,
+    secret: String @@ RedditSecretConfig,
+    redirectUri: String @@ RedditRedirectUriConfig)
+    extends ApiConsumer("reddit-authentication-api", "www.reddit.com", 10) // TODO configure queue size
     with FailFastCirceSupport {
   import io.circe.generic.auto._
+
+  def startAuthFlowUrl(state: String) =
+    s"https://www.reddit.com/api/v1/authorize?client_id=$clientId&response_type=code&state=$state&redirect_uri=$redirectUri&duration=temporary&scope=identity"
 
   // Create the client header used when querying for access tokens
   val clientCredentialsHeader = Authorization(
     credentials = BasicHttpCredentials(
-      username = config.clientId,
-      password = config.clientSecret
+      username = clientId,
+      password = secret
     )
   )
 
@@ -30,11 +37,11 @@ class RedditAuthenticationApiConsumer(config: RedditConfig)(implicit system: Act
       entity = FormData(
         "code"         → authCode,
         "grant_type"   → "authorization_code",
-        "redirect_uri" → config.redirectUri
+        "redirect_uri" → redirectUri
       ).toEntity
     )
 
-    system.log.debug(s"Fetching access token from auth code $authCode, request $request")
+    actorSystem.log.debug(s"Fetching access token from auth code $authCode, request $request")
 
     for {
       response ← queueRequest(request)

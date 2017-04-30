@@ -3,19 +3,18 @@ package routes
 import java.net.URLEncoder
 import java.util.UUID
 
-import akka.actor.ActorSystem
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.{Directives, Route}
 import akkahttptwirl.TwirlSupport
 import com.softwaremill.session.SessionOptions.{oneOff, usingCookies}
 import com.softwaremill.session.{SessionDirectives, SessionManager}
-import configuration.Config
+import database.DatabaseService
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
+import helpers.reddit.{RedditAuthenticationApi, RedditSecuredApi}
 import io.circe.generic.AutoDerivation
-import reddit.{RedditAuthenticationApiConsumer, RedditConfig, RedditSecuredApiConsumer}
 import security.Sessions
 import security.Sessions.{PostAuthRegistrationSession, PreAuthRegistrationSession, RegistrationSession}
-import services.{DatabaseSupport, UserService}
+import services.UserHelper
 import validation.Emails
 
 import scala.concurrent.ExecutionContext.Implicits
@@ -51,33 +50,28 @@ case class RegisterRequest(email: String, password: String) {
 
 case class ParameterException(message: String) extends Exception(message)
 
-class RegisterEndpoints(userService: UserService)(implicit actorSystem: ActorSystem)
-    extends HasRoutes
+class RegisterRoute(
+    userService: UserHelper,
+    database: DatabaseService,
+    redditAuthenticationApi: RedditAuthenticationApi,
+    redditSecuredApi: RedditSecuredApi)
+    extends PartialRoute
     with TwirlSupport
     with FailFastCirceSupport
     with AutoDerivation
-    with DatabaseSupport
     with Directives
     with SessionDirectives {
 
   implicit val _: SessionManager[RegistrationSession] = Sessions.registrationSessionManager
 
-  val redditConfig: RedditConfig = Config.redditConfig
-
-  val redditAuthenticationApi = new RedditAuthenticationApiConsumer(redditConfig)(actorSystem)
-  val redditSecuredApi        = new RedditSecuredApiConsumer(redditConfig)(actorSystem)
-
   /**
-    * Sets the session to be a random state and then redirects off to reddit for authorization
+    * Sets the session to be a random state and then redirects off to helpers.reddit for authorization
     */
   val startRedditOauthFlow: Route = (get & pathEndOrSingleSlash) {
     val state = UUID.randomUUID().toString
 
     setSession(oneOff, usingCookies, PreAuthRegistrationSession(state)) {
-      redirect(
-        s"https://www.reddit.com/api/v1/authorize?client_id=${redditConfig.clientId}&response_type=code&state=$state&redirect_uri=${redditConfig.redirectUri}&duration=temporary&scope=identity",
-        StatusCodes.TemporaryRedirect
-      )
+      redirect(redditAuthenticationApi.startAuthFlowUrl(state), StatusCodes.TemporaryRedirect)
     }
   }
 
@@ -93,7 +87,7 @@ class RegisterEndpoints(userService: UserService)(implicit actorSystem: ActorSys
     for {
       accessToken ← redditAuthenticationApi.getAccessToken(authCode = code)
       username    ← redditSecuredApi.getUsername(accessToken)
-      inUse       ← runQuery(userService.isUsernameInUse(username))
+      inUse       ← database.runQuery(userService.isUsernameInUse(username))
     } yield (username, inUse)
 
   def callback(session: PreAuthRegistrationSession): Route = parameters('code, 'state) {
@@ -137,12 +131,14 @@ class RegisterEndpoints(userService: UserService)(implicit actorSystem: ActorSys
   val registerFormSubmit: Route = (post & pathEndOrSingleSlash & entity(as[RegisterRequest])) { request ⇒
     optionalSession(oneOff, usingCookies) {
       case Some(PostAuthRegistrationSession(username)) ⇒
-        onComplete(runQuery(userService.createUser(username, request.email, request.password))) {
+        onComplete(database.runQuery(userService.createUser(username, request.email, request.password))) {
           case Success(_) ⇒
             complete(StatusCodes.Created)
           case Failure(ex) ⇒
-            actorSystem.log.error(ex, "Failed to add account")
-            complete(StatusCodes.InternalServerError)
+            extractLog { logger ⇒
+              logger.error(ex, "Failed to add account")
+              complete(StatusCodes.InternalServerError)
+            }
         }
       case _ ⇒
         // Either no session or invalid type
@@ -150,7 +146,7 @@ class RegisterEndpoints(userService: UserService)(implicit actorSystem: ActorSys
     }
   }
 
-  val routes: Route = pathPrefix("register") {
+  val route: Route = pathPrefix("register") {
     startRedditOauthFlow ~ handleRedditCallback ~ registerFormSubmit
   }
 }

@@ -2,7 +2,7 @@ package services
 
 import java.util.UUID
 
-class UserService {
+class UserHelper {
   import doobie.imports._
   import doobie.postgres.imports._
   import com.github.t3hnar.bcrypt._

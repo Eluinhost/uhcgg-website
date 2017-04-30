@@ -1,15 +1,10 @@
 package routes
 
-import akka.actor.ActorSystem
 import akka.http.scaladsl.server.{Directives, Route}
 import akkahttptwirl.TwirlSupport
 
-class SwaggerDocumentationEndpoints(implicit val actorSystem: ActorSystem)
-    extends HasRoutes
-    with TwirlSupport
-    with Directives {
-
-  val routes: Route =
+class DocumentationRoute extends PartialRoute with TwirlSupport with Directives {
+  val route: Route =
     (get & pathPrefix("docs")) {
       pathEndOrSingleSlash {
         complete(html.docs.render())

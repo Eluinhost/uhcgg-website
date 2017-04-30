@@ -1,4 +1,4 @@
-package reddit
+package helpers.reddit
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
@@ -9,11 +9,12 @@ import akka.stream.{ActorMaterializer, OverflowStrategy, QueueOfferResult, Throt
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
 
-class ApiConsumer(host: String, queueSize: Int)(implicit actorSystem: ActorSystem) {
+class ApiConsumer(actorSystemName: String, host: String, queueSize: Int) {
   import scala.concurrent.duration._
 
-  implicit val ec: ExecutionContext            = scala.concurrent.ExecutionContext.Implicits.global
-  implicit val materializer: ActorMaterializer = ActorMaterializer()
+  implicit val actorSystem          = ActorSystem(actorSystemName)
+  implicit val materializer         = ActorMaterializer()
+  implicit val ec: ExecutionContext = actorSystem.dispatcher
 
   private[this] val pool = Http().cachedHostConnectionPoolHttps[Promise[HttpResponse]](host)
 
@@ -27,7 +28,7 @@ class ApiConsumer(host: String, queueSize: Int)(implicit actorSystem: ActorSyste
     }))(Keep.left)
     .run()
 
-  protected def queueRequest(request: HttpRequest): Future[HttpResponse] = {
+  def queueRequest(request: HttpRequest): Future[HttpResponse] = {
     val promise = Promise[HttpResponse]()
 
     queue

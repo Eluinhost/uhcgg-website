@@ -23,5 +23,7 @@ libraryDependencies ++= Seq(
   "org.flywaydb"                       % "flyway-core"      % "3.2.1",
   "com.zaxxer"                         % "HikariCP"         % "2.4.5",
   "ch.qos.logback"                     % "logback-classic"  % "1.1.3",
-  "io.circe"                           %% "circe-generic"   % "0.7.1"
+  "io.circe"                           %% "circe-generic"   % "0.7.1",
+  "com.softwaremill.macwire"           %% "macros"          % "2.3.0" % "provided",
+  "com.softwaremill.macwire"           %% "util"            % "2.3.0"
 )

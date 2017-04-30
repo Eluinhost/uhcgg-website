@@ -2,13 +2,11 @@ package routes
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.{Directives, Route}
 import security.CorsSupport
 import services.UserService
 
-class ApiRoutes(implicit actorSystem: ActorSystem) extends HasRoutes with CorsSupport {
-  import akka.http.scaladsl.server.Directives._
-
+class ApiRoutes(implicit actorSystem: ActorSystem) extends HasRoutes with CorsSupport with Directives {
   val userService = new UserService()
 
   val registerRoutes = new RegisterEndpoints(userService)

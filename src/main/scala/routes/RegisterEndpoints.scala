@@ -4,52 +4,49 @@ import java.net.URLEncoder
 import java.util.UUID
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.{Directives, Route}
 import akkahttptwirl.TwirlSupport
-import com.softwaremill.session.SessionManager
+import com.softwaremill.session.SessionOptions.{oneOff, usingCookies}
+import com.softwaremill.session.{SessionDirectives, SessionManager}
 import configuration.Config
+import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
+import io.circe.generic.AutoDerivation
 import reddit.{RedditAuthenticationApiConsumer, RedditConfig, RedditSecuredApiConsumer}
 import security.Sessions
 import security.Sessions.{PostAuthRegistrationSession, PreAuthRegistrationSession, RegistrationSession}
 import services.{DatabaseSupport, UserService}
-import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 import validation.Emails
 
 import scala.concurrent.ExecutionContext.Implicits
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-object RegistrationProtocol extends DefaultJsonProtocol {
-  case class RegisterRequest(email: String, password: String) {
-    require(
-      "[a-z]+".r.findFirstIn(password).isDefined,
-      "Password does not contain at least 1 lower case character"
-    )
-    require(
-      "[A-Z]+".r.findFirstIn(password).isDefined,
-      "Password does not contain at least 1 upper case character"
-    )
-    require(
-      "[0-9]+".r.findFirstIn(password).isDefined,
-      "Password does not contain at least 1 digit character"
-    )
-    require(
-      "[^a-zA-Z0-9]+".r.findFirstIn(password).isDefined,
-      "Password does not contain at least 1 special character"
-    )
-    require(
-      password.length >= 8,
-      "Password must contain at least 8 characters"
-    )
-    require(
-      Emails.isValid(email),
-      "Invalid email provided"
-    )
-  }
-
-  implicit val registerRequestParser: RootJsonFormat[RegisterRequest] = jsonFormat2(RegisterRequest)
+case class RegisterRequest(email: String, password: String) {
+  require(
+    "[a-z]+".r.findFirstIn(password).isDefined,
+    "Password does not contain at least 1 lower case character"
+  )
+  require(
+    "[A-Z]+".r.findFirstIn(password).isDefined,
+    "Password does not contain at least 1 upper case character"
+  )
+  require(
+    "[0-9]+".r.findFirstIn(password).isDefined,
+    "Password does not contain at least 1 digit character"
+  )
+  require(
+    "[^a-zA-Z0-9]+".r.findFirstIn(password).isDefined,
+    "Password does not contain at least 1 special character"
+  )
+  require(
+    password.length >= 8,
+    "Password must contain at least 8 characters"
+  )
+  require(
+    Emails.isValid(email),
+    "Invalid email provided"
+  )
 }
 
 case class ParameterException(message: String) extends Exception(message)
@@ -57,12 +54,11 @@ case class ParameterException(message: String) extends Exception(message)
 class RegisterEndpoints(userService: UserService)(implicit actorSystem: ActorSystem)
     extends HasRoutes
     with TwirlSupport
-    with SprayJsonSupport
-    with DatabaseSupport {
-  import RegistrationProtocol._
-  import akka.http.scaladsl.server.Directives._
-  import com.softwaremill.session.SessionDirectives._
-  import com.softwaremill.session.SessionOptions._
+    with FailFastCirceSupport
+    with AutoDerivation
+    with DatabaseSupport
+    with Directives
+    with SessionDirectives {
 
   implicit val _: SessionManager[RegistrationSession] = Sessions.registrationSessionManager
 
@@ -93,11 +89,12 @@ class RegisterEndpoints(userService: UserService)(implicit actorSystem: ActorSys
     redirect(s"/register/error#${URLEncoder.encode(message, "utf-8")}", StatusCodes.TemporaryRedirect)
   }
 
-  def lookupUsername(code: String)(implicit ec: ExecutionContext = Implicits.global): Future[(String, Boolean)] = for {
-    accessToken ← redditAuthenticationApi.getAccessToken(authCode = code)
-    username    ← redditSecuredApi.getUsername(accessToken)
-    inUse       ← runQuery(userService.isUsernameInUse(username))
-  } yield (username, inUse)
+  def lookupUsername(code: String)(implicit ec: ExecutionContext = Implicits.global): Future[(String, Boolean)] =
+    for {
+      accessToken ← redditAuthenticationApi.getAccessToken(authCode = code)
+      username    ← redditSecuredApi.getUsername(accessToken)
+      inUse       ← runQuery(userService.isUsernameInUse(username))
+    } yield (username, inUse)
 
   def callback(session: PreAuthRegistrationSession): Route = parameters('code, 'state) {
     case (_, state) if state != session.state ⇒

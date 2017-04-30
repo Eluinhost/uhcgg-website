@@ -16,9 +16,10 @@ trait DatabaseSupport {
   config.setPassword(Config.dbPassword)
 
   val dataSource: HikariDataSource = new HikariDataSource(config)
-  val xa: Transactor[IO]       = HikariTransactor[IO](dataSource)
+  val xa: Transactor[IO]           = HikariTransactor[IO](dataSource)
 
-  def runQuery[A](query: ConnectionIO[A]): Future[A] = Future {
-    query.transact(xa).unsafePerformIO()
-  }(Implicits.global)
+  def runQuery[A](query: ConnectionIO[A]): Future[A] =
+    Future {
+      query.transact(xa).unsafePerformIO()
+    }(Implicits.global)
 }

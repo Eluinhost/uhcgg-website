@@ -1,7 +1,7 @@
 import akka.actor.ActorSystem
 import akka.event.{Logging, LoggingAdapter}
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.{Directives, Route}
 import akka.stream.ActorMaterializer
 import akkahttptwirl.TwirlSupport
 import configuration.Config
@@ -10,8 +10,7 @@ import services.{DatabaseSupport, MigrationSupport}
 
 import scala.concurrent.ExecutionContext
 
-object Main extends App with HasRoutes with TwirlSupport with DatabaseSupport with MigrationSupport {
-  import akka.http.scaladsl.server.Directives._
+object Main extends App with HasRoutes with TwirlSupport with DatabaseSupport with MigrationSupport with Directives {
 
   implicit val actorSystem                     = ActorSystem()
   implicit val executor: ExecutionContext      = actorSystem.dispatcher

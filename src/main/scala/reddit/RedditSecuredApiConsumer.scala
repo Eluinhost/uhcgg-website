@@ -1,10 +1,11 @@
 package reddit
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
 import akka.http.scaladsl.model.{HttpMethods, HttpRequest, StatusCodes}
 import akka.http.scaladsl.unmarshalling.Unmarshal
+import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
+import io.circe.generic.AutoDerivation
 
 import scala.concurrent.Future
 
@@ -13,8 +14,8 @@ import scala.concurrent.Future
   */
 class RedditSecuredApiConsumer(config: RedditConfig)(implicit system: ActorSystem)
     extends ApiConsumer("oauth.reddit.com", 10)
-    with SprayJsonSupport {
-  import RedditApiProtocol._
+    with FailFastCirceSupport
+    with AutoDerivation {
 
   def getUsername(accessToken: String): Future[String] = {
     val request = HttpRequest(

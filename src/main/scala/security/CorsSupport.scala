@@ -1,13 +1,12 @@
 package security
 
 import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.{Directive0, Route}
+import akka.http.scaladsl.server.{Directive0, Directives, Route}
 import com.typesafe.config.ConfigFactory
 
-trait CorsSupport {
+trait CorsSupport extends Directives {
   import akka.http.scaladsl.model.HttpMethods._
   import akka.http.scaladsl.model.headers._
-  import akka.http.scaladsl.server.Directives._
 
   val defaultOrigin: `Access-Control-Allow-Origin` = ConfigFactory.load().getString("cors.allowed-origin")
 

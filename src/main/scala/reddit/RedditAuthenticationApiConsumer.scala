@@ -1,17 +1,17 @@
 package reddit
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{Authorization, BasicHttpCredentials}
 import akka.http.scaladsl.unmarshalling.Unmarshal
+import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
 
 import scala.concurrent.Future
 
 class RedditAuthenticationApiConsumer(config: RedditConfig)(implicit system: ActorSystem)
     extends ApiConsumer("www.reddit.com", 10)
-    with SprayJsonSupport {
-  import RedditApiProtocol._
+    with FailFastCirceSupport {
+  import io.circe.generic.auto._
 
   // Create the client header used when querying for access tokens
   val clientCredentialsHeader = Authorization(

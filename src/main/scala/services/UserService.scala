@@ -15,7 +15,7 @@ class UserService {
       .map(_ > 0)
 
   def createUser(username: String, email: String, password: String): ConnectionIO[UUID] =
-    sql"INSERT INTO users (username, email, password) VALUES ($username, $email, ${password.bcrypt})" // TODO hashing
+    sql"INSERT INTO users (username, email, password) VALUES ($username, $email, ${password.bcrypt})"
       .asInstanceOf[Fragment]
       .update
       .withUniqueGeneratedKeys("id")

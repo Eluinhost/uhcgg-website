@@ -3,14 +3,15 @@ package reddit
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
-import akka.stream.{ActorMaterializer, OverflowStrategy, QueueOfferResult}
 import akka.stream.scaladsl.{Keep, Sink, Source}
+import akka.stream.{ActorMaterializer, OverflowStrategy, QueueOfferResult}
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
 
-class ApiConsumer(host: String, queueSize: Int)(implicit actorSystem: ActorSystem, ec: ExecutionContext) {
-  implicit protected val materializer = ActorMaterializer()
+class ApiConsumer(host: String, queueSize: Int)(implicit actorSystem: ActorSystem) {
+  implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+  implicit val materializer: ActorMaterializer = ActorMaterializer()
 
   private[this] val pool = Http().cachedHostConnectionPoolHttps[Promise[HttpResponse]](host)
 

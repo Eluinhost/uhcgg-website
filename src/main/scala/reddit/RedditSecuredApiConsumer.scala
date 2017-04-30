@@ -6,12 +6,12 @@ import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
 import akka.http.scaladsl.model.{HttpMethods, HttpRequest, StatusCodes}
 import akka.http.scaladsl.unmarshalling.Unmarshal
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 /**
   * Makes authorized calls to reddit at oauth.reddit.com
   */
-class RedditSecuredApiConsumer(config: RedditConfig)(implicit system: ActorSystem, ec: ExecutionContext)
+class RedditSecuredApiConsumer(config: RedditConfig)(implicit system: ActorSystem)
     extends ApiConsumer("oauth.reddit.com", 10)
     with SprayJsonSupport {
   import RedditApiProtocol._

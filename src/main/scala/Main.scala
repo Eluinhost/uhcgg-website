@@ -4,12 +4,13 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import akkahttptwirl.TwirlSupport
+import configuration.Config
 import routes.{ApiRoutes, HasRoutes}
-import services.DatabaseService
+import services.{DatabaseSupport, MigrationSupport}
 
 import scala.concurrent.ExecutionContext
 
-object Main extends App with Config with HasRoutes with TwirlSupport {
+object Main extends App with HasRoutes with TwirlSupport with DatabaseSupport with MigrationSupport {
   import akka.http.scaladsl.server.Directives._
 
   implicit val actorSystem                     = ActorSystem()
@@ -17,12 +18,10 @@ object Main extends App with Config with HasRoutes with TwirlSupport {
   implicit val log: LoggingAdapter             = Logging(actorSystem, getClass)
   implicit val materializer: ActorMaterializer = ActorMaterializer()
 
-  val databaseService = new DatabaseService(jdbcUrl, dbUser, dbPassword)
-
   // Run migrations before we do anything else
-  databaseService.flyway.migrate()
+  migrations.migrate()
 
-  val apiRoutes = new ApiRoutes(redditConfig, databaseService)
+  val apiRoutes = new ApiRoutes()
 
   /**
     * Handles static assets
@@ -43,5 +42,5 @@ object Main extends App with Config with HasRoutes with TwirlSupport {
         html.react("app")
       }
 
-  Http().bindAndHandle(routes, httpHost, httpPort)
+  Http().bindAndHandle(routes, Config.httpHost, Config.httpPort)
 }

@@ -1,7 +1,9 @@
+package configuration
+
 import com.typesafe.config.ConfigFactory
 import reddit.RedditConfig
 
-trait Config {
+object Config {
   private val config         = ConfigFactory.load()
   private val httpConfig     = config.getConfig("http")
   private val databaseConfig = config.getConfig("database")

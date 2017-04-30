@@ -6,9 +6,9 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{Authorization, BasicHttpCredentials}
 import akka.http.scaladsl.unmarshalling.Unmarshal
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
-class RedditAuthenticationApiConsumer(config: RedditConfig)(implicit system: ActorSystem, ec: ExecutionContext)
+class RedditAuthenticationApiConsumer(config: RedditConfig)(implicit system: ActorSystem)
     extends ApiConsumer("www.reddit.com", 10)
     with SprayJsonSupport {
   import RedditApiProtocol._

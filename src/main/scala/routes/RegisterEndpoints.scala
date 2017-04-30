@@ -9,14 +9,16 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
 import akkahttptwirl.TwirlSupport
 import com.softwaremill.session.SessionManager
+import configuration.Config
 import reddit.{RedditAuthenticationApiConsumer, RedditConfig, RedditSecuredApiConsumer}
 import security.Sessions
 import security.Sessions.{PostAuthRegistrationSession, PreAuthRegistrationSession, RegistrationSession}
-import services.{DatabaseService, UserService}
+import services.{DatabaseSupport, UserService}
 import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 import validation.Emails
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.ExecutionContext.Implicits
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 object RegistrationProtocol extends DefaultJsonProtocol {
@@ -52,15 +54,11 @@ object RegistrationProtocol extends DefaultJsonProtocol {
 
 case class ParameterException(message: String) extends Exception(message)
 
-class RegisterEndpoints(
-    val redditConfig: RedditConfig,
-    val databaseService: DatabaseService,
-    val userService: UserService
-  )(implicit executionContext: ExecutionContext,
-    actorSystem: ActorSystem)
+class RegisterEndpoints(userService: UserService)(implicit actorSystem: ActorSystem)
     extends HasRoutes
     with TwirlSupport
-    with SprayJsonSupport {
+    with SprayJsonSupport
+    with DatabaseSupport {
   import RegistrationProtocol._
   import akka.http.scaladsl.server.Directives._
   import com.softwaremill.session.SessionDirectives._
@@ -68,8 +66,10 @@ class RegisterEndpoints(
 
   implicit val _: SessionManager[RegistrationSession] = Sessions.registrationSessionManager
 
-  val redditAuthenticationApi = new RedditAuthenticationApiConsumer(redditConfig)
-  val redditSecuredApi        = new RedditSecuredApiConsumer(redditConfig)
+  val redditConfig: RedditConfig = Config.redditConfig
+
+  val redditAuthenticationApi = new RedditAuthenticationApiConsumer(redditConfig)(actorSystem)
+  val redditSecuredApi        = new RedditSecuredApiConsumer(redditConfig)(actorSystem)
 
   /**
     * Sets the session to be a random state and then redirects off to reddit for authorization
@@ -85,25 +85,25 @@ class RegisterEndpoints(
     }
   }
 
-  def redirectToFrontend(username: String): Route = redirect(s"/register#${URLEncoder.encode(username, "utf-8")}", StatusCodes.TemporaryRedirect)
+  def redirectToFrontend(username: String): Route =
+    redirect(s"/register#${URLEncoder.encode(username, "utf-8")}", StatusCodes.TemporaryRedirect)
 
   def redirectToFrontendWithError(error: String): Route = pass {
     val message = s"Unable to authenticate via Reddit: $error"
     redirect(s"/register/error#${URLEncoder.encode(message, "utf-8")}", StatusCodes.TemporaryRedirect)
   }
 
+  def lookupUsername(code: String)(implicit ec: ExecutionContext = Implicits.global): Future[(String, Boolean)] = for {
+    accessToken ← redditAuthenticationApi.getAccessToken(authCode = code)
+    username    ← redditSecuredApi.getUsername(accessToken)
+    inUse       ← runQuery(userService.isUsernameInUse(username))
+  } yield (username, inUse)
+
   def callback(session: PreAuthRegistrationSession): Route = parameters('code, 'state) {
     case (_, state) if state != session.state ⇒
       redirectToFrontendWithError("Mismatched state")
     case (code, _) ⇒
-      // Look up username
-      val usernameFuture = for {
-        accessToken ← redditAuthenticationApi.getAccessToken(authCode = code)
-        username    ← redditSecuredApi.getUsername(accessToken)
-        inUse       ← databaseService.run(userService.isUsernameInUse(username))
-      } yield (username, inUse)
-
-      onComplete(usernameFuture) {
+      onComplete(lookupUsername(code)) {
         case Success((_, inUse)) if inUse ⇒
           redirectToFrontendWithError("Username is already in use")
         case Success((username, _)) ⇒
@@ -140,7 +140,7 @@ class RegisterEndpoints(
   val registerFormSubmit: Route = (post & pathEndOrSingleSlash & entity(as[RegisterRequest])) { request ⇒
     optionalSession(oneOff, usingCookies) {
       case Some(PostAuthRegistrationSession(username)) ⇒
-        onComplete(databaseService.run(userService.createUser(username, request.email, request.password))) {
+        onComplete(runQuery(userService.createUser(username, request.email, request.password))) {
           case Success(_) ⇒
             complete(StatusCodes.Created)
           case Failure(ex) ⇒

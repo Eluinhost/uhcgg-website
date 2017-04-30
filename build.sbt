@@ -24,5 +24,3 @@ libraryDependencies ++= Seq(
   "com.zaxxer"                         % "HikariCP"              % "2.4.5",
   "ch.qos.logback"                     % "logback-classic"       % "1.1.3"
 )
-
-watchSources := (watchSources.value --- baseDirectory.value / "src" / "main" / "resources" / "build" ** "*").get

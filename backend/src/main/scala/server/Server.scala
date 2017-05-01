@@ -9,10 +9,10 @@ import configuration.{ServerHostConfig, ServerPortConfig}
 import routes.BaseRoute
 
 import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
 class Server(baseRoute: BaseRoute, host: String @@ ServerHostConfig, port: Int @@ ServerPortConfig) {
-  import scala.concurrent.duration._
-
   implicit val system               = ActorSystem("http-actor-system")
   implicit val ec: ExecutionContext = system.dispatcher
   implicit val materializer         = ActorMaterializer()

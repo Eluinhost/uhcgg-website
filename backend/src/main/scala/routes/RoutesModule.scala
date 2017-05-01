@@ -5,7 +5,7 @@ import database.DatabaseModule
 import services.HelpersModule
 
 trait RoutesModule extends HelpersModule with DatabaseModule {
-  lazy val resourcesRoute: ResourcesRoute         = wire[ResourcesRoute]
+  lazy val resourcesRoute: AssetsRoute         = wire[AssetsRoute]
   lazy val frontendRoute: FrontendRoute           = wire[FrontendRoute]
   lazy val apiRoute: ApiRoute                     = wire[ApiRoute]
   lazy val registerRoute: RegisterRoute           = wire[RegisterRoute]

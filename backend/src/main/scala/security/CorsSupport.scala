@@ -4,10 +4,11 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.{Directive0, Directives, Route}
 import com.typesafe.config.ConfigFactory
 
-trait CorsSupport extends Directives {
-  import akka.http.scaladsl.model.HttpMethods._
-  import akka.http.scaladsl.model.headers._
+import scala.language.implicitConversions
+import akka.http.scaladsl.model.HttpMethods._
+import akka.http.scaladsl.model.headers._
 
+trait CorsSupport extends Directives {
   val defaultOrigin: `Access-Control-Allow-Origin` = ConfigFactory.load().getString("cors.allowed-origin")
 
   implicit def stringToAccessControlOrigin(s: String): `Access-Control-Allow-Origin` = s match {

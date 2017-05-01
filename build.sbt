@@ -1,29 +1,91 @@
-name := "uhcgg-mvp"
+import sbt.Keys._
+import sbt.Project.projectToRef
 
-version := "1.0"
+lazy val elideOptions = settingKey[Seq[String]]("Set limit for elidable functions")
 
-scalaVersion := "2.12.2"
+lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared"))
+  .settings(
+    name := "shared",
+    version := Settings.version,
+    scalaVersion := Settings.versions.scala,
+    scalacOptions ++= Settings.scalacOptions,
 
-resolvers += "Bartek's repo at Bintray" at "https://dl.bintray.com/btomala/maven"
+    libraryDependencies ++= Settings.sharedDependencies.value
+  )
+  .jsConfigure(_ enablePlugins ScalaJSWeb)
 
-enablePlugins(SbtTwirl)
+lazy val sharedBackend  = shared.jvm.settings(name := "sharedBackend")
+lazy val sharedFrontend = shared.js.settings(name := "sharedFrontend")
 
-libraryDependencies ++= Seq(
-  "com.typesafe.akka"                  %% "akka-http"       % "10.0.4",
-  "com.typesafe.akka"                  %% "akka-slf4j"      % "2.4.17",
-  "ch.megard"                          %% "akka-http-cors"  % "0.1.11",
-  "com.softwaremill.akka-http-session" %% "core"            % "0.4.0",
-  "de.heikoseeberger"                  %% "akka-http-circe" % "1.15.0",
-  "btomala"                            %% "akka-http-twirl" % "1.2.0",
-  "org.tpolecat"                       %% "doobie-core"     % "0.4.1",
-  "org.tpolecat"                       %% "doobie-hikari"   % "0.4.1",
-  "org.tpolecat"                       %% "doobie-postgres" % "0.4.1",
-  "com.github.t3hnar"                  %% "scala-bcrypt"    % "3.0",
-  "org.postgresql"                     % "postgresql"       % "9.4-1201-jdbc41",
-  "org.flywaydb"                       % "flyway-core"      % "3.2.1",
-  "com.zaxxer"                         % "HikariCP"         % "2.4.5",
-  "ch.qos.logback"                     % "logback-classic"  % "1.1.3",
-  "io.circe"                           %% "circe-generic"   % "0.7.1",
-  "com.softwaremill.macwire"           %% "macros"          % "2.3.0" % "provided",
-  "com.softwaremill.macwire"           %% "util"            % "2.3.0"
-)
+lazy val frontend = (project in file("frontend"))
+  .settings(
+    name := "frontend",
+    version := Settings.version,
+    scalaVersion := Settings.versions.scala,
+    scalacOptions ++= Settings.scalacOptions,
+
+    // setup scalajs + npm dependencies
+    libraryDependencies ++= Settings.frontendDependencies.value,
+    npmDependencies in Compile ++= Settings.jsDependencies.value,
+
+    // by default we do development build, no eliding
+    elideOptions := Seq(),
+    scalacOptions ++= elideOptions.value,
+
+    // RuntimeDOM is needed for tests
+    jsDependencies += RuntimeDOM % "test",
+
+    // use Scala.js provided launcher code to start the client app
+    scalaJSUseMainModuleInitializer := true,
+    scalaJSUseMainModuleInitializer in Test := false,
+
+    // use uTest framework for tests
+    testFrameworks += new TestFramework("utest.runner.Framework"),
+
+    emitSourceMaps := true
+  )
+  .enablePlugins(ScalaJSBundlerPlugin, ScalaJSWeb)
+  .dependsOn(sharedFrontend)
+
+lazy val backend = (project in file("backend"))
+  .settings(
+    name := "backend",
+    version := Settings.version,
+    scalaVersion := Settings.versions.scala,
+    scalacOptions ++= Settings.scalacOptions,
+
+    resolvers += "Bartek's repo at Bintray" at "https://dl.bintray.com/btomala/maven",
+    libraryDependencies ++= Settings.backendDependencies.value,
+
+    commands += ReleaseCmd,
+
+    // triggers scalaJSPipeline when using compile or continuous compilation
+    compile in Compile := ((compile in Compile) dependsOn scalaJSPipeline).value,
+
+    // connect to the client project
+    scalaJSProjects := Seq(frontend),
+    pipelineStages in Assets := Seq(scalaJSPipeline),
+
+    managedClasspath in Runtime += (packageBin in Assets).value,
+
+    LessKeys.compress in Assets := true,
+    WebKeys.packagePrefix in Assets := "public/"
+  )
+  .enablePlugins(SbtTwirl, JavaAppPackaging, WebScalaJSBundlerPlugin)
+//  .aggregate(frontends.map(projectToRef): _*)
+  .dependsOn(sharedBackend)
+
+// Command for building a release
+lazy val ReleaseCmd = Command.command("release") { state =>
+  "set elideOptions in client := Seq(\"-Xelide-below\", \"WARNING\")" ::
+    "frontend/clean" ::
+    "frontend/test" ::
+    "backend/clean" ::
+    "backend/test" ::
+    "backend/universal:packageBin" ::
+    "set elideOptions in frontend := Seq()" ::
+    state
+}
+
+// load backend by default
+onLoad in Global := (Command.process("project backend", _: State)) compose (onLoad in Global).value

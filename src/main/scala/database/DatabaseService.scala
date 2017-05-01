@@ -1,30 +1,33 @@
 package database
 
+import akka.actor.ActorSystem
 import com.softwaremill.tagging.@@
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
-import configuration._
+import configuration.{DatabaseConnectionStringConfig, DatabasePasswordConfig, DatabaseUsernameConfig}
 import doobie.hikari.hikaritransactor.HikariTransactor
-import doobie.imports._
 
-import scala.concurrent.ExecutionContext.Implicits
-import scala.concurrent.Future
-import scalaz.effect.IO
+import scala.concurrent.{ExecutionContext, Future}
 
 class DatabaseService(
     connectionString: String @@ DatabaseConnectionStringConfig,
     username: String @@ DatabaseUsernameConfig,
     password: String @@ DatabasePasswordConfig) {
+  import doobie.imports._
+
   private[this] val config = new HikariConfig()
 
   config.setJdbcUrl(connectionString)
   config.setUsername(username)
   config.setPassword(password)
 
-  val dataSource: HikariDataSource = new HikariDataSource(config)
-  val xa: Transactor[IO]           = HikariTransactor[IO](dataSource)
+  implicit val system               = ActorSystem("database-access")
+  implicit val ec: ExecutionContext = system.dispatcher
 
-  def runQuery[A](query: ConnectionIO[A]): Future[A] =
+  val dataSource: HikariDataSource = new HikariDataSource(config)
+  val xa: Transactor[IOLite]       = HikariTransactor[IOLite](dataSource)
+
+  def run[A](query: ConnectionIO[A]): Future[A] =
     Future {
-      query.transact(xa).unsafePerformIO()
-    }(Implicits.global)
+      query.transact(xa).unsafePerformIO
+    }(system.dispatcher)
 }

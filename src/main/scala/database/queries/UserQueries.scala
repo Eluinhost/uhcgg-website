@@ -1,11 +1,11 @@
-package services
+package database.queries
 
 import java.util.UUID
 
-class UserHelper {
+trait UserQueries {
+  import com.github.t3hnar.bcrypt._
   import doobie.imports._
   import doobie.postgres.imports._
-  import com.github.t3hnar.bcrypt._
 
   def isUsernameInUse(username: String): ConnectionIO[Boolean] =
     sql"SELECT COUNT(*) AS COUNT FROM users WHERE username = $username"

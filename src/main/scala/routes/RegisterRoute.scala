@@ -9,16 +9,14 @@ import akkahttptwirl.TwirlSupport
 import com.softwaremill.session.SessionOptions.{oneOff, usingCookies}
 import com.softwaremill.session.{SessionDirectives, SessionManager}
 import database.DatabaseService
+import database.queries.UserQueries
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
 import helpers.reddit.{RedditAuthenticationApi, RedditSecuredApi}
 import io.circe.generic.AutoDerivation
 import security.Sessions
 import security.Sessions.{PostAuthRegistrationSession, PreAuthRegistrationSession, RegistrationSession}
-import services.UserHelper
 import validation.Emails
 
-import scala.concurrent.ExecutionContext.Implicits
-import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 case class RegisterRequest(email: String, password: String) {
@@ -51,7 +49,6 @@ case class RegisterRequest(email: String, password: String) {
 case class ParameterException(message: String) extends Exception(message)
 
 class RegisterRoute(
-    userService: UserHelper,
     database: DatabaseService,
     redditAuthenticationApi: RedditAuthenticationApi,
     redditSecuredApi: RedditSecuredApi)
@@ -60,7 +57,8 @@ class RegisterRoute(
     with FailFastCirceSupport
     with AutoDerivation
     with Directives
-    with SessionDirectives {
+    with SessionDirectives
+    with UserQueries {
 
   implicit val _: SessionManager[RegistrationSession] = Sessions.registrationSessionManager
 
@@ -83,27 +81,28 @@ class RegisterRoute(
     redirect(s"/register/error#${URLEncoder.encode(message, "utf-8")}", StatusCodes.TemporaryRedirect)
   }
 
-  def lookupUsername(code: String)(implicit ec: ExecutionContext = Implicits.global): Future[(String, Boolean)] =
-    for {
-      accessToken ← redditAuthenticationApi.getAccessToken(authCode = code)
-      username    ← redditSecuredApi.getUsername(accessToken)
-      inUse       ← database.runQuery(userService.isUsernameInUse(username))
-    } yield (username, inUse)
-
   def callback(session: PreAuthRegistrationSession): Route = parameters('code, 'state) {
     case (_, state) if state != session.state ⇒
       redirectToFrontendWithError("Mismatched state")
     case (code, _) ⇒
-      onComplete(lookupUsername(code)) {
-        case Success((_, inUse)) if inUse ⇒
-          redirectToFrontendWithError("Username is already in use")
-        case Success((username, _)) ⇒
-          // Set username in session and redirect to the frontend for finalisation
-          setSession(oneOff, usingCookies, PostAuthRegistrationSession(username)) {
-            redirectToFrontend(username)
-          }
-        case Failure(_) ⇒
-          redirectToFrontendWithError("Failed to lookup username")
+      extractExecutionContext { implicit ec ⇒
+        val task = for {
+          accessToken ← redditAuthenticationApi.getAccessToken(authCode = code)
+          username    ← redditSecuredApi.getUsername(accessToken)
+          inUse       ← database.run(isUsernameInUse(username))
+        } yield (username, inUse)
+
+        onComplete(task) {
+          case Success((_, inUse)) if inUse ⇒
+            redirectToFrontendWithError("Username is already in use")
+          case Success((username, _)) ⇒
+            // Set username in session and redirect to the frontend for finalisation
+            setSession(oneOff, usingCookies, PostAuthRegistrationSession(username)) {
+              redirectToFrontend(username)
+            }
+          case Failure(_) ⇒
+            redirectToFrontendWithError("Failed to lookup username")
+        }
       }
   }
 
@@ -131,7 +130,9 @@ class RegisterRoute(
   val registerFormSubmit: Route = (post & pathEndOrSingleSlash & entity(as[RegisterRequest])) { request ⇒
     optionalSession(oneOff, usingCookies) {
       case Some(PostAuthRegistrationSession(username)) ⇒
-        onComplete(database.runQuery(userService.createUser(username, request.email, request.password))) {
+        val task = createUser(username, request.email, request.password)
+
+        onComplete(database.run(task)) {
           case Success(_) ⇒
             complete(StatusCodes.Created)
           case Failure(ex) ⇒

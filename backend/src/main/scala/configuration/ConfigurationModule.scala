@@ -1,10 +1,9 @@
 package configuration
 
 import com.typesafe.config.ConfigFactory
+import com.softwaremill.tagging._
 
 trait ConfigurationModule {
-  import com.softwaremill.tagging._
-
   private[this] val config = ConfigFactory.load()
 
   lazy val serverHostConfig: String @@ ServerHostConfig = {

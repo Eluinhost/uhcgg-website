@@ -13,15 +13,15 @@ object Settings {
   )
 
   object versions {
-    val scala          = "2.12.2"
-    val scalaDom       = "0.9.1"
-    val scalajsReact   = "1.0.0"
-    val scalaCSS       = "0.5.3"
-    val autowire       = "0.2.6"
-    val booPickle      = "1.2.5"
-    val diode          = "1.1.1"
-    val uTest          = "0.4.4"
-    val react          = "15.5.4"
+    val scala        = "2.12.2"
+    val scalaDom     = "0.9.1"
+    val scalajsReact = "1.0.0"
+    val scalaCSS     = "0.5.3"
+    val autowire     = "0.2.6"
+    val booPickle    = "1.2.5"
+    val diode        = "1.1.1"
+    val uTest        = "0.4.4"
+    val react        = "15.5.4"
   }
 
   val sharedDependencies = Def.setting(
@@ -51,7 +51,9 @@ object Settings {
       "ch.qos.logback"                     % "logback-classic"  % "1.1.3",
       "io.circe"                           %% "circe-generic"   % "0.7.1",
       "com.softwaremill.macwire"           %% "macros"          % "2.3.0" % Provided,
-      "com.softwaremill.macwire"           %% "util"            % "2.3.0"
+      "com.softwaremill.macwire"           %% "util"            % "2.3.0",
+      "org.sangria-graphql"                %% "sangria"         % "1.1.0",
+      "org.sangria-graphql"                %% "sangria-circe"   % "1.0.1"
     )
   )
 

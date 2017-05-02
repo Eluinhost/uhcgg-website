@@ -1,21 +1,12 @@
 package routes
 
 import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.{Directives, Route}
-import security.CorsSupport
+import akka.http.scaladsl.server.Route
 
-class ApiRoute(registerRoute: RegisterRoute, docsRoute: DocumentationRoute)
-    extends PartialRoute
-    with CorsSupport
-    with Directives {
-
-  val v1: Route = pathPrefix("v1") {
-    complete(StatusCodes.NotFound)
-  }
+class ApiRoute(registerRoute: RegisterRoute, docsRoute: DocumentationRoute, graphql: GraphqlRoute)
+    extends PartialRoute {
 
   override val route: Route = pathPrefix("api") {
-    corsHandler {
-      registerRoute.route ~ v1 ~ docsRoute.route ~ complete(StatusCodes.NotFound) // Return 404 for anything else starting /api
-    }
+    registerRoute.route ~ graphql.route ~ docsRoute.route ~ complete(StatusCodes.NotFound) // Return 404 for anything else starting /api
   }
 }

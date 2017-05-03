@@ -1,6 +1,7 @@
 package schema
 
 import sangria.execution.deferred.Fetcher
+import schema.context.SchemaContext
 
 object SchemaDefinition {
   import sangria.schema._
@@ -12,5 +13,5 @@ object SchemaDefinition {
     )
   )
 
-  val fetchers: List[Fetcher[GraphQlContext, _, _, _]] = UserSchemaDefinition.fetcher :: Nil
+  val fetchers: List[Fetcher[SchemaContext, _, _, _]] = UserSchemaDefinition.fetcher :: Nil
 }

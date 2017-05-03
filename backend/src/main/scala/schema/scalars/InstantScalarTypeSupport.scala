@@ -1,41 +1,19 @@
-package schema
+package schema.scalars
 
 import java.time.Instant
-import java.util.UUID
 
 import sangria.ast
-import sangria.marshalling.MarshallerCapability
 import sangria.schema.ScalarType
 import sangria.validation.ValueCoercionViolation
 
 import scala.util.Try
 
-object CustomScalars {
-  private[this] def toStringOutput[T](t: T, capabilities: Set[MarshallerCapability]) = t.toString
-
-  case object UuidCoercionViolation extends ValueCoercionViolation("UUID value expected")
-  implicit val UuidType: ScalarType[UUID] = ScalarType[UUID](
-    "UUID",
-    description = Some("A unique identifier for an object"),
-    coerceOutput = toStringOutput,
-    coerceUserInput = {
-      case s: String ⇒
-        Try { UUID.fromString(s) }.toEither.left.map(_ ⇒ UuidCoercionViolation)
-      case _ ⇒
-        Left(UuidCoercionViolation)
-    },
-    coerceInput = {
-      case ast.StringValue(s, _, _) ⇒
-        Try { UUID.fromString(s) }.toEither.left.map(_ ⇒ UuidCoercionViolation)
-      case _ ⇒
-        Left(UuidCoercionViolation)
-    }
-  )
-
+trait InstantScalarTypeSupport {
   private[this] def tryConvertLongToInstant(l: Long) =
     Try { Instant.ofEpochMilli(l) }.toEither.left.map(_ ⇒ DateCoercionViolation)
 
   case object DateCoercionViolation extends ValueCoercionViolation("Timestamp expected")
+
   implicit val DateType: ScalarType[Instant] = ScalarType[Instant](
     "Date",
     description = Some("A timestamp"),

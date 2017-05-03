@@ -18,6 +18,7 @@ import sangria.parser.QueryParser
 import sangria.renderer.SchemaRenderer
 import schema.UserSchemaDefinition.User
 import schema._
+import schema.context.{SchemaContext, RoleContext, UserContext}
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -40,7 +41,7 @@ class GraphqlRoute(database: DatabaseService)
 
   lazy val renderedSchema: String = SchemaRenderer.renderSchema(SchemaDefinition.schema)
 
-  val context = new GraphQlContext {
+  val context = new SchemaContext {
     override val users = new UserContext {
       override def getById(id: UUID): Future[Option[User]] = database.run(getUserById(id))
       override def getByIds(ids: Seq[UUID]): Future[List[User]] = ids.toList.toNel match {
@@ -71,9 +72,10 @@ class GraphqlRoute(database: DatabaseService)
             SchemaDefinition.schema,
             ast,
             userContext = context,
-            variables = InputUnmarshaller.mapVars(query.variables.flatMap(_.asObject).getOrElse(JsonObject.empty).toMap),
+            variables =
+              InputUnmarshaller.mapVars(query.variables.flatMap(_.asObject).getOrElse(JsonObject.empty).toMap),
             operationName = query.operationName,
-            deferredResolver = DeferredResolver.fetchers(SchemaDefinition.fetchers : _*)
+            deferredResolver = DeferredResolver.fetchers(SchemaDefinition.fetchers: _*)
           )
           .map(node ⇒ StatusCodes.OK → node)
           .recover {

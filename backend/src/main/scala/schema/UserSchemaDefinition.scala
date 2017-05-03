@@ -4,13 +4,14 @@ import java.time.Instant
 import java.util.UUID
 
 import sangria.execution.deferred.{Fetcher, HasId}
+import schema.context.SchemaContext
 
 import scala.concurrent.Future
 
 object UserSchemaDefinition {
   import sangria.macros.derive._
   import sangria.schema._
-  import schema.CustomScalars._
+  import schema.scalars.CustomScalars._
 
   @GraphQLName("User")
   @GraphQLDescription("A website account")
@@ -21,7 +22,7 @@ object UserSchemaDefinition {
       @GraphQLExclude password: String,
       @GraphQLDescription("The time the account was created") created: Instant)
 
-  val user: ObjectType[GraphQlContext, User] = deriveObjectType[GraphQlContext, User]()
+  val user: ObjectType[SchemaContext, User] = deriveObjectType[SchemaContext, User]()
 
   val idArg       = Argument("id", OptionInputType(UuidType), description = "ID to match")
   val usernameArg = Argument("username", OptionInputType(StringType), description = "Usernames to match")
@@ -30,11 +31,11 @@ object UserSchemaDefinition {
   val usernamesArg =
     Argument("usernames", OptionInputType(ListInputType(StringType)), description = "List of usernames to match")
 
-  val fetcher: Fetcher[GraphQlContext, User, User, UUID] = Fetcher.caching(
-    (ctx: GraphQlContext, ids: Seq[UUID]) ⇒ ctx.users.getByIds(ids)
+  val fetcher: Fetcher[SchemaContext, User, User, UUID] = Fetcher.caching(
+    (ctx: SchemaContext, ids: Seq[UUID]) ⇒ ctx.users.getByIds(ids)
   )(HasId(_.id))
 
-  val query: List[Field[GraphQlContext, Unit]] = fields(
+  val query: List[Field[SchemaContext, Unit]] = fields(
     Field(
       "user",
       OptionType(user),

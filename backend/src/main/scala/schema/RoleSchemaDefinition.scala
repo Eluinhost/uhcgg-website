@@ -1,5 +1,7 @@
 package schema
 
+import schema.context.SchemaContext
+
 object RoleSchemaDefinition {
   import sangria.macros.derive._
   import sangria.schema._
@@ -11,9 +13,9 @@ object RoleSchemaDefinition {
       @GraphQLDescription("The unique username of this role") name: String,
       @GraphQLDescription("The granted permissions for this role") permissions: List[String])
 
-  val role: ObjectType[GraphQlContext, Role] = deriveObjectType[GraphQlContext, Role]()
+  val role: ObjectType[SchemaContext, Role] = deriveObjectType[SchemaContext, Role]()
 
-  val query: List[Field[GraphQlContext, Unit]] = fields(
+  val query: List[Field[SchemaContext, Unit]] = fields(
     Field(
       "roles",
       ListType(role),

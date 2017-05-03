@@ -1,0 +1,3 @@
+package schema.scalars
+
+object CustomScalars extends InstantScalarTypeSupport with UuidScalarTypeSupport

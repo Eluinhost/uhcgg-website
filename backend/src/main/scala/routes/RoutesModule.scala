@@ -1,10 +1,11 @@
 package routes
 
 import com.softwaremill.macwire.wire
-import database.DatabaseModule
+import repositories.RepositoriesModule
+import schema.{SchemaContext, SchemaModule}
 import services.HelpersModule
 
-trait RoutesModule extends HelpersModule with DatabaseModule {
+trait RoutesModule extends HelpersModule with RepositoriesModule with SchemaModule {
   lazy val resourcesRoute: AssetsRoute            = wire[AssetsRoute]
   lazy val frontendRoute: FrontendRoute           = wire[FrontendRoute]
   lazy val apiRoute: ApiRoute                     = wire[ApiRoute]
@@ -12,4 +13,5 @@ trait RoutesModule extends HelpersModule with DatabaseModule {
   lazy val documentationRoute: DocumentationRoute = wire[DocumentationRoute]
   lazy val baseRoute: BaseRoute                   = wire[BaseRoute]
   lazy val graphqlRoute: GraphqlRoute             = wire[GraphqlRoute]
+  lazy val schemaContext: SchemaContext           = wire[SchemaContext]
 }

@@ -8,11 +8,10 @@ import akka.http.scaladsl.server.{Directives, Route}
 import akkahttptwirl.TwirlSupport
 import com.softwaremill.session.SessionOptions.{oneOff, usingCookies}
 import com.softwaremill.session.{SessionDirectives, SessionManager}
-import database.DatabaseService
-import database.queries.UserQueries
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
 import helpers.reddit.{RedditAuthenticationApi, RedditSecuredApi}
 import io.circe.generic.AutoDerivation
+import repositories.UserRepository
 import security.Sessions
 import security.Sessions.{PostAuthRegistrationSession, PreAuthRegistrationSession, RegistrationSession}
 import validation.Emails
@@ -49,7 +48,7 @@ case class RegisterRequest(email: String, password: String) {
 case class ParameterException(message: String) extends Exception(message)
 
 class RegisterRoute(
-    database: DatabaseService,
+    userRepository: UserRepository,
     redditAuthenticationApi: RedditAuthenticationApi,
     redditSecuredApi: RedditSecuredApi)
     extends PartialRoute
@@ -57,8 +56,7 @@ class RegisterRoute(
     with FailFastCirceSupport
     with AutoDerivation
     with Directives
-    with SessionDirectives
-    with UserQueries {
+    with SessionDirectives {
 
   implicit val _: SessionManager[RegistrationSession] = Sessions.registrationSessionManager
 
@@ -81,7 +79,7 @@ class RegisterRoute(
     redirect(s"/register/error#${URLEncoder.encode(message, "utf-8")}", StatusCodes.TemporaryRedirect)
   }
 
-  def callback(session: PreAuthRegistrationSession): Route = parameters('code, 'state) {
+  def callback(session: PreAuthRegistrationSession): Route = parameters('code → 'state) {
     case (_, state) if state != session.state ⇒
       redirectToFrontendWithError("Mismatched state")
     case (code, _) ⇒
@@ -89,7 +87,7 @@ class RegisterRoute(
         val task = for {
           accessToken ← redditAuthenticationApi.getAccessToken(authCode = code)
           username    ← redditSecuredApi.getUsername(accessToken)
-          inUse       ← database.run(isUsernameInUse(username))
+          inUse       ← userRepository.isUsernameInUse(username)
         } yield (username, inUse)
 
         onComplete(task) {
@@ -130,9 +128,7 @@ class RegisterRoute(
   val registerFormSubmit: Route = (post & pathEndOrSingleSlash & entity(as[RegisterRequest])) { request ⇒
     optionalSession(oneOff, usingCookies) {
       case Some(PostAuthRegistrationSession(username)) ⇒
-        val task = createUser(username, request.email, request.password)
-
-        onComplete(database.run(task)) {
+        onComplete(userRepository.createUser(username, request.email, request.password)) {
           case Success(_) ⇒
             complete(StatusCodes.Created)
           case Failure(ex) ⇒

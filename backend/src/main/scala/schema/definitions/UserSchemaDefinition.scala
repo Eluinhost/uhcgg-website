@@ -1,27 +1,17 @@
-package schema
+package schema.definitions
 
-import java.time.Instant
 import java.util.UUID
 
 import sangria.execution.deferred.{Fetcher, HasId}
-import schema.context.SchemaContext
+import sangria.macros.derive._
+import sangria.schema._
+import schema.SchemaContext
+import schema.model.User
+import schema.scalars.CustomScalars._
 
 import scala.concurrent.Future
 
-object UserSchemaDefinition {
-  import sangria.macros.derive._
-  import sangria.schema._
-  import schema.scalars.CustomScalars._
-
-  @GraphQLName("User")
-  @GraphQLDescription("A website account")
-  case class User(
-      @GraphQLDescription("The unique ID of this user") id: UUID,
-      @GraphQLDescription("The unique username of this user") username: String,
-      @GraphQLExclude email: String,
-      @GraphQLExclude password: String,
-      @GraphQLDescription("The time the account was created") created: Instant)
-
+class UserSchemaDefinition {
   val user: ObjectType[SchemaContext, User] = deriveObjectType[SchemaContext, User]()
 
   val idArg       = Argument("id", OptionInputType(UuidType), description = "ID to match")

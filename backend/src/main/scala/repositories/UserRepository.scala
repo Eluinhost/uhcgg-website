@@ -16,50 +16,35 @@ import scalaz._
 import Scalaz._
 
 object UserRepository {
+  import IdeFixes._
+
   def isUsernameInUseQuery(username: String): ConnectionIO[Boolean] =
-    sql"SELECT COUNT(*) AS COUNT FROM users WHERE username = $username"
-      .asInstanceOf[Fragment]
+    sqlize"SELECT COUNT(*) AS COUNT FROM users WHERE username = $username"
       .query[Int]
       .unique
       .map(_ > 0)
 
   def createUserReturningUuidQuery(username: String, email: String, password: String): ConnectionIO[UUID] =
-    sql"INSERT INTO users (username, email, password) VALUES ($username, $email, ${password.bcrypt})"
-      .asInstanceOf[Fragment]
-      .update
+    sqlize"INSERT INTO users (username, email, password) VALUES ($username, $email, ${password.bcrypt})".update
       .withUniqueGeneratedKeys("id")
 
+  val baseSelect = sqlize"SELECT id, username, email, password, created FROM users WHERE 1=1"
+
   def getUserByIdQuery(id: UUID): ConnectionIO[Option[User]] =
-    sql"SELECT id, username, email, password, created FROM users WHERE id = $id"
-      .asInstanceOf[Fragment]
+    (baseSelect ++ fragment" AND id = $id")
       .query[User]
       .option
 
   def getUserByUsernameQuery(name: String): ConnectionIO[Option[User]] =
-    sql"SELECT id, username, email, password, created FROM users WHERE username = $name"
-      .asInstanceOf[Fragment]
+    (baseSelect ++ fragment" AND username = $name")
       .query[User]
       .option
 
   def getUsersByIdsQuery(ids: NonEmptyList[UUID]): ConnectionIO[List[User]] =
-    (fr"""SELECT
-            id,
-            username,
-            email,
-            password,
-            created
-          FROM users
-          WHERE """.asInstanceOf[Fragment] ++ Fragments.in(fr"id".asInstanceOf[Fragment], ids)).query[User].list
+    (baseSelect ++ Fragments.in(fragment"id", ids)).query[User].list
 
   def getUsersByUsernamesQuery(usernames: NonEmptyList[String]): ConnectionIO[List[User]] =
-    (fr"""SELECT
-            id,
-            username,
-            email,
-            password,
-            created
-          FROM users
-          WHERE """.asInstanceOf[Fragment] ++ Fragments.in(fr"username".asInstanceOf[Fragment], usernames))
+    (baseSelect ++ Fragments.in(fragment"username", usernames))
       .query[User]
       .list
 }

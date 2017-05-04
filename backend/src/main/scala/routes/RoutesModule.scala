@@ -13,5 +13,4 @@ trait RoutesModule extends HelpersModule with RepositoriesModule with SchemaModu
   lazy val documentationRoute: DocumentationRoute = wire[DocumentationRoute]
   lazy val baseRoute: BaseRoute                   = wire[BaseRoute]
   lazy val graphqlRoute: GraphqlRoute             = wire[GraphqlRoute]
-  lazy val schemaContext: SchemaContext           = wire[SchemaContext]
 }

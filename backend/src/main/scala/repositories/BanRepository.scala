@@ -9,15 +9,16 @@ import schema.model.Ban
 import scala.concurrent.Future
 
 object BanRepository {
-  import IdeFixes._
   import doobie.imports._
   import doobie.postgres.imports._
 
   def getByUserIdQuery(id: UUID, showExpired: Boolean): ConnectionIO[List[Ban]] = {
-    var query = sqlize"SELECT id, userid, author, reason, created, expires FROM bans WHERE userid = $id"
+    var query =
+      sql"SELECT id, userid, author, reason, created, expires FROM bans WHERE userid = $id"
+        .asInstanceOf[Fragment]
 
     if (!showExpired)
-      query ++= fragment" AND expires > NOW()"
+      query ++= fr" AND expires > NOW()".asInstanceOf[Fragment]
 
     query.query[Ban].list
   }

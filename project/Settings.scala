@@ -45,7 +45,7 @@ object Settings {
       "org.tpolecat"                       %% "doobie-hikari"   % "0.4.1",
       "org.tpolecat"                       %% "doobie-postgres" % "0.4.1",
       "com.github.t3hnar"                  %% "scala-bcrypt"    % "3.0",
-      "org.postgresql"                     % "postgresql"       % "9.4-1201-jdbc41",
+      "org.postgresql"                     % "postgresql"       % "42.1.0",
       "org.flywaydb"                       % "flyway-core"      % "3.2.1",
       "com.zaxxer"                         % "HikariCP"         % "2.4.5",
       "ch.qos.logback"                     % "logback-classic"  % "1.1.3",
@@ -59,13 +59,13 @@ object Settings {
 
   val frontendDependencies = Def.setting(
     Seq(
-      "com.github.japgolly.scalajs-react" %%% "core"      % versions.scalajsReact,
-      "com.github.japgolly.scalajs-react" %%% "extra"     % versions.scalajsReact,
-      "com.github.japgolly.scalacss"      %%% "ext-react" % versions.scalaCSS,
+      "com.github.japgolly.scalajs-react" %%% "core"        % versions.scalajsReact,
+      "com.github.japgolly.scalajs-react" %%% "extra"       % versions.scalajsReact,
+      "com.github.japgolly.scalacss"      %%% "ext-react"   % versions.scalaCSS,
       "io.suzaku"                         %%% "diode"       % versions.diode,
       "io.suzaku"                         %%% "diode-react" % versions.diode,
-      "org.scala-js" %%% "scalajs-dom" % versions.scalaDom,
-      "com.lihaoyi"  %%% "utest"       % versions.uTest % Test
+      "org.scala-js"                      %%% "scalajs-dom" % versions.scalaDom,
+      "com.lihaoyi"                       %%% "utest"       % versions.uTest % Test
     )
   )
 

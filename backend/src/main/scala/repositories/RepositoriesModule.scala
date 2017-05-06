@@ -12,4 +12,5 @@ trait RepositoriesModule extends DatabaseModule {
   lazy val versionRepository: VersionRepository     = wire[VersionRepository]
   lazy val networkRepository: NetworkRepository     = wire[NetworkRepository]
   lazy val serverRepository: ServerRepository       = wire[ServerRepository]
+  lazy val styleRepository: StyleRepository         = wire[StyleRepository]
 }

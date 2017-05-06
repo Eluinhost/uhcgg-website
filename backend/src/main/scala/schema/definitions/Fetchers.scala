@@ -45,5 +45,9 @@ object Fetchers {
     fetchRel = (ctx: SchemaContext, ids: RelationIds[Server]) ⇒ ctx.servers.getByRelations(ids)
   )(HasId(_.id))
 
-  val fetchers = users :: bans :: roles :: userRoles :: regions :: versions :: networks :: servers :: Nil
+  val styles = Fetcher.caching(
+    fetch = (ctx: SchemaContext, ids: Seq[Int]) ⇒ ctx.styles.getByIds(ids)
+  )(HasId(_.id))
+
+  val fetchers = users :: bans :: roles :: userRoles :: regions :: versions :: networks :: servers :: styles :: Nil
 }

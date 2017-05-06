@@ -10,4 +10,5 @@ case class SchemaContext(
     regions: RegionRepository,
     versions: VersionRepository,
     networks: NetworkRepository,
-    servers: ServerRepository)
+    servers: ServerRepository,
+    styles: StyleRepository)

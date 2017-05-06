@@ -109,6 +109,8 @@ object Types {
     )
   )
 
+  lazy val StyleType: ObjectType[SchemaContext, Style] = deriveObjectType[SchemaContext, Style]()
+
   lazy val ServerType: ObjectType[SchemaContext, Server] = deriveObjectType[SchemaContext, Server](
     ReplaceField(
       "owner",

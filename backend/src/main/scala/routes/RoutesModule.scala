@@ -2,7 +2,7 @@ package routes
 
 import com.softwaremill.macwire.wire
 import repositories.RepositoriesModule
-import schema.{SchemaContext, SchemaModule}
+import schema.SchemaModule
 import services.HelpersModule
 
 trait RoutesModule extends HelpersModule with RepositoriesModule with SchemaModule {

@@ -2,12 +2,13 @@ package schema
 
 import com.softwaremill.macwire.wire
 import repositories.RepositoriesModule
-import schema.definitions.{BansQueries, RolesQueries, SchemaDefinition, UsersQueries}
+import schema.definitions._
 
 trait SchemaModule extends RepositoriesModule {
   lazy val userSchemaDefinition: UsersQueries = wire[UsersQueries]
   lazy val roleSchemaDefinition: RolesQueries = wire[RolesQueries]
   lazy val banSchemaDefinition: BansQueries   = wire[BansQueries]
+  lazy val regionQueries: RegionQueries       = wire[RegionQueries]
   lazy val schemaDefinition: SchemaDefinition = wire[SchemaDefinition]
 
   lazy val schemaContext: SchemaContext = wire[SchemaContext]

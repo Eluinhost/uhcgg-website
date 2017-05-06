@@ -5,7 +5,7 @@ import java.util.UUID
 import sangria.macros.derive.{AddFields, ReplaceField, deriveObjectType}
 import sangria.schema._
 import schema.SchemaContext
-import schema.model.{Ban, Role, User, UserRole}
+import schema.model._
 
 object Types {
   import schema.scalars.CustomScalars._
@@ -79,4 +79,6 @@ object Types {
       )
     )
   )
+
+  lazy val RegionType: ObjectType[SchemaContext, Region] = deriveObjectType[SchemaContext, Region]()
 }

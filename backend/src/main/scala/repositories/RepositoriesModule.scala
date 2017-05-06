@@ -8,4 +8,5 @@ trait RepositoriesModule extends DatabaseModule {
   lazy val roleRepository: RoleRepository           = wire[RoleRepository]
   lazy val banRepository: BanRepository             = wire[BanRepository]
   lazy val userRolesRepository: UserRolesRepository = wire[UserRolesRepository]
+  lazy val regionRepository: RegionRepository       = wire[RegionRepository]
 }

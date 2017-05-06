@@ -1,9 +1,10 @@
 package schema
 
-import repositories.{BanRepository, RoleRepository, UserRepository, UserRolesRepository}
+import repositories._
 
 case class SchemaContext(
     users: UserRepository,
     roles: RoleRepository,
     bans: BanRepository,
-    userRoles: UserRolesRepository)
+    userRoles: UserRolesRepository,
+    regions: RegionRepository)

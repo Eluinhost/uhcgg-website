@@ -98,6 +98,35 @@ object Types {
         description = Some("The owner of the network, has full control"),
         resolve = ctx ⇒ Fetchers.users.defer(ctx.value.owner)
       )
+    ),
+    AddFields(
+      Field(
+        name = "servers",
+        fieldType = ListType(ServerType),
+        description = Some("All of the servers belonging to this network"),
+        resolve = ctx ⇒ Fetchers.servers.deferRelSeq(Relations.serverByNetworkId, ctx.value.id)
+      )
+    )
+  )
+
+  lazy val ServerType: ObjectType[SchemaContext, Server] = deriveObjectType[SchemaContext, Server](
+    ReplaceField(
+      "owner",
+      Field(
+        name = "owner",
+        fieldType = UserType,
+        description = Some("The owner of this server, has control over this server"),
+        resolve = ctx ⇒ Fetchers.users.defer(ctx.value.owner)
+      )
+    ),
+    ReplaceField(
+      "networkId",
+      Field(
+        name = "network",
+        fieldType = NetworkType,
+        description = Some("The network this server belongs to"),
+        resolve = ctx ⇒ Fetchers.networks.defer(ctx.value.networkId)
+      )
     )
   )
 }

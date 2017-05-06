@@ -19,10 +19,8 @@ trait InstantScalarTypeSupport {
     description = Some("A timestamp"),
     coerceOutput = (i, _) ⇒ i.toEpochMilli,
     coerceInput = {
-      case ast.BigIntValue(i, _, _) ⇒
-        Try { Instant.ofEpochMilli(i.longValue()) }.toEither.left.map(_ ⇒ DateCoercionViolation)
-      case _ ⇒
-        Left(DateCoercionViolation)
+      case ast.BigIntValue(i, _, _) ⇒ tryConvertLongToInstant(i.longValue())
+      case _                        ⇒ Left(DateCoercionViolation)
     },
     coerceUserInput = {
       case i: Int                      ⇒ tryConvertLongToInstant(i: Long)

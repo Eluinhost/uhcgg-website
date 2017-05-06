@@ -9,4 +9,5 @@ case class SchemaContext(
     userRoles: UserRolesRepository,
     regions: RegionRepository,
     versions: VersionRepository,
-    networks: NetworkRepository)
+    networks: NetworkRepository,
+    servers: ServerRepository)

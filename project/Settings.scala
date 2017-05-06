@@ -19,7 +19,7 @@ object Settings {
     val scalaCSS     = "0.5.3"
     val autowire     = "0.2.6"
     val booPickle    = "1.2.5"
-    val diode        = "1.1.1"
+    val diode        = "1.1.2"
     val uTest        = "0.4.4"
     val react        = "15.5.4"
   }
@@ -62,8 +62,8 @@ object Settings {
       "com.github.japgolly.scalajs-react" %%% "core"      % versions.scalajsReact,
       "com.github.japgolly.scalajs-react" %%% "extra"     % versions.scalajsReact,
       "com.github.japgolly.scalacss"      %%% "ext-react" % versions.scalaCSS,
-//      "io.suzaku"                         %%% "diode"       % versions.diode,
-//      "io.suzaku"                         %%% "diode-react" % versions.diode,
+      "io.suzaku"                         %%% "diode"       % versions.diode,
+      "io.suzaku"                         %%% "diode-react" % versions.diode,
       "org.scala-js" %%% "scalajs-dom" % versions.scalaDom,
       "com.lihaoyi"  %%% "utest"       % versions.uTest % Test
     )

@@ -9,6 +9,7 @@ trait SchemaModule extends RepositoriesModule {
   lazy val roleSchemaDefinition: RolesQueries = wire[RolesQueries]
   lazy val banSchemaDefinition: BansQueries   = wire[BansQueries]
   lazy val regionQueries: RegionQueries       = wire[RegionQueries]
+  lazy val versionQueries: VersionQueries     = wire[VersionQueries]
   lazy val schemaDefinition: SchemaDefinition = wire[SchemaDefinition]
 
   lazy val schemaContext: SchemaContext = wire[SchemaContext]

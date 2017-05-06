@@ -6,7 +6,8 @@ class SchemaDefinition(
     userSchemaDefinition: UsersQueries,
     roleSchemaDefinition: RolesQueries,
     banSchemaDefinition: BansQueries,
-    regionQueries: RegionQueries) {
+    regionQueries: RegionQueries,
+    versionQueries: VersionQueries) {
   val schema = Schema(
     ObjectType(
       "Query",
@@ -14,6 +15,7 @@ class SchemaDefinition(
         ::: roleSchemaDefinition.query
         ::: banSchemaDefinition.query
         ::: regionQueries.query
+        ::: versionQueries.query
     )
   )
 }

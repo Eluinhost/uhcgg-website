@@ -81,4 +81,5 @@ object Types {
   )
 
   lazy val RegionType: ObjectType[SchemaContext, Region] = deriveObjectType[SchemaContext, Region]()
+  lazy val VersionType: ObjectType[SchemaContext, Version] = deriveObjectType[SchemaContext, Version]()
 }

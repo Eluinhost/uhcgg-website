@@ -7,4 +7,5 @@ case class SchemaContext(
     roles: RoleRepository,
     bans: BanRepository,
     userRoles: UserRolesRepository,
-    regions: RegionRepository)
+    regions: RegionRepository,
+    versions: VersionRepository)

@@ -13,7 +13,7 @@ import sangria.marshalling.InputUnmarshaller
 import sangria.parser.QueryParser
 import sangria.renderer.SchemaRenderer
 import schema.SchemaContext
-import schema.definitions.SchemaDefinition
+import schema.definitions.{Fetchers, SchemaDefinition}
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -51,7 +51,7 @@ class GraphqlRoute(context: SchemaContext, schema: SchemaDefinition)
                 .toMap
             ),
             operationName = query.operationName,
-            deferredResolver = DeferredResolver.fetchers(schema.fetchers: _*)
+            deferredResolver = DeferredResolver.fetchers(Fetchers.users, Fetchers.bans)
           )
           .map(StatusCodes.OK → _)
           .recover {

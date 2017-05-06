@@ -1,29 +1,43 @@
 package repositories
 
-import java.util.UUID
-
 import database.DatabaseService
-import repositories.BanRepository.getByUserIdQuery
+import schema.definitions.Relations
 import schema.model.Ban
 
 import scala.concurrent.Future
+import scalaz._
+import Scalaz._
+import doobie.imports._
+import doobie.postgres.imports._
+import sangria.execution.deferred.RelationIds
 
-object BanRepository {
-  import doobie.imports._
-  import doobie.postgres.imports._
+class BanRepository(db: DatabaseService) extends RepositorySupport {
+  private[this] val baseQuery: Fragment =
+    fr"SELECT id, reason, created, expires, userid, author FROM bans".asInstanceOf[Fragment]
 
-  def getByUserIdQuery(id: UUID, showExpired: Boolean): ConnectionIO[List[Ban]] = {
-    var query =
-      sql"SELECT id, userid, author, reason, created, expires FROM bans WHERE userid = $id"
-        .asInstanceOf[Fragment]
-
-    if (!showExpired)
-      query ++= fr" AND expires > NOW()".asInstanceOf[Fragment]
-
-    query.query[Ban].list
+  def getBansByIds(ids: Seq[Long]): Future[List[Ban]] = ids.toList.toNel match {
+    case None ⇒ Future successful List()
+    case Some(nel) ⇒
+      db.run(
+        (baseQuery ++ Fragments.whereAnd(Fragments.in(fr"id".asInstanceOf[Fragment], nel)))
+          .query[Ban]
+          .list
+      )
   }
-}
 
-class BanRepository(db: DatabaseService) {
-  def getBansForUser(id: UUID, showExpired: Boolean): Future[List[Ban]] = db.run(getByUserIdQuery(id, showExpired))
+  def getBans(showExpired: Boolean): Future[List[Ban]] = db.run(
+    (baseQuery ++ Fragments.whereAndOpt(showExpired.option(fr"expires > NOW()".asInstanceOf[Fragment])))
+      .query[Ban]
+      .list
+  )
+
+  def getByRelations(rel: RelationIds[Ban]): Future[List[Ban]] =
+    db.run(
+      (baseQuery ++ Fragments.whereAndOpt(
+        rel
+          .get(Relations.banByBannedUserId)
+          .flatMap(_.toList.toNel) // convert to a non-empty list first
+          .map(Fragments.in(fr"userid".asInstanceOf[Fragment], _))
+      )).query[Ban].list
+    )
 }

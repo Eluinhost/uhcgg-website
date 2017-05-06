@@ -4,7 +4,7 @@ import java.util.UUID
 
 import sangria.execution.deferred._
 import schema.SchemaContext
-import schema.model.{Ban, UserRole}
+import schema.model.{Ban, Network, UserRole}
 
 import scala.concurrent.Future
 
@@ -35,5 +35,10 @@ object Fetchers {
     fetch = (ctx: SchemaContext, ids: Seq[Int]) ⇒ ctx.versions.getByIds(ids)
   )(HasId(_.id))
 
-  val fetchers = users :: bans :: roles :: userRoles :: regions :: versions :: Nil
+  val networks = Fetcher.relCaching(
+    fetch = (ctx: SchemaContext, ids: Seq[Long]) ⇒ ctx.networks.getByIds(ids),
+    fetchRel = (ctx: SchemaContext, ids: RelationIds[Network]) ⇒ ctx.networks.getByRelations(ids)
+  )(HasId(_.id))
+
+  val fetchers = users :: bans :: roles :: userRoles :: regions :: versions :: networks :: Nil
 }

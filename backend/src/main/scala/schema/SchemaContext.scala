@@ -8,4 +8,5 @@ case class SchemaContext(
     bans: BanRepository,
     userRoles: UserRolesRepository,
     regions: RegionRepository,
-    versions: VersionRepository)
+    versions: VersionRepository,
+    networks: NetworkRepository)

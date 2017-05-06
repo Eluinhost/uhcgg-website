@@ -23,6 +23,12 @@ object Types {
         fieldType = ListType(UserRoleType),
         description = Some("A list of user roles the user has"),
         resolve = ctx ⇒ Fetchers.userRoles.deferRelSeq[UUID](Relations.userRoleByUserId, ctx.value.id)
+      ),
+      Field(
+        name = "networks",
+        fieldType = ListType(NetworkType),
+        description = Some("A list of networks the user owns"),
+        resolve = ctx ⇒ Fetchers.networks.deferRelSeq(Relations.networkByUserId, ctx.value.id)
       )
     )
   )
@@ -82,4 +88,16 @@ object Types {
 
   lazy val RegionType: ObjectType[SchemaContext, Region] = deriveObjectType[SchemaContext, Region]()
   lazy val VersionType: ObjectType[SchemaContext, Version] = deriveObjectType[SchemaContext, Version]()
+
+  lazy val NetworkType: ObjectType[SchemaContext, Network] = deriveObjectType[SchemaContext, Network](
+    ReplaceField(
+      "owner",
+      Field(
+        name = "owner",
+        fieldType = UserType,
+        description = Some("The owner of the network, has full control"),
+        resolve = ctx ⇒ Fetchers.users.defer(ctx.value.owner)
+      )
+    )
+  )
 }

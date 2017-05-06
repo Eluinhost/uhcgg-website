@@ -15,4 +15,11 @@ object Fetchers {
     fetch = (ctx: SchemaContext, ids: Seq[Long]) ⇒ ctx.bans.getBansByIds(ids),
     fetchRel = (ctx: SchemaContext, ids: RelationIds[Ban]) ⇒ ctx.bans.getByRelations(ids)
   )(HasId(_.id))
+
+  val roles = Fetcher.caching(
+    fetch = (ctx: SchemaContext, ids: Seq[Int]) ⇒ ctx.roles.getByIds(ids)
+  )(HasId(_.id))
+
+
+  val fetchers = users :: bans :: roles :: Nil
 }

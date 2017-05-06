@@ -51,7 +51,7 @@ class GraphqlRoute(context: SchemaContext, schema: SchemaDefinition)
                 .toMap
             ),
             operationName = query.operationName,
-            deferredResolver = DeferredResolver.fetchers(Fetchers.users, Fetchers.bans)
+            deferredResolver = DeferredResolver.fetchers(Fetchers.fetchers: _*)
           )
           .map(StatusCodes.OK → _)
           .recover {

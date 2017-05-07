@@ -69,5 +69,5 @@ object Fetchers {
     fetchRel = (ctx: SchemaContext, ids: RelationIds[NetworkPermission]) ⇒ ctx.networkPermissions.getByRelations(ids)
   )(HasId(it ⇒ it))
 
-  val fetchers = users :: bans :: roles :: userRoles :: regions :: versions :: networks :: servers :: styles :: matches :: scenarios :: matchScenarios :: Nil
+  val fetchers = users :: bans :: roles :: userRoles :: regions :: versions :: networks :: servers :: styles :: matches :: scenarios :: matchScenarios :: networkPermissions :: Nil
 }

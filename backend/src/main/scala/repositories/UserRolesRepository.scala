@@ -15,7 +15,7 @@ class UserRolesRepository(db: DatabaseService) extends RepositorySupport {
 
   def getByRelations(rel: RelationIds[UserRole]): Future[List[UserRole]] =
     db.run(
-      (baseSelect ++ Fragments.whereAndOpt(
+      (baseSelect ++ Fragments.whereOrOpt(
         rel
           .get(Relations.userRoleByUserId)
           .flatMap(_.toList.toNel) // convert to a non-empty list first

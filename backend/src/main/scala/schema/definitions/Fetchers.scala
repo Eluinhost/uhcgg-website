@@ -64,5 +64,10 @@ object Fetchers {
     fetchRel = (ctx: SchemaContext, ids: RelationIds[MatchScenario]) ⇒ ctx.matchScenarios.getByRelations(ids)
   )(HasId(it ⇒ it))
 
+  val networkPermissions = Fetcher.relCaching(
+    fetch = (ctx: SchemaContext, ids: Seq[NetworkPermission]) ⇒ Future failed ???,
+    fetchRel = (ctx: SchemaContext, ids: RelationIds[NetworkPermission]) ⇒ ctx.networkPermissions.getByRelations(ids)
+  )(HasId(it ⇒ it))
+
   val fetchers = users :: bans :: roles :: userRoles :: regions :: versions :: networks :: servers :: styles :: matches :: scenarios :: matchScenarios :: Nil
 }

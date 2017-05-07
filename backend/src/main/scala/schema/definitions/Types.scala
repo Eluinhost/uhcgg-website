@@ -41,6 +41,12 @@ object Types {
         fieldType = ListType(ScenarioType),
         description = Some("A list of owned scenarios"),  // TODO pagination
         resolve = ctx ⇒ Fetchers.scenarios.deferRelSeq(Relations.scenarioByOwnerId, ctx.value.id)
+      ),
+      Field(
+        name = "networkPermissions",
+        fieldType = ListType(NetworkPermissionType),
+        description = Some("A list of all networks with permissions"),
+        resolve = ctx ⇒ Fetchers.networkPermissions.deferRelSeq(Relations.networkPermissionByUserId, ctx.value.id)
       )
     )
   )
@@ -127,6 +133,12 @@ object Types {
         fieldType = ListType(ServerType),
         description = Some("All of the servers belonging to this network"),
         resolve = ctx ⇒ Fetchers.servers.deferRelSeq(Relations.serverByNetworkId, ctx.value.id)
+      ),
+      Field(
+        name = "permissions",
+        fieldType = ListType(NetworkPermissionType),
+        description = Some("A list of all users with permissions"),
+        resolve = ctx ⇒ Fetchers.networkPermissions.deferRelSeq(Relations.networkPermissionByNetworkId, ctx.value.id)
       )
     )
   )
@@ -255,6 +267,27 @@ object Types {
         fieldType = ScenarioType,
         description = Some("The associated scenario"),
         resolve = ctx ⇒ Fetchers.scenarios.defer(ctx.value.scenarioId)
+      )
+    )
+  )
+
+  lazy val NetworkPermissionType: ObjectType[SchemaContext, NetworkPermission] = deriveObjectType[SchemaContext, NetworkPermission](
+    ReplaceField(
+      "networkId",
+      Field(
+        name = "network",
+        fieldType = NetworkType,
+        description = Some("The network these permissions apply to"),
+        resolve = ctx ⇒ Fetchers.networks.defer(ctx.value.networkId)
+      )
+    ),
+    ReplaceField(
+      "userId",
+      Field(
+        name = "user",
+        fieldType = UserType,
+        description = Some("The user these permissions apply to"),
+        resolve = ctx ⇒ Fetchers.users.defer(ctx.value.userId)
       )
     )
   )

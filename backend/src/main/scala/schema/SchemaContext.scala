@@ -14,4 +14,5 @@ case class SchemaContext(
     styles: StyleRepository,
     matches: MatchRepository,
     scenarios: ScenarioRepository,
-    matchScenarios: MatchScenariosRepository)
+    matchScenarios: MatchScenariosRepository,
+    networkPermissions: NetworkPermissionRepository)

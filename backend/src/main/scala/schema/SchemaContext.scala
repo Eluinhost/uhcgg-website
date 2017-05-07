@@ -13,4 +13,5 @@ case class SchemaContext(
     servers: ServerRepository,
     styles: StyleRepository,
     matches: MatchRepository,
-    scenarios: ScenarioRepository)
+    scenarios: ScenarioRepository,
+    matchScenarios: MatchScenariosRepository)

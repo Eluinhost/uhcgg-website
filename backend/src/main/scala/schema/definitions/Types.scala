@@ -178,6 +178,14 @@ object Types {
         description = Some("The team style being hosted"),
         resolve = ctx ⇒ Fetchers.styles.defer(ctx.value.styleId)
       )
+    ),
+    AddFields(
+      Field(
+        name = "scenarios",
+        fieldType = ListType(MatchScenarioType),
+        description = Some("Scenarios for this match"),
+        resolve = ctx ⇒ Fetchers.matchScenarios.deferRelSeq(Relations.matchScenarioByMatchId, ctx.value.id)
+      )
     )
   )
 
@@ -218,6 +226,35 @@ object Types {
         fieldType = UserType,
         description = Some("The owner of this scenario"),
         resolve = ctx ⇒ Fetchers.users.defer(ctx.value.owner)
+      )
+    ),
+    AddFields(
+      Field(
+        name = "matches",
+        fieldType = ListType(MatchScenarioType),
+        description = Some("Matches with this scenario"), // TODO pagination + filtering
+        resolve = ctx ⇒ Fetchers.matchScenarios.deferRelSeq(Relations.matchScenarioByScenarioId, ctx.value.id)
+      )
+    )
+  )
+
+  lazy val MatchScenarioType: ObjectType[SchemaContext, MatchScenario] = deriveObjectType[SchemaContext, MatchScenario](
+    ReplaceField(
+      "matchId",
+      Field(
+        name = "match",
+        fieldType = MatchType,
+        description = Some("The associated match"),
+        resolve = ctx ⇒ Fetchers.matches.defer(ctx.value.matchId)
+      )
+    ),
+    ReplaceField(
+      "scenarioId",
+      Field(
+        name = "scenario",
+        fieldType = ScenarioType,
+        description = Some("The associated scenario"),
+        resolve = ctx ⇒ Fetchers.scenarios.defer(ctx.value.scenarioId)
       )
     )
   )

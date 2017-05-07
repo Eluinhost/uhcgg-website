@@ -59,5 +59,10 @@ object Fetchers {
     fetchRel = (ctx: SchemaContext, ids: RelationIds[Scenario]) ⇒ ctx.scenarios.getByRelations(ids)
   )(HasId(_.id))
 
-  val fetchers = users :: bans :: roles :: userRoles :: regions :: versions :: networks :: servers :: styles :: matches :: scenarios :: Nil
+  val matchScenarios = Fetcher.relCaching(
+    fetch = (ctx: SchemaContext, ids: Seq[MatchScenario]) ⇒ Future failed ???,
+    fetchRel = (ctx: SchemaContext, ids: RelationIds[MatchScenario]) ⇒ ctx.matchScenarios.getByRelations(ids)
+  )(HasId(it ⇒ it))
+
+  val fetchers = users :: bans :: roles :: userRoles :: regions :: versions :: networks :: servers :: styles :: matches :: scenarios :: matchScenarios :: Nil
 }

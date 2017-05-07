@@ -16,4 +16,6 @@ object Relations {
   val matchByVersionId = Relation[Match, Int]("matchByVersionId", m ⇒ Seq(m.versionId))
   val matchByStyleId = Relation[Match, Int]("matchByStyleId", m ⇒ Seq(m.styleId))
   val scenarioByOwnerId = Relation[Scenario, UUID]("scenarioByOwnerId", scenario ⇒ Seq(scenario.owner))
+  val matchScenarioByMatchId = Relation[MatchScenario, Long]("matchScenarioByMatchId", matchScenario ⇒ Seq(matchScenario.matchId))
+  val matchScenarioByScenarioId = Relation[MatchScenario, Long]("matchScenarioByScenarioId", matchScenario ⇒ Seq(matchScenario.scenarioId))
 }

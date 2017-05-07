@@ -35,6 +35,12 @@ object Types {
         fieldType = ListType(MatchType), // TODO pagination + a way to filter out old ones
         description = Some("A list of games the user is/has hosted"),
         resolve = ctx ⇒ Fetchers.matches.deferRelSeq(Relations.matchByHostId, ctx.value.id)
+      ),
+      Field(
+        name = "scenarios",
+        fieldType = ListType(ScenarioType),
+        description = Some("A list of owned scenarios"),  // TODO pagination
+        resolve = ctx ⇒ Fetchers.scenarios.deferRelSeq(Relations.scenarioByOwnerId, ctx.value.id)
       )
     )
   )
@@ -200,6 +206,18 @@ object Types {
         fieldType = ListType(MatchType), // TODO pagination + a way to filter out old ones
         description = Some("A list of games hosted on this server"),
         resolve = ctx ⇒ Fetchers.matches.deferRelSeq(Relations.matchByServerId, ctx.value.id)
+      )
+    )
+  )
+
+  lazy val ScenarioType: ObjectType[SchemaContext, Scenario] = deriveObjectType[SchemaContext, Scenario](
+    ReplaceField(
+      "owner",
+      Field(
+        name = "owner",
+        fieldType = UserType,
+        description = Some("The owner of this scenario"),
+        resolve = ctx ⇒ Fetchers.users.defer(ctx.value.owner)
       )
     )
   )

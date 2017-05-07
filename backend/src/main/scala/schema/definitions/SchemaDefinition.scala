@@ -10,7 +10,8 @@ class SchemaDefinition(
     versionQueries: VersionQueries,
     networkQueries: NetworkQueries,
     styleQueries: StyleQueries,
-    matchQueries: MatchQueries) {
+    matchQueries: MatchQueries,
+    scenarioQueries: ScenarioQueries) {
   val schema = Schema(
     ObjectType(
       "Query",
@@ -23,6 +24,7 @@ class SchemaDefinition(
         ::: networkQueries.query
         ::: styleQueries.query
         ::: matchQueries.query
+        ::: scenarioQueries.query
     )
   )
 }

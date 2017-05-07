@@ -13,6 +13,7 @@ trait SchemaModule extends RepositoriesModule {
   lazy val networkQueries: NetworkQueries     = wire[NetworkQueries]
   lazy val styleQueries: StyleQueries         = wire[StyleQueries]
   lazy val matchQueries: MatchQueries         = wire[MatchQueries]
+  lazy val scenarioQueries: ScenarioQueries   = wire[ScenarioQueries]
 
   lazy val schemaDefinition: SchemaDefinition = wire[SchemaDefinition]
   lazy val schemaContext: SchemaContext       = wire[SchemaContext]

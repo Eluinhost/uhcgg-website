@@ -13,4 +13,5 @@ trait RepositoriesModule extends DatabaseModule {
   lazy val networkRepository: NetworkRepository     = wire[NetworkRepository]
   lazy val serverRepository: ServerRepository       = wire[ServerRepository]
   lazy val styleRepository: StyleRepository         = wire[StyleRepository]
+  lazy val matchRepository: MatchRepository         = wire[MatchRepository]
 }

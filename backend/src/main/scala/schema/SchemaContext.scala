@@ -11,4 +11,5 @@ case class SchemaContext(
     versions: VersionRepository,
     networks: NetworkRepository,
     servers: ServerRepository,
-    styles: StyleRepository)
+    styles: StyleRepository,
+    matches: MatchRepository)

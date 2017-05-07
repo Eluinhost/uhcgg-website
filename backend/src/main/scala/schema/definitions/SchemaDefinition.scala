@@ -9,10 +9,12 @@ class SchemaDefinition(
     regionQueries: RegionQueries,
     versionQueries: VersionQueries,
     networkQueries: NetworkQueries,
-    styleQueries: StyleQueries) {
+    styleQueries: StyleQueries,
+    matchQueries: MatchQueries) {
   val schema = Schema(
     ObjectType(
       "Query",
+      description = "Root query object",
       fields = userSchemaDefinition.query
         ::: roleSchemaDefinition.query
         ::: banSchemaDefinition.query
@@ -20,6 +22,7 @@ class SchemaDefinition(
         ::: versionQueries.query
         ::: networkQueries.query
         ::: styleQueries.query
+        ::: matchQueries.query
     )
   )
 }

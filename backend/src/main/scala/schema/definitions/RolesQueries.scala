@@ -3,7 +3,7 @@ package schema.definitions
 import sangria.schema._
 import schema.SchemaContext
 
-class RolesQueries {
+object RolesQueries {
   val idArg  = Argument(name = "id", argumentType = IntType, description = "ID to match")
   val idsArg = Argument(name = "ids", argumentType = ListInputType(IntType), description = "IDs to match")
 

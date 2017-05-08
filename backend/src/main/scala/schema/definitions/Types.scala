@@ -2,7 +2,7 @@ package schema.definitions
 
 import java.util.UUID
 
-import sangria.macros.derive.{AddFields, ReplaceField, deriveObjectType}
+import sangria.macros.derive._
 import sangria.schema._
 import schema.SchemaContext
 import schema.model._
@@ -39,7 +39,7 @@ object Types {
       Field(
         name = "scenarios",
         fieldType = ListType(ScenarioType),
-        description = Some("A list of owned scenarios"),  // TODO pagination
+        description = Some("A list of owned scenarios"), // TODO pagination
         resolve = ctx ⇒ Fetchers.scenarios.deferRelSeq(Relations.scenarioByOwnerId, ctx.value.id)
       ),
       Field(
@@ -250,45 +250,76 @@ object Types {
     )
   )
 
-  lazy val MatchScenarioType: ObjectType[SchemaContext, MatchScenario] = deriveObjectType[SchemaContext, MatchScenario](
-    ReplaceField(
-      "matchId",
-      Field(
-        name = "match",
-        fieldType = MatchType,
-        description = Some("The associated match"),
-        resolve = ctx ⇒ Fetchers.matches.defer(ctx.value.matchId)
+  lazy val MatchScenarioType: ObjectType[SchemaContext, MatchScenario] =
+    deriveObjectType[SchemaContext, MatchScenario](
+      ReplaceField(
+        "matchId",
+        Field(
+          name = "match",
+          fieldType = MatchType,
+          description = Some("The associated match"),
+          resolve = ctx ⇒ Fetchers.matches.defer(ctx.value.matchId)
+        )
+      ),
+      ReplaceField(
+        "scenarioId",
+        Field(
+          name = "scenario",
+          fieldType = ScenarioType,
+          description = Some("The associated scenario"),
+          resolve = ctx ⇒ Fetchers.scenarios.defer(ctx.value.scenarioId)
+        )
       )
-    ),
-    ReplaceField(
-      "scenarioId",
+    )
+
+  lazy val NetworkPermissionType: ObjectType[SchemaContext, NetworkPermission] =
+    deriveObjectType[SchemaContext, NetworkPermission](
+      ReplaceField(
+        "networkId",
+        Field(
+          name = "network",
+          fieldType = NetworkType,
+          description = Some("The network these permissions apply to"),
+          resolve = ctx ⇒ Fetchers.networks.defer(ctx.value.networkId)
+        )
+      ),
+      ReplaceField(
+        "userId",
+        Field(
+          name = "user",
+          fieldType = UserType,
+          description = Some("The user these permissions apply to"),
+          resolve = ctx ⇒ Fetchers.users.defer(ctx.value.userId)
+        )
+      )
+    )
+
+  lazy val QueryType = ObjectType(
+    "Query",
+    description = "Root query object",
+    fields = BansQueries.query
+      ::: MatchQueries.query
+      ::: NetworkQueries.query
+      ::: RegionQueries.query
+      ::: RolesQueries.query
+      ::: ScenarioQueries.query
+      ::: StyleQueries.query
+      ::: UsersQueries.query
+      ::: VersionQueries.query
+  )
+
+  lazy val MutationType = ObjectType(
+    "Mutation",
+    description = "Root mutation object",
+    fields = fields[SchemaContext, Unit](
       Field(
-        name = "scenario",
-        fieldType = ScenarioType,
-        description = Some("The associated scenario"),
-        resolve = ctx ⇒ Fetchers.scenarios.defer(ctx.value.scenarioId)
+        name = "generateFakeData",
+        fieldType = UserType,
+        arguments = Nil,
+        resolve = ctx ⇒ ctx.ctx.generateFakeUser()
       )
     )
   )
 
-  lazy val NetworkPermissionType: ObjectType[SchemaContext, NetworkPermission] = deriveObjectType[SchemaContext, NetworkPermission](
-    ReplaceField(
-      "networkId",
-      Field(
-        name = "network",
-        fieldType = NetworkType,
-        description = Some("The network these permissions apply to"),
-        resolve = ctx ⇒ Fetchers.networks.defer(ctx.value.networkId)
-      )
-    ),
-    ReplaceField(
-      "userId",
-      Field(
-        name = "user",
-        fieldType = UserType,
-        description = Some("The user these permissions apply to"),
-        resolve = ctx ⇒ Fetchers.users.defer(ctx.value.userId)
-      )
-    )
-  )
+  lazy val SchemaType = Schema(QueryType, Some(MutationType), None)
 }

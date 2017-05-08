@@ -2,11 +2,10 @@ package repositories
 
 import database.DatabaseService
 import doobie.imports.{Fragment, _}
-import schema.model.{Region, Role}
+import schema.model.Region
 
 import scala.concurrent.Future
 import scalaz.Scalaz._
-import scalaz._
 
 class RegionRepository(db: DatabaseService) extends RepositorySupport {
   private[this] val baseSelect = fr"SELECT id, short, long FROM regions".asInstanceOf[Fragment]

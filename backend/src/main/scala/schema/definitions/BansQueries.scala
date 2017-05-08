@@ -3,7 +3,7 @@ package schema.definitions
 import sangria.schema._
 import schema.SchemaContext
 
-class BansQueries(userSchemaDefinition: UsersQueries) {
+object BansQueries {
   val showExpired = Argument(
     "showExpired",
     OptionInputType(BooleanType),

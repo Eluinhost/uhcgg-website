@@ -3,7 +3,7 @@ package schema.definitions
 import sangria.schema._
 import schema.SchemaContext
 
-class ScenarioQueries {
+object ScenarioQueries {
   val idArg  = Argument(name = "id", argumentType = LongType, description = "ID to match")
   val idsArg = Argument(name = "ids", argumentType = ListInputType(LongType), description = "IDs to match")
 

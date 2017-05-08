@@ -13,14 +13,15 @@ import sangria.marshalling.InputUnmarshaller
 import sangria.parser.QueryParser
 import sangria.renderer.SchemaRenderer
 import schema.SchemaContext
-import schema.definitions.{Fetchers, SchemaDefinition}
+import schema.definitions.Types.SchemaType
+import schema.definitions.Fetchers
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 case class GraphqlRequest(operationName: Option[String], query: String, variables: Option[Json])
 
-class GraphqlRoute(context: SchemaContext, schema: SchemaDefinition)
+class GraphqlRoute(context: SchemaContext)
     extends PartialRoute
     with FailFastCirceSupport
     with AutoDerivation {
@@ -31,7 +32,7 @@ class GraphqlRoute(context: SchemaContext, schema: SchemaDefinition)
 
   import system.dispatcher
 
-  lazy val renderedSchema: String = SchemaRenderer.renderSchema(schema.schema)
+  lazy val renderedSchema: String = SchemaRenderer.renderSchema(SchemaType)
 
   def endpoint(query: GraphqlRequest): Future[(StatusCode, Json)] =
     QueryParser.parse(query.query) match {
@@ -41,7 +42,7 @@ class GraphqlRoute(context: SchemaContext, schema: SchemaDefinition)
       case Success(ast) ⇒
         Executor
           .execute(
-            schema = schema.schema,
+            schema = SchemaType,
             queryAst = ast,
             userContext = context,
             variables = InputUnmarshaller.mapVars(

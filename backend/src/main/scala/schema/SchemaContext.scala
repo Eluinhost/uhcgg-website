@@ -15,4 +15,4 @@ case class SchemaContext(
     matches: MatchRepository,
     scenarios: ScenarioRepository,
     matchScenarios: MatchScenariosRepository,
-    networkPermissions: NetworkPermissionRepository)
+    networkPermissions: NetworkPermissionRepository) extends Mutation

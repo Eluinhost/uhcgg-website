@@ -18,12 +18,14 @@ class UserRepository(db: DatabaseService) extends RepositorySupport {
   private[this] val baseSelect =
     fr"SELECT id, username, email, password, created FROM users".asInstanceOf[Fragment]
 
-  def createUser(username: String, email: String, password: String): Future[UUID] = db.run(
+  import db.system.dispatcher
+
+  def createUser(username: String, email: String, password: String): Future[User] = db.run(
     sql"INSERT INTO users (username, email, password) VALUES ($username, $email, ${password.bcrypt})"
       .asInstanceOf[Fragment]
       .update
       .withUniqueGeneratedKeys[UUID]("id")
-  )
+  ).flatMap(getById).map(_.get)
 
   def isUsernameInUse(username: String): Future[Boolean] = db.run(
     sql"SELECT COUNT(*) AS COUNT FROM users WHERE username = $username"

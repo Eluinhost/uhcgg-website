@@ -4,7 +4,7 @@ import sangria.schema._
 import schema.SchemaContext
 import schema.scalars.CustomScalars._
 
-class UsersQueries {
+object UsersQueries {
   val idArg       = Argument(name = "id", argumentType = UuidType, description = "ID to match")
   val usernameArg = Argument(name = "username", argumentType = StringType, description = "Username to match")
 

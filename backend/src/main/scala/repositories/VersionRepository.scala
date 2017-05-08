@@ -2,7 +2,7 @@ package repositories
 
 import database.DatabaseService
 import doobie.imports.{Fragment, _}
-import schema.model.{Region, Version}
+import schema.model.Version
 
 import scala.concurrent.Future
 import scalaz.Scalaz._

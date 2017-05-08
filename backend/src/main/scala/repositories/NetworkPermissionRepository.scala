@@ -11,7 +11,7 @@ import scala.concurrent.Future
 import scalaz.Scalaz._
 
 class NetworkPermissionRepository(db: DatabaseService) extends RepositorySupport {
-  private[this] val baseSelect = fr"SELECT networkid, userid FROM network_permissions".asInstanceOf[Fragment]
+  private[this] val baseSelect = fr"SELECT networkid, userid, isadmin FROM network_permissions".asInstanceOf[Fragment]
 
   def getByRelations(rel: RelationIds[NetworkPermission]): Future[List[NetworkPermission]] =
     db.run(

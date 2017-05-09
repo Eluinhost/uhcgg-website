@@ -57,7 +57,7 @@ lazy val backend = (project in file("backend"))
     resolvers += "Bartek's repo at Bintray" at "https://dl.bintray.com/btomala/maven",
     libraryDependencies ++= Settings.backendDependencies.value,
 
-    javaOptions := Seq("-Xdebug", "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"),
+//    javaOptions := Seq("-Xdebug", "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"),
 
     commands += ReleaseCmd,
 

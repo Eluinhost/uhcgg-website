@@ -220,6 +220,15 @@ object Types {
         resolve = ctx ⇒ Fetchers.networks.defer(ctx.value.networkId)
       )
     ),
+    ReplaceField(
+      "region",
+      Field(
+        name = "region",
+        fieldType = RegionType,
+        description = Some("The region the server is hosted in"),
+        resolve = ctx ⇒ Fetchers.regions.defer(ctx.value.region)
+      )
+    ),
     AddFields(
       Field(
         name = "matches",

@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<setup xmlns="http://databene.org/benerator/0.9.8"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://databene.org/benerator/0.9.8 benerator-0.9.8.xsd"
+        defaultEncoding="utf-8"
+        defaultDataset="GB"
+        defaultLocale="en_GB"
+        defaultLineSeparator="\r\n">
+	<import domains="person, lang" platforms="db"/>
+    <import class="org.databene.commons.TimeUtil"/>
+
+    <setting name="user_count" value="100"/>
+    <setting name="bans_count" value="15"/>
+    <setting name="default_role_id" value="1"/>
+
+    <bean id="yearAgo" spec="TimeUtil.addYears(TimeUtil.today(), -1)"/>
+    <bean id="today" spec="TimeUtil.today()"/>
+    <bean id="oneYear" spec="TimeUtil.addYears(TimeUtil.today(), 1)"/>
+
+    <bean id="dtGen" class="DateTimeGenerator">
+		<property name='minDate' ref='yearAgo'/>
+		<property name='maxDate' ref='today'/>
+	</bean>
+
+    <bean id="banExpireDtGen" class="DateTimeGenerator">
+        <property name='minDate' ref='yearAgo'/>
+        <property name='maxDate' ref='oneYear'/>
+    </bean>
+
+    <bean id="uuidGen" class="UUIDGenerator" />
+
+    <bean id="output" class="SQLEntityExporter">
+        <property name="encoding"   value="utf-8"/>
+        <property name="dialect"    value="postgres"/>
+    </bean>
+
+    <bean id="passwordConverter"    class="com.my.test.BcryptConverter" />
+    <bean id="int2bool"             class="com.my.test.Int2BoolConverter" />
+
+    <!-- not in the xsd but is supported -->
+    <memstore id="store"/>
+
+    <!-- generate users -->
+	<generate
+		type="users"
+        count="{user_count}"
+		consumer="ConsoleExporter,output,store"
+        name="user"
+	>
+		<variable name="person" generator="PersonGenerator" dataset="US" locale="en_US" />
+        <variable name="userNoun" generator="NounGenerator" />
+
+		<id name="id" generator="uuidGen" unique="true"/>
+        <attribute name="username" unique="true" script="{person.givenName + person.familyName + RandomIntegerGenerator.generate(1000, 20000, 1)}" />
+        <attribute name="email" source="person.email" unique="true"/>
+		<attribute name="password" source="userNoun.singular" converter="passwordConverter"/>
+		<attribute name="created" generator="dtGen" />
+
+        <!-- add the default role to every user -->
+        <generate type="user_roles" count="1" consumer="ConsoleExporter,output">
+            <reference name="userid" targetType="users" script="user.id" />
+            <attribute name="roleid" type="int" constant="{default_role_id}"/>
+        </generate>
+
+        <!-- add some random other roles to every user -->
+        <generate
+            type="user_roles"
+            consumer="ConsoleExporter,output"
+            minCount="0"
+            maxCount="2"
+            countDistribution="new WeightedNumbers('0^70,1^20,2^10')"
+            unique="true">
+            <reference name="userid" targetType="users" script="user.id" />
+            <attribute name="roleid" type="int" distribution="new WeightedNumbers('2^80,3^15,4^5')"/>
+        </generate>
+
+        <!-- chance to generate a network or 2 per user -->
+        <generate
+            type="networks"
+            name="network"
+            minCount="0"
+            maxCount="2"
+            countDistribution="new WeightedNumbers('0^80,1^18,2^2')"
+            consumer="ConsoleExporter, output">
+            <reference name="owner" targetType="users" script="user.id"/>
+            <variable name="networkNoun" generator="NounGenerator" validator="UniqueValidator" />
+
+            <id name="id" type="long" generator="new IncrementalIdGenerator(10000)"/>
+            <attribute name="name" source="networkNoun.singular"/>
+            <attribute name="tag" source="networkNoun.singular"/>
+            <attribute name="description" generator="NounGenerator"/>
+            <attribute name="created" generator="dtGen" />
+            <attribute name="modified" generator="dtGen"/> <!-- TODO validate after created -->
+            <attribute name="deleted" type="boolean" trueQuota="0.95"/>
+
+            <!-- each network should have 1-5 servers also owned by this user -->
+            <generate
+                type="servers"
+                minCount="1"
+                maxCount="5"
+                consumer="ConsoleExporter, output">
+                <reference name="networkid" targetType="networks" script="network.id"/>
+                <reference name="owner" targetType="users" script="user.id"/>
+                <variable name="serverNoun" generator="NounGenerator" validator="UniqueValidator"/>
+
+                <id name="id" type="long" generator="new IncrementalIdGenerator(10000)"/>
+                <attribute name="name" source="serverNoun.singular" />
+                <attribute name="address" source="serverNoun.singular" /> <!-- TODO be more sensible -->
+                <attribute name="ip" constant="192.168.1.1"/> <!-- TODO generate random -->
+                <attribute name="port" type="int" min="1" max="65565"/>
+                <attribute name="location" generator="NounGenerator" />
+                <attribute name="region" type="int" min="1" max="6"/>
+                <attribute name="created" generator="dtGen"/>
+                <attribute name="modified" generator="dtGen"/> <!-- TODO validate after created -->
+                <attribute name="deleted" type="boolean" trueQuota="0.05"/>
+            </generate>
+        </generate>
+    </generate>
+
+    <!-- add some random bans -->
+    <generate
+        type="bans"
+        count="{bans_count}"
+        consumer="ConsoleExporter,output">
+        <variable name="user" source="store" type="users" distribution="random"/>
+        <!-- choose an author that isn't the same user -->
+        <variable name="author" source="store" type="users" distribution="random" selector="!_candidate.id.equals(user.id)"/>
+
+        <reference name="userid" targetType="users" script="user.id"/>
+        <reference name="author" targetType="users" script="author.id"/>
+        <attribute name="reason" generator="NounGenerator"/>
+        <attribute name="created" generator="dtGen"/>
+        <attribute name="expires" generator="banExpireDtGen"/> <!-- TODO validate expires after created -->
+    </generate>
+
+    <!-- TODO add servers to networks with different owners -->
+    <!-- TODO network permissions for other users -->
+
+    <!--<generate type="test" count="50" consumer="ConsoleExporter">-->
+        <!--<attribute name="test" type="boolean" trueQuota="0.95"/>-->
+    <!--</generate>-->
+</setup>

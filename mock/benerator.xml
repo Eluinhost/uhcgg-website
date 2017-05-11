@@ -35,7 +35,6 @@
     </bean>
 
     <bean id="passwordConverter"    class="com.my.test.BcryptConverter" />
-    <bean id="int2bool"             class="com.my.test.Int2BoolConverter" />
 
     <!-- not in the xsd but is supported -->
     <memstore id="store"/>

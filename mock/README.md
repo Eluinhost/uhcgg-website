@@ -1,0 +1,1 @@
+`maven compile benerator:generate` will create a random set of INSERT statements in `export.sql`

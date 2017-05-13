@@ -13,6 +13,7 @@
     <setting name="bans_count" value="35"/>
     <setting name="default_role_id" value="1"/>
     <setting name="scenario_count" value="100"/>
+    <setting name="extra_network_permissions" value="20"/>
 
     <bean id="yearAgo" spec="TimeUtil.addYears(TimeUtil.today(), -1)"/>
     <bean id="today" spec="TimeUtil.today()"/>
@@ -80,7 +81,7 @@
             minCount="0"
             maxCount="2"
             countDistribution="new WeightedNumbers('0^80,1^18,2^2')"
-            consumer="ConsoleExporter, output">
+            consumer="ConsoleExporter,store,output">
             <reference name="owner" targetType="users" script="user.id"/>
             <variable name="networkNoun" generator="NounGenerator" validator="UniqueValidator" />
 
@@ -159,6 +160,24 @@
         <attribute name="deleted" type="boolean" trueQuota="0.1"/>
         <reference name="owner" targetType="users" script="owner.id"/>
     </generate>
+
+    <iterate source="store" type="networks" name="network">
+        <generate
+            type="network_permissions"
+            minCount="0"
+            maxCount="2"
+            countDistribution="new WeightedNumbers('0^40,1^40,2^20')"
+            consumer="ConsoleExporter,output">
+            <variable name="user" source="store" type="users" distribution="random" selector="!_candidate.id.equals(network.owner)"/>
+
+            <reference name="networkid" targetType="networks" script="network.id"/>
+            <reference name="userid" targetType="users" script="user.id"/>
+            <attribute name="isadmin" type="boolean" trueQuota="0.1"/>
+        </generate>
+    </iterate>
+
+
+
 
     <!-- TODO add servers to networks with different owners -->
     <!-- TODO network permissions for other users -->

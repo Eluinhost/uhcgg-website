@@ -8,7 +8,13 @@
 		<xs:documentation>The Benerator schema describes the generation setup for Benerator.</xs:documentation>
 		<xs:appinfo/>
 	</xs:annotation>
-	
+
+	<xs:element name="memstore">
+		<xs:complexType>
+		<xs:attribute name="id" type="xs:string"/>
+		</xs:complexType>
+	</xs:element>
+
 	<xs:simpleType name="script-expression-type">
 		<xs:restriction base="xs:string">
 			<xs:pattern value="\{.*\}"/>
@@ -63,6 +69,7 @@
 	<xs:complexType name="block-statement">
 		<xs:sequence minOccurs="0" maxOccurs="unbounded">
 			<xs:element ref="import"            minOccurs="0" />
+			<xs:element ref="memstore" 			minOccurs="0" />
 			<xs:element ref="template"          minOccurs="0" />
 			<xs:element ref="comment"           minOccurs="0" />
 			<xs:element ref="include"           minOccurs="0" />

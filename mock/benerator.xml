@@ -36,7 +36,6 @@
 
     <bean id="passwordConverter"    class="com.my.test.BcryptConverter" />
 
-    <!-- not in the xsd but is supported -->
     <memstore id="store"/>
 
     <!-- generate users -->

@@ -90,7 +90,7 @@
             <attribute name="description" generator="NounGenerator"/>
             <attribute name="created" generator="dtGen" />
             <attribute name="modified" generator="dtGen"/> <!-- TODO validate after created -->
-            <attribute name="deleted" type="boolean" trueQuota="0.95"/>
+            <attribute name="deleted" type="boolean" trueQuota="0.05"/>
 
             <!-- each network should have 1-5 servers also owned by this user -->
             <generate

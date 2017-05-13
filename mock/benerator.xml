@@ -9,9 +9,10 @@
 	<import domains="person, lang" platforms="db"/>
     <import class="org.databene.commons.TimeUtil"/>
 
-    <setting name="user_count" value="100"/>
-    <setting name="bans_count" value="15"/>
+    <setting name="user_count" value="250"/>
+    <setting name="bans_count" value="35"/>
     <setting name="default_role_id" value="1"/>
+    <setting name="scenario_count" value="100"/>
 
     <bean id="yearAgo" spec="TimeUtil.addYears(TimeUtil.today(), -1)"/>
     <bean id="today" spec="TimeUtil.today()"/>
@@ -129,6 +130,23 @@
         <attribute name="reason" generator="NounGenerator"/>
         <attribute name="created" generator="dtGen"/>
         <attribute name="expires" generator="banExpireDtGen"/> <!-- TODO validate expires after created -->
+    </generate>
+
+    <!-- generate random scenarios linked to random users -->
+    <generate
+        type="scenarios"
+        count="{scenario_count}"
+        consumer="ConsoleExporter,output,store">
+        <variable name="owner" source="store" type="users" distribution="random"/>
+        <variable name="name" generator="NounGenerator" validator="UniqueValidator"/>
+
+        <id name="id" type="long" generator="new IncrementalIdGenerator(10000)"/>
+        <attribute name="name" script="name.singular" />
+        <attribute name="description" script="name.singular"/>
+        <attribute name="created" generator="dtGen"/>
+        <attribute name="modified" generator="dtGen"/>
+        <attribute name="deleted" type="boolean" trueQuota="0.1"/>
+        <reference name="owner" targetType="users" script="owner.id"/>
     </generate>
 
     <!-- TODO add servers to networks with different owners -->

@@ -123,7 +123,7 @@
                     <attribute name="ip" constant="192.168.1.1"/> <!-- TODO generate random -->
                     <attribute name="port" type="int" min="1" max="65565"/>
                     <attribute name="location" generator="NounGenerator" />
-                    <attribute name="region" type="int" min="1" max="6"/>
+                    <attribute name="region" type="int" source="regions.csv" distribution="random"/>
                     <attribute name="created" generator="dtGen"/>
                     <attribute name="modified" generator="dtGen"/> <!-- TODO validate after created -->
                     <attribute name="deleted" type="boolean" trueQuota="0.05"/>

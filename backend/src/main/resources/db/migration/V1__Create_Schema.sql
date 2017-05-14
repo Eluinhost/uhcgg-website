@@ -54,7 +54,8 @@ CREATE TABLE networks (
 CREATE TABLE network_permissions (
   networkId BIGINT  NOT NULL CONSTRAINT "FK__network_permissions__networks__networkId" REFERENCES networks (id),
   userId    UUID    NOT NULL CONSTRAINT "FK__network_permissions__users__userId" REFERENCES users (id),
-  isAdmin   BOOLEAN NOT NULL
+  isAdmin   BOOLEAN NOT NULL,
+  CONSTRAINT UQ__network_permissions__networkId__userId UNIQUE (networkId, userId)
 );
 
 CREATE TABLE regions (

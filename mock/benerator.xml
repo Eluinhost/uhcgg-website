@@ -63,69 +63,74 @@
         </generate>
 
         <!-- add some random other roles to every user -->
-        <generate
-            type="user_roles"
-            consumer="ConsoleExporter,output"
-            minCount="0"
-            maxCount="2"
-            countDistribution="new WeightedNumbers('0^70,1^20,2^10')"
-            unique="true">
-            <reference name="userid" targetType="users" script="user.id" />
-            <attribute name="roleid" type="int" distribution="new WeightedNumbers('2^80,3^15,4^5')"/>
+        <generate type="dummy" name="extra_role_count_dummy" consumer="NoConsumer" count="1">
+            <attribute name="count" type="int" source="nonDefaultRolesCount.wgt.csv"/>
+
+            <generate
+                type="user_roles"
+                consumer="ConsoleExporter,output"
+                count="{extra_role_count_dummy.count}"
+                unique="true">
+                <reference name="userid" targetType="users" script="user.id" />
+                <attribute name="roleid" type="int" source="nonDefaultRoles.wgt.csv"/>
+            </generate>
         </generate>
 
-        <!-- chance to generate a network or 2 per user -->
-        <generate
-            type="networks"
-            name="network"
-            minCount="0"
-            maxCount="2"
-            countDistribution="new WeightedNumbers('0^80,1^18,2^2')"
-            consumer="ConsoleExporter,store,output">
-            <reference name="owner" targetType="users" script="user.id"/>
-            <variable name="networkNoun" generator="NounGenerator" validator="UniqueValidator" />
+        <!-- chance to generate a networks per user -->
+        <generate type="dummy" name="network_count_dummy" consumer="NoConsumer" count="1">
+            <attribute name="count" type="int" source="networkCount.wgt.csv"/>
 
-            <id name="id" type="long" generator="new IncrementalIdGenerator(10000)"/>
-            <attribute name="name" source="networkNoun.singular"/>
-            <attribute name="tag" source="networkNoun.singular"/>
-            <attribute name="description" generator="NounGenerator"/>
-            <attribute name="created" generator="dtGen" />
-            <attribute name="modified" generator="dtGen"/> <!-- TODO validate after created -->
-            <attribute name="deleted" type="boolean" trueQuota="0.05"/>
-
-            <!-- add the isAdmin permission for the network for this user -->
             <generate
-                type="network_permissions"
-                count="1"
-                consumer="ConsoleExporter,output">
-                <reference name="networkid" targetType="networks" script="network.id"/>
-                <reference name="userid" targetType="users" script="user.id"/>
-
-                <attribute name="isAdmin" type="boolean" constant="true"/>
-            </generate>
-
-            <!-- each network should have 1-5 servers also owned by this user -->
-            <generate
-                type="servers"
-                minCount="1"
-                maxCount="5"
-                consumer="ConsoleExporter, output">
-                <reference name="networkid" targetType="networks" script="network.id"/>
+                type="networks"
+                name="network"
+                count="{network_count_dummy.count}"
+                consumer="ConsoleExporter,store,output">
                 <reference name="owner" targetType="users" script="user.id"/>
-                <variable name="serverNoun" generator="NounGenerator" validator="UniqueValidator"/>
+                <variable name="networkNoun" generator="NounGenerator" validator="UniqueValidator" />
 
                 <id name="id" type="long" generator="new IncrementalIdGenerator(10000)"/>
-                <attribute name="name" source="serverNoun.singular" />
-                <attribute name="address" source="serverNoun.singular" /> <!-- TODO be more sensible -->
-                <attribute name="ip" constant="192.168.1.1"/> <!-- TODO generate random -->
-                <attribute name="port" type="int" min="1" max="65565"/>
-                <attribute name="location" generator="NounGenerator" />
-                <attribute name="region" type="int" min="1" max="6"/>
-                <attribute name="created" generator="dtGen"/>
+                <attribute name="name" source="networkNoun.singular"/>
+                <attribute name="tag" source="networkNoun.singular"/>
+                <attribute name="description" generator="NounGenerator"/>
+                <attribute name="created" generator="dtGen" />
                 <attribute name="modified" generator="dtGen"/> <!-- TODO validate after created -->
                 <attribute name="deleted" type="boolean" trueQuota="0.05"/>
+
+                <!-- add the isAdmin permission for the network for this user -->
+                <generate
+                        type="network_permissions"
+                        count="1"
+                        consumer="ConsoleExporter,output">
+                    <reference name="networkid" targetType="networks" script="network.id"/>
+                    <reference name="userid" targetType="users" script="user.id"/>
+
+                    <attribute name="isAdmin" type="boolean" constant="true"/>
+                </generate>
+
+                <!-- each network should have 1-5 servers also owned by this user -->
+                <generate
+                    type="servers"
+                    minCount="1"
+                    maxCount="5"
+                    consumer="ConsoleExporter, output">
+                    <reference name="networkid" targetType="networks" script="network.id"/>
+                    <reference name="owner" targetType="users" script="user.id"/>
+                    <variable name="serverNoun" generator="NounGenerator" validator="UniqueValidator"/>
+
+                    <id name="id" type="long" generator="new IncrementalIdGenerator(10000)"/>
+                    <attribute name="name" source="serverNoun.singular" />
+                    <attribute name="address" source="serverNoun.singular" /> <!-- TODO be more sensible -->
+                    <attribute name="ip" constant="192.168.1.1"/> <!-- TODO generate random -->
+                    <attribute name="port" type="int" min="1" max="65565"/>
+                    <attribute name="location" generator="NounGenerator" />
+                    <attribute name="region" type="int" min="1" max="6"/>
+                    <attribute name="created" generator="dtGen"/>
+                    <attribute name="modified" generator="dtGen"/> <!-- TODO validate after created -->
+                    <attribute name="deleted" type="boolean" trueQuota="0.05"/>
+                </generate>
             </generate>
         </generate>
+
     </generate>
 
     <!-- add some random bans -->
@@ -162,17 +167,19 @@
     </generate>
 
     <iterate source="store" type="networks" name="network">
-        <generate
-            type="network_permissions"
-            minCount="0"
-            maxCount="2"
-            countDistribution="new WeightedNumbers('0^40,1^40,2^20')"
-            consumer="ConsoleExporter,output">
-            <variable name="user" source="store" type="users" distribution="random" selector="!_candidate.id.equals(network.owner)"/>
+        <generate type="dummy" count="1" consumer="NoConsumer" name="network_permission_count_dummy">
+            <attribute name="count" type="int" source="extraNetworkPermissionCount.wgt.csv"/>
 
-            <reference name="networkid" targetType="networks" script="network.id"/>
-            <reference name="userid" targetType="users" script="user.id"/>
-            <attribute name="isadmin" type="boolean" trueQuota="0.1"/>
+            <generate
+                type="network_permissions"
+                count="{network_permission_count_dummy.count}"
+                consumer="ConsoleExporter,output">
+                <variable name="user" source="store" type="users" distribution="random" selector="!_candidate.id.equals(network.owner)"/>
+
+                <reference name="networkid" targetType="networks" script="network.id"/>
+                <reference name="userid" targetType="users" script="user.id"/>
+                <attribute name="isadmin" type="boolean" trueQuota="0.1"/>
+            </generate>
         </generate>
     </iterate>
 

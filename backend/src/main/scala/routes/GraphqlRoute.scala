@@ -2,7 +2,7 @@ package routes
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.{RejectionHandler, Route}
 import akka.stream.ActorMaterializer
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
 import io.circe.generic.AutoDerivation
@@ -33,6 +33,17 @@ class GraphqlRoute(context: SchemaContext)
   import system.dispatcher
 
   lazy val renderedSchema: String = SchemaRenderer.renderSchema(SchemaType)
+
+  val rejectionHandler = RejectionHandler.default
+  val logDuration = extractRequestContext.flatMap { ctx =>
+    val start = System.currentTimeMillis()
+    // handling rejections here so that we get proper status codes
+    mapResponse { resp =>
+      val d = System.currentTimeMillis() - start
+      system.log.info(s"[${resp.status.intValue()}] ${ctx.request.method.name} ${ctx.request.uri} took: ${d}ms")
+      resp
+    } & handleRejections(rejectionHandler)
+  }
 
   def endpoint(query: GraphqlRequest): Future[(StatusCode, Json)] =
     QueryParser.parse(query.query) match {
@@ -69,7 +80,7 @@ class GraphqlRoute(context: SchemaContext)
         get {
           getFromResource("graphiql.html")
         } ~ post {
-          entity(as[GraphqlRequest]) { request ⇒
+          (entity(as[GraphqlRequest]) & logDuration) { request ⇒
             complete(endpoint(request))
           } ~ complete(StatusCodes.BadRequest → "Incorrect request format")
         }

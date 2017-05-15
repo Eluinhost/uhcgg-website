@@ -117,7 +117,7 @@
                     type="servers"
                     minCount="1"
                     maxCount="5"
-                    consumer="ConsoleExporter, output">
+                    consumer="ConsoleExporter,store,output">
                     <reference name="networkid" targetType="networks" script="network.id"/>
                     <reference name="owner" targetType="users" script="user.id"/>
                     <variable name="serverNoun" generator="NounGenerator" validator="uniqueServerNounValidator"/>
@@ -193,7 +193,7 @@
             type="servers"
             minCount="0"
             maxCount="2"
-            consumer="ConsoleExporter,output">
+            consumer="ConsoleExporter,output,store">
             <variable name="user" source="store" type="users" distribution="random" selector="!_candidate.id.equals(network.owner)"/>
 
             <reference name="networkid" targetType="networks" script="network.id"/>
@@ -213,7 +213,34 @@
         </generate>
     </iterate>
 
-    <!--<generate type="test" count="50" consumer="ConsoleExporter">-->
-        <!--<attribute name="test" type="boolean" trueQuota="0.95"/>-->
-    <!--</generate>-->
+    <generate
+        type="matches"
+        name="match"
+        minCount="150"
+        maxCount="200"
+        consumer="ConsoleExporter,output">
+        <variable name="server" source="store" type="servers" distribution="random" />
+
+        <id name="id" type="long" generator="new IncrementalIdGenerator(10000)"/>
+        <attribute name="host" script="server.owner" />
+        <attribute name="serverid" script="server.id"/>
+        <attribute name="versionid" source="versions.wgt.csv" />
+        <attribute name="styleid" source="styles.wgt.csv" />
+        <attribute name="size" type="int" min="3" max="12" /> <!-- TODO technically not needed for all styles -->
+        <attribute name="created" generator="dtGen"/>
+        <attribute name="modified" generator="dtGen"/> <!-- TODO validate after created -->
+        <attribute name="deleted" type="boolean" trueQuota="0.05"/>
+        <attribute name="starts" generator="dtGen"/> <!-- TODO makes some past and some future -->
+
+        <generate
+            type="match_scenarios"
+            minCount="1"
+            maxCount="10"
+            consumer="ConsoleExporter,output">
+            <variable name="scenario" source="store" type="scenarios" distribution="random" unique="true"/>
+
+            <attribute name="matchid" script="match.id"/>
+            <attribute name="scenarioid" script="scenario.id"/>
+        </generate>
+    </generate>
 </setup>

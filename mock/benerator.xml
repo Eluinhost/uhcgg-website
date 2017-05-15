@@ -38,6 +38,11 @@
 
     <bean id="passwordConverter"    class="com.my.test.BcryptConverter" />
 
+    <bean id="serverIdGen" class="IncrementalIdGenerator">
+        <property name="initial" value="10000"/>
+    </bean>
+    <bean id="uniqueServerNounValidator" class="UniqueValidator"/>
+
     <memstore id="store"/>
 
     <!-- generate users -->
@@ -115,9 +120,9 @@
                     consumer="ConsoleExporter, output">
                     <reference name="networkid" targetType="networks" script="network.id"/>
                     <reference name="owner" targetType="users" script="user.id"/>
-                    <variable name="serverNoun" generator="NounGenerator" validator="UniqueValidator"/>
+                    <variable name="serverNoun" generator="NounGenerator" validator="uniqueServerNounValidator"/>
 
-                    <id name="id" type="long" generator="new IncrementalIdGenerator(10000)"/>
+                    <id name="id" type="long" generator="serverIdGen"/>
                     <attribute name="name" source="serverNoun.singular" />
                     <attribute name="address" source="serverNoun.singular" /> <!-- TODO be more sensible -->
                     <attribute name="ip" constant="192.168.1.1"/> <!-- TODO generate random -->
@@ -166,7 +171,8 @@
         <reference name="owner" targetType="users" script="owner.id"/>
     </generate>
 
-    <iterate source="store" type="networks" name="network">
+    <iterate source="store" type="networks" name="network" consumer="NoConsumer">
+        <!-- Add extra permissions (non-owner) -->
         <generate type="dummy" count="1" consumer="NoConsumer" name="network_permission_count_dummy">
             <attribute name="count" type="int" source="extraNetworkPermissionCount.wgt.csv"/>
 
@@ -174,19 +180,38 @@
                 type="network_permissions"
                 count="{network_permission_count_dummy.count}"
                 consumer="ConsoleExporter,output">
-                <variable name="user" source="store" type="users" distribution="random" selector="!_candidate.id.equals(network.owner)"/>
+                <variable name="user" source="store" type="users" distribution="random" unique="true" selector="!_candidate.id.equals(network.owner)"/>
 
                 <reference name="networkid" targetType="networks" script="network.id"/>
                 <reference name="userid" targetType="users" script="user.id"/>
                 <attribute name="isadmin" type="boolean" trueQuota="0.1"/>
             </generate>
         </generate>
+
+        <!-- add up to 2 extra servers to the network owned by other users -->
+        <generate
+            type="servers"
+            minCount="0"
+            maxCount="2"
+            consumer="ConsoleExporter,output">
+            <variable name="user" source="store" type="users" distribution="random" selector="!_candidate.id.equals(network.owner)"/>
+
+            <reference name="networkid" targetType="networks" script="network.id"/>
+            <reference name="owner" targetType="users" script="user.id"/>
+            <variable name="serverNoun" generator="NounGenerator" validator="uniqueServerNounValidator"/>
+
+            <id name="id" type="long" generator="serverIdGen"/>
+            <attribute name="name" source="serverNoun.singular" />
+            <attribute name="address" source="serverNoun.singular" /> <!-- TODO be more sensible -->
+            <attribute name="ip" constant="192.168.1.1"/> <!-- TODO generate random -->
+            <attribute name="port" type="int" min="1" max="65565"/>
+            <attribute name="location" generator="NounGenerator" />
+            <attribute name="region" type="int" source="regions.csv" distribution="random"/>
+            <attribute name="created" generator="dtGen"/>
+            <attribute name="modified" generator="dtGen"/> <!-- TODO validate after created -->
+            <attribute name="deleted" type="boolean" trueQuota="0.05"/>
+        </generate>
     </iterate>
-
-
-
-
-    <!-- TODO add servers to networks with different owners -->
 
     <!--<generate type="test" count="50" consumer="ConsoleExporter">-->
         <!--<attribute name="test" type="boolean" trueQuota="0.95"/>-->

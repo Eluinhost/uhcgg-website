@@ -38,6 +38,7 @@
 
     <bean id="passwordConverter"    class="com.my.test.BcryptConverter" />
     <bean id="ipGenerator" class="com.my.test.IpAddressGenerator" />
+    <bean id="domainGenerator" class="com.my.test.DomainGenerator"/>
 
     <bean id="serverIdGen" class="IncrementalIdGenerator">
         <property name="initial" value="10000"/>
@@ -125,7 +126,7 @@
 
                     <id name="id" type="long" generator="serverIdGen"/>
                     <attribute name="name" source="serverNoun.singular" />
-                    <attribute name="address" source="serverNoun.singular" /> <!-- TODO be more sensible -->
+                    <attribute name="address" generator="domainGenerator" />
                     <attribute name="ip" generator="ipGenerator"/>
                     <attribute name="port" type="int" min="1" max="65565"/>
                     <attribute name="location" generator="NounGenerator" />
@@ -203,7 +204,7 @@
 
             <id name="id" type="long" generator="serverIdGen"/>
             <attribute name="name" source="serverNoun.singular" />
-            <attribute name="address" source="serverNoun.singular" /> <!-- TODO be more sensible -->
+            <attribute name="address" generator="domainGenerator" />
             <attribute name="ip" generator="ipGenerator"/>
             <attribute name="port" type="int" min="1" max="65565"/>
             <attribute name="location" generator="NounGenerator" />

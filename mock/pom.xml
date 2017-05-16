@@ -42,6 +42,11 @@
 			<artifactId>contiperf</artifactId>
 			<version>1.07</version>
 		</dependency>
+		<dependency>
+			<groupId>com.github.javafaker</groupId>
+			<artifactId>javafaker</artifactId>
+			<version>0.13</version>
+		</dependency>
 	</dependencies>
 
 	<build>

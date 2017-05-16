@@ -17,3 +17,5 @@ dist
 /backend/log
 /build
 node_modules
+/seed/benerator.log
+/seed/seed.sql

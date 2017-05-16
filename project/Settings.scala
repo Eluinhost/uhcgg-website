@@ -22,6 +22,7 @@ object Settings {
     val diode        = "1.1.2"
     val uTest        = "0.4.4"
     val react        = "15.5.4"
+    val bcrypt       = "3.0"
   }
 
   val sharedDependencies = Def.setting(
@@ -44,7 +45,7 @@ object Settings {
       "org.tpolecat"                       %% "doobie-core"     % "0.4.1",
       "org.tpolecat"                       %% "doobie-hikari"   % "0.4.1",
       "org.tpolecat"                       %% "doobie-postgres" % "0.4.1",
-      "com.github.t3hnar"                  %% "scala-bcrypt"    % "3.0",
+      "com.github.t3hnar"                  %% "scala-bcrypt"    % versions.bcrypt,
       "org.postgresql"                     % "postgresql"       % "42.1.0",
       "org.flywaydb"                       % "flyway-core"      % "3.2.1",
       "com.zaxxer"                         % "HikariCP"         % "2.4.5",
@@ -73,6 +74,16 @@ object Settings {
     Seq(
       "react"     → versions.react,
       "react-dom" → versions.react
+    )
+  )
+
+  val seedDependencies = Def.setting(
+    Seq(
+      "org.databene"         % "databene-benerator" % "0.9.8",
+      "com.github.t3hnar"    %% "scala-bcrypt"      % versions.bcrypt,
+      "org.databene"         % "databene-commons"   % "1.0.0",
+      "com.github.javafaker" % "javafaker"          % "0.13",
+      "org.slf4j"            % "slf4j-log4j12"      % "1.6.4"
     )
   )
 }

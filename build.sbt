@@ -9,7 +9,6 @@ lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared"))
     version := Settings.version,
     scalaVersion := Settings.versions.scala,
     scalacOptions ++= Settings.scalacOptions,
-
     libraryDependencies ++= Settings.sharedDependencies.value
   )
   .jsConfigure(_ enablePlugins ScalaJSWeb)
@@ -23,25 +22,19 @@ lazy val frontend = (project in file("frontend"))
     version := Settings.version,
     scalaVersion := Settings.versions.scala,
     scalacOptions ++= Settings.scalacOptions,
-
     // setup scalajs + npm dependencies
     libraryDependencies ++= Settings.frontendDependencies.value,
     npmDependencies in Compile ++= Settings.jsDependencies.value,
-
     // by default we do development build, no eliding
     elideOptions := Seq(),
     scalacOptions ++= elideOptions.value,
-
     // RuntimeDOM is needed for tests
     jsDependencies += RuntimeDOM % "test",
-
     // use Scala.js provided launcher code to start the client app
     scalaJSUseMainModuleInitializer := true,
     scalaJSUseMainModuleInitializer in Test := false,
-
     // use uTest framework for tests
     testFrameworks += new TestFramework("utest.runner.Framework"),
-
     emitSourceMaps := true
   )
   .enablePlugins(ScalaJSBundlerPlugin, ScalaJSWeb)
@@ -53,23 +46,16 @@ lazy val backend = (project in file("backend"))
     version := Settings.version,
     scalaVersion := Settings.versions.scala,
     scalacOptions ++= Settings.scalacOptions,
-
     resolvers += "Bartek's repo at Bintray" at "https://dl.bintray.com/btomala/maven",
     libraryDependencies ++= Settings.backendDependencies.value,
-
 //    javaOptions := Seq("-Xdebug", "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"),
-
     commands += ReleaseCmd,
-
     // triggers scalaJSPipeline when using compile or continuous compilation
     compile in Compile := ((compile in Compile) dependsOn scalaJSPipeline).value,
-
     // connect to the client project
     scalaJSProjects := Seq(frontend),
     pipelineStages in Assets := Seq(scalaJSPipeline),
-
     managedClasspath in Runtime += (packageBin in Assets).value,
-
     LessKeys.compress in Assets := true,
     WebKeys.packagePrefix in Assets := "public/"
   )
@@ -91,3 +77,14 @@ lazy val ReleaseCmd = Command.command("release") { state =>
 
 // load backend by default
 onLoad in Global := (Command.process("project backend", _: State)) compose (onLoad in Global).value
+
+lazy val seed = (project in file("seed"))
+  .settings(
+    name := "seed",
+    version := Settings.version,
+    scalaVersion := Settings.versions.scala,
+    scalacOptions ++= Settings.scalacOptions,
+    libraryDependencies ++= Settings.seedDependencies.value
+
+    //    javaOptions := Seq("-Xdebug", "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"),
+  )

@@ -10,7 +10,7 @@ import io.circe.{Json, JsonObject}
 import sangria.execution.deferred.DeferredResolver
 import sangria.execution.{ErrorWithResolver, Executor, QueryAnalysisError}
 import sangria.marshalling.InputUnmarshaller
-import sangria.parser.QueryParser
+import sangria.parser.{QueryParser, SyntaxError}
 import sangria.renderer.SchemaRenderer
 import schema.SchemaContext
 import schema.definitions.Types.SchemaType
@@ -48,8 +48,15 @@ class GraphqlRoute(context: SchemaContext)
   def endpoint(query: GraphqlRequest): Future[(StatusCode, Json)] =
     QueryParser.parse(query.query) match {
       // can't parse GraphQL query, return error
-      case Failure(error) ⇒
-        Future successful (StatusCodes.BadRequest → Json.obj("error" → Json.fromString(error.getMessage)))
+      case Failure(error: SyntaxError) ⇒
+        Future successful (StatusCodes.BadRequest → Json.obj(
+          "syntaxError" → Json.fromString(error.getMessage()),
+          "locations" → Json.arr(Json.obj(
+            "line" → Json.fromInt(error.originalError.position.line),
+            "column" → Json.fromInt(error.originalError.position.column)
+          ))
+        ))
+      case Failure(error) ⇒ throw error
       case Success(ast) ⇒
         Executor
           .execute(

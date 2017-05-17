@@ -21,7 +21,7 @@ import scala.util.{Failure, Success}
 
 case class GraphqlRequest(operationName: Option[String], query: String, variables: Option[Json])
 
-class GraphqlRoute(context: SchemaContext)
+class GraphqlRoute(createContext: () ⇒ SchemaContext)
     extends PartialRoute
     with FailFastCirceSupport
     with AutoDerivation {
@@ -58,11 +58,13 @@ class GraphqlRoute(context: SchemaContext)
         ))
       case Failure(error) ⇒ throw error
       case Success(ast) ⇒
+        val ctx: SchemaContext = createContext()
+
         Executor
           .execute(
             schema = SchemaType,
             queryAst = ast,
-            userContext = context,
+            userContext = ctx,
             variables = InputUnmarshaller.mapVars(
               query.variables
                 .flatMap(_.asObject)

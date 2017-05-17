@@ -1,8 +1,8 @@
 package schema
 
-import com.softwaremill.macwire.wire
+import com.softwaremill.macwire._
 import repositories.RepositoriesModule
 
 trait SchemaModule extends RepositoriesModule {
-  lazy val schemaContext: SchemaContext = wire[SchemaContext]
+  lazy val schemaContextGenerator: () ⇒ SchemaContext = () ⇒ wire[SchemaContext]
 }

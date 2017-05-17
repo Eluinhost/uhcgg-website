@@ -2,17 +2,18 @@ package schema
 
 import repositories._
 
-case class SchemaContext(
-    users: UserRepository,
-    roles: RoleRepository,
-    bans: BanRepository,
-    userRoles: UserRolesRepository,
-    regions: RegionRepository,
-    versions: VersionRepository,
-    networks: NetworkRepository,
-    servers: ServerRepository,
-    styles: StyleRepository,
-    matches: MatchRepository,
-    scenarios: ScenarioRepository,
-    matchScenarios: MatchScenariosRepository,
-    networkPermissions: NetworkPermissionRepository) extends Mutation
+class SchemaContext(
+    val users: UserRepository,
+    val roles: RoleRepository,
+    val bans: BanRepository,
+    val userRoles: UserRolesRepository,
+    val regions: RegionRepository,
+    val versions: VersionRepository,
+    val networks: NetworkRepository,
+    val servers: ServerRepository,
+    val styles: StyleRepository,
+    val matches: MatchRepository,
+    val scenarios: ScenarioRepository,
+    val matchScenarios: MatchScenariosRepository,
+    val networkPermissions: NetworkPermissionRepository)
+    extends Mutation

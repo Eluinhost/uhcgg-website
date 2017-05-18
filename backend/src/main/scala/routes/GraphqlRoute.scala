@@ -99,7 +99,9 @@ class GraphqlRoute(createContext: () ⇒ SchemaContext)
               ))
           )
         )
-      case Failure(error) ⇒ throw error
+      case Failure(error) ⇒
+        system.log.error(error, "graphql failure")
+        throw error
       case Success(ast) ⇒
         val ctx = createContext()
 
@@ -111,14 +113,15 @@ class GraphqlRoute(createContext: () ⇒ SchemaContext)
         )
 
         onComplete(future) {
-          case Success(response) ⇒
-            respondWithHeaders(
-              GraphQlComplexityHeader(ctx.queryComplexity.getOrElse(-1D))
-                :: GraphQlDepthHeader(ctx.queryDepth.getOrElse(-1))
-                :: Nil) {
-              complete(response)
-            }
-          case Failure(_) ⇒ complete(StatusCodes.BadRequest → "Internal server error")
+          case Success((statusCode, response)) ⇒
+              complete(
+                statusCode → response.asObject.get
+                  .add("depth", Json.fromInt(ctx.queryDepth.getOrElse(-1)))
+                  .add("complexity", Json.fromDouble(ctx.queryComplexity.getOrElse(-1D)).get)
+              )
+          case Failure(ex) ⇒
+            system.log.error(ex, "Failure to complete query")
+            complete(StatusCodes.BadRequest → "Internal server error")
         }
     }
 

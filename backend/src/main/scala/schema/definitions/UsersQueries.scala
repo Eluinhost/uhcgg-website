@@ -34,6 +34,7 @@ object UsersQueries {
       name = "usersByIds",
       fieldType = ListType(Types.UserType),
       arguments = idsArg :: Nil,
+      complexity = Some((_, args, childScore) ⇒ 20 + (args.arg(idsArg).length * childScore)),
       resolve = ctx ⇒ Fetchers.users.deferSeq(ctx arg idsArg),
       description = Some("Fetch users with the given IDs")
     ),
@@ -41,6 +42,7 @@ object UsersQueries {
       name = "usersByUsernames",
       fieldType = ListType(Types.UserType),
       arguments = usernamesArg :: Nil,
+      complexity = Some((_, args, childScore) ⇒  20 + (args.arg(usernamesArg).length * childScore)),
       resolve = ctx ⇒ ctx.ctx.users.getByUsernames(ctx arg usernamesArg),
       description = Some("Fetch users with the given usernames")
     )

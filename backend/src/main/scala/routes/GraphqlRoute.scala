@@ -7,14 +7,15 @@ import akka.stream.ActorMaterializer
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
 import io.circe.generic.AutoDerivation
 import io.circe.{Json, JsonObject}
+import sangria.ast.Document
 import sangria.execution.deferred.DeferredResolver
-import sangria.execution.{ErrorWithResolver, Executor, QueryAnalysisError}
+import sangria.execution.{ErrorWithResolver, Executor, QueryAnalysisError, QueryReducer}
 import sangria.marshalling.InputUnmarshaller
 import sangria.parser.{QueryParser, SyntaxError}
 import sangria.renderer.SchemaRenderer
 import schema.SchemaContext
-import schema.definitions.Types.SchemaType
 import schema.definitions.Fetchers
+import schema.definitions.Types.SchemaType
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -34,8 +35,8 @@ class GraphqlRoute(createContext: () ⇒ SchemaContext)
 
   lazy val renderedSchema: String = SchemaRenderer.renderSchema(SchemaType)
 
-  val rejectionHandler = RejectionHandler.default
-  val logDuration = extractRequestContext.flatMap { ctx =>
+  private val rejectionHandler = RejectionHandler.default
+  private val logDuration = extractRequestContext.flatMap { ctx =>
     val start = System.currentTimeMillis()
     // handling rejections here so that we get proper status codes
     mapResponse { resp =>
@@ -45,40 +46,80 @@ class GraphqlRoute(createContext: () ⇒ SchemaContext)
     } & handleRejections(rejectionHandler)
   }
 
-  def endpoint(query: GraphqlRequest): Future[(StatusCode, Json)] =
+  private val complexityReducer = QueryReducer.measureComplexity[SchemaContext] { (complexity, ctx) ⇒
+    ctx.queryComplexity = Some(complexity)
+    ctx
+  }
+
+  private val depthReducer = QueryReducer.measureDepth[SchemaContext] { (depth, ctx) ⇒
+    ctx.queryDepth = Some(depth)
+    ctx
+  }
+
+  def runQuery(
+      ctx: SchemaContext,
+      query: Document,
+      operation: Option[String],
+      variables: Option[Json]
+    ): Future[(StatusCode, Json)] =
+    Executor
+      .execute(
+        schema = SchemaType,
+        queryAst = query,
+        userContext = ctx,
+        variables = InputUnmarshaller.mapVars(
+          variables
+            .flatMap(_.asObject)
+            .getOrElse(JsonObject.empty)
+            .toMap
+        ),
+        operationName = operation,
+        deferredResolver = DeferredResolver.fetchers(Fetchers.fetchers: _*),
+        queryReducers = complexityReducer :: depthReducer :: Nil
+      )
+      .map { result ⇒
+        StatusCodes.OK → result
+      }
+      .recover {
+        case error: QueryAnalysisError ⇒ StatusCodes.BadRequest          → error.resolveError
+        case error: ErrorWithResolver  ⇒ StatusCodes.InternalServerError → error.resolveError
+      }
+
+  def endpoint(query: GraphqlRequest): Route =
     QueryParser.parse(query.query) match {
       // can't parse GraphQL query, return error
       case Failure(error: SyntaxError) ⇒
-        Future successful (StatusCodes.BadRequest → Json.obj(
-          "syntaxError" → Json.fromString(error.getMessage()),
-          "locations" → Json.arr(Json.obj(
-            "line" → Json.fromInt(error.originalError.position.line),
-            "column" → Json.fromInt(error.originalError.position.column)
-          ))
-        ))
+        complete(
+          StatusCodes.BadRequest → Json.obj(
+            "syntaxError" → Json.fromString(error.getMessage()),
+            "locations" → Json.arr(
+              Json.obj(
+                "line"   → Json.fromInt(error.originalError.position.line),
+                "column" → Json.fromInt(error.originalError.position.column)
+              ))
+          )
+        )
       case Failure(error) ⇒ throw error
       case Success(ast) ⇒
-        val ctx: SchemaContext = createContext()
+        val ctx = createContext()
 
-        Executor
-          .execute(
-            schema = SchemaType,
-            queryAst = ast,
-            userContext = ctx,
-            variables = InputUnmarshaller.mapVars(
-              query.variables
-                .flatMap(_.asObject)
-                .getOrElse(JsonObject.empty)
-                .toMap
-            ),
-            operationName = query.operationName,
-            deferredResolver = DeferredResolver.fetchers(Fetchers.fetchers: _*)
-          )
-          .map(StatusCodes.OK → _)
-          .recover {
-            case error: QueryAnalysisError ⇒ StatusCodes.BadRequest          → error.resolveError
-            case error: ErrorWithResolver  ⇒ StatusCodes.InternalServerError → error.resolveError
-          }
+        val future = runQuery(
+          ctx = ctx,
+          query = ast,
+          operation = query.operationName,
+          variables = query.variables
+        )
+
+        onComplete(future) {
+          case Success(response) ⇒
+            respondWithHeaders(
+              GraphQlComplexityHeader(ctx.queryComplexity.getOrElse(-1D))
+                :: GraphQlDepthHeader(ctx.queryDepth.getOrElse(-1))
+                :: Nil) {
+              complete(response)
+            }
+          case Failure(_) ⇒ complete(StatusCodes.BadRequest → "Internal server error")
+        }
     }
 
   override def route: Route =
@@ -89,9 +130,8 @@ class GraphqlRoute(createContext: () ⇒ SchemaContext)
         get {
           getFromResource("graphiql.html")
         } ~ post {
-          (entity(as[GraphqlRequest]) & logDuration) { request ⇒
-            complete(endpoint(request))
-          } ~ complete(StatusCodes.BadRequest → "Incorrect request format")
+          (entity(as[GraphqlRequest]) & logDuration)(endpoint) ~ complete(
+            StatusCodes.BadRequest → "Incorrect request format")
         }
       }
     }

@@ -16,4 +16,7 @@ class SchemaContext(
     val scenarios: ScenarioRepository,
     val matchScenarios: MatchScenariosRepository,
     val networkPermissions: NetworkPermissionRepository)
-    extends Mutation
+    extends Mutation {
+  var queryComplexity: Option[Double] = None
+  var queryDepth: Option[Int] = None
+}

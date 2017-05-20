@@ -19,6 +19,7 @@ object ScenarioQueries {
       name = "scenariosByIds",
       fieldType = ListType(Types.ScenarioType),
       arguments = idsArg :: Nil,
+      complexity = Some((_, args, childScore) ⇒ 20 + (args.arg(idsArg).length * childScore)),
       resolve = ctx ⇒ Fetchers.scenarios.deferSeqOpt(ctx arg idsArg),
       description = Some("Looks up scenarios with the given ids")
     ),

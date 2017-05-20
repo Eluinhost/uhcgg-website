@@ -19,13 +19,14 @@ object VersionQueries {
       name = "versionsByIds",
       fieldType = ListType(Types.VersionType),
       arguments = idsArg :: Nil,
+      complexity = Some((_, args, childScore) ⇒ 20 + (args.arg(idsArg).length * childScore)),
       resolve = ctx ⇒ Fetchers.versions.deferSeqOpt(ctx arg idsArg),
       description = Some("Looks up versions with the given ids")
     ),
     Field(
       "versions",
       ListType(Types.VersionType),
-      arguments = Nil,
+      arguments = Nil, // TODO pagination
       resolve = ctx ⇒ ctx.ctx.versions.getAll,
       description = Some("Fetches all versions")
     )

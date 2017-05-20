@@ -19,13 +19,14 @@ object RegionQueries {
       name = "regionsByIds",
       fieldType = ListType(Types.RegionType),
       arguments = idsArg :: Nil,
+      complexity = Some((_, args, childScore) ⇒ 20 + (args.arg(idsArg).length * childScore)),
       resolve = ctx ⇒ Fetchers.regions.deferSeqOpt(ctx arg idsArg),
       description = Some("Looks up regions with the given ids")
     ),
     Field(
       "regions",
       ListType(Types.RegionType),
-      arguments = Nil,
+      arguments = Nil,  // TODO pagination
       resolve = ctx ⇒ ctx.ctx.regions.getAll,
       description = Some("Fetches all regions")
     )

@@ -19,12 +19,13 @@ object StyleQueries {
       name = "stylesByIds",
       fieldType = ListType(Types.StyleType),
       arguments = idsArg :: Nil,
+      complexity = Some((_, args, childScore) ⇒ 20 + (args.arg(idsArg).length * childScore)),
       resolve = ctx ⇒ Fetchers.styles.deferSeqOpt(ctx arg idsArg),
       description = Some("Looks up styles with the given ids")
     ),
     Field(
       "styles",
-      ListType(Types.StyleType),
+      ListType(Types.StyleType), // TODO pagination
       arguments = Nil,
       resolve = ctx ⇒ ctx.ctx.styles.getAll,
       description = Some("Fetches all styles")

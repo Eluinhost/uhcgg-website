@@ -19,6 +19,7 @@ object NetworkQueries {
       name = "networksByIds",
       fieldType = ListType(Types.NetworkType),
       arguments = idsArg :: Nil,
+      complexity = Some((_, args, childScore) ⇒ 20 + (args.arg(idsArg).length * childScore)),
       resolve = ctx ⇒ Fetchers.networks.deferSeqOpt(ctx arg idsArg),
       description = Some("Looks up versions with the given ids")
     ),

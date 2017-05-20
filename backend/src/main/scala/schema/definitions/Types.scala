@@ -13,19 +13,19 @@ object Types {
   lazy val UserType: ObjectType[SchemaContext, User] = deriveObjectType[SchemaContext, User](
     AddFields(
       Field(
-        name = "bans",
+        name = "bans", // TODO pagination
         fieldType = ListType(BanType),
         description = Some("All current bans applied to the given user"),
         resolve = ctx ⇒ Fetchers.bans.deferRelSeq[UUID](Relations.banByBannedUserId, ctx.value.id)
       ),
       Field(
-        name = "roles",
+        name = "roles", // TODO pagination
         fieldType = ListType(UserRoleType),
         description = Some("A list of user roles the user has"),
         resolve = ctx ⇒ Fetchers.userRoles.deferRelSeq[UUID](Relations.userRoleByUserId, ctx.value.id)
       ),
       Field(
-        name = "networks",
+        name = "networks", // TODO pagination
         fieldType = ListType(NetworkType),
         description = Some("A list of networks the user owns"),
         resolve = ctx ⇒ Fetchers.networks.deferRelSeq(Relations.networkByUserId, ctx.value.id)
@@ -43,7 +43,7 @@ object Types {
         resolve = ctx ⇒ Fetchers.scenarios.deferRelSeq(Relations.scenarioByOwnerId, ctx.value.id)
       ),
       Field(
-        name = "networkPermissions",
+        name = "networkPermissions", // TODO pagination
         fieldType = ListType(NetworkPermissionType),
         description = Some("A list of all networks with permissions"),
         resolve = ctx ⇒ Fetchers.networkPermissions.deferRelSeq(Relations.networkPermissionByUserId, ctx.value.id)
@@ -129,13 +129,13 @@ object Types {
     ),
     AddFields(
       Field(
-        name = "servers",
+        name = "servers", // TODO pagination
         fieldType = ListType(ServerType),
         description = Some("All of the servers belonging to this network"),
         resolve = ctx ⇒ Fetchers.servers.deferRelSeq(Relations.serverByNetworkId, ctx.value.id)
       ),
       Field(
-        name = "permissions",
+        name = "permissions", // TODO pagination
         fieldType = ListType(NetworkPermissionType),
         description = Some("A list of all users with permissions"),
         resolve = ctx ⇒ Fetchers.networkPermissions.deferRelSeq(Relations.networkPermissionByNetworkId, ctx.value.id)
@@ -194,7 +194,7 @@ object Types {
     AddFields(
       Field(
         name = "scenarios",
-        fieldType = ListType(MatchScenarioType),
+        fieldType = ListType(MatchScenarioType), // TODO pagination
         description = Some("Scenarios for this match"),
         resolve = ctx ⇒ Fetchers.matchScenarios.deferRelSeq(Relations.matchScenarioByMatchId, ctx.value.id)
       )

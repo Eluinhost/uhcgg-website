@@ -14,7 +14,7 @@ object BansQueries {
   val query: List[Field[SchemaContext, Unit]] = fields(
     Field(
       "bans",
-      ListType(Types.BanType),
+      ListType(Types.BanType), // TODO pagination
       arguments = showExpired :: Nil,
       resolve = ctx ⇒ ctx.ctx.bans.getBans(ctx arg showExpired),
       description = Some("Look up current bans for the given user id")

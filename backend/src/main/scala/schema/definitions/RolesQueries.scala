@@ -19,12 +19,13 @@ object RolesQueries {
       name = "rolesByIds",
       fieldType = ListType(Types.RoleType),
       arguments = idsArg :: Nil,
+      complexity = Some((_, args, childScore) ⇒ 20 + (args.arg(idsArg).length * childScore)),
       resolve = ctx ⇒ Fetchers.roles.deferSeqOpt(ctx arg idsArg),
       description = Some("Looks up roles with the given ids")
     ),
     Field(
       "roles",
-      ListType(Types.RoleType),
+      ListType(Types.RoleType), // TODO pagination
       arguments = Nil,
       resolve = ctx ⇒ ctx.ctx.roles.getRoles,
       description = Some("Fetches all roles")

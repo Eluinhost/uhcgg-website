@@ -9,7 +9,7 @@ import io.circe.generic.AutoDerivation
 import io.circe.{Json, JsonObject}
 import sangria.ast.Document
 import sangria.execution.deferred.DeferredResolver
-import sangria.execution.{ErrorWithResolver, Executor, QueryAnalysisError, QueryReducer}
+import sangria.execution._
 import sangria.marshalling.InputUnmarshaller
 import sangria.parser.{QueryParser, SyntaxError}
 import sangria.renderer.SchemaRenderer
@@ -21,6 +21,7 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 case class GraphqlRequest(operationName: Option[String], query: String, variables: Option[Json])
+case class QueryTooComplexException(max: Int) extends Exception(s"Query exceeded max complexity $max") with UserFacingError
 
 class GraphqlRoute(createContext: () ⇒ SchemaContext)
     extends PartialRoute
@@ -48,12 +49,22 @@ class GraphqlRoute(createContext: () ⇒ SchemaContext)
 
   private val complexityReducer = QueryReducer.measureComplexity[SchemaContext] { (complexity, ctx) ⇒
     ctx.queryComplexity = Some(complexity)
+
+    if (complexity > 1000) throw QueryTooComplexException()
+
     ctx
   }
 
   private val depthReducer = QueryReducer.measureDepth[SchemaContext] { (depth, ctx) ⇒
     ctx.queryDepth = Some(depth)
+
+    if (depth > 7) throw MaxQueryDepthReachedError(7)
+
     ctx
+  }
+
+  private val exceptionHandler: Executor.ExceptionHandler = {
+    case (_, e @ (_: QueryTooComplexException | _: MaxQueryDepthReachedError)) ⇒ HandledException(e.getMessage)
   }
 
   def runQuery(
@@ -75,7 +86,8 @@ class GraphqlRoute(createContext: () ⇒ SchemaContext)
         ),
         operationName = operation,
         deferredResolver = DeferredResolver.fetchers(Fetchers.fetchers: _*),
-        queryReducers = complexityReducer :: depthReducer :: Nil
+        queryReducers = depthReducer :: complexityReducer :: Nil,
+        exceptionHandler = exceptionHandler
       )
       .map { result ⇒
         StatusCodes.OK → result
@@ -114,11 +126,11 @@ class GraphqlRoute(createContext: () ⇒ SchemaContext)
 
         onComplete(future) {
           case Success((statusCode, response)) ⇒
-              complete(
-                statusCode → response.asObject.get
-                  .add("depth", Json.fromInt(ctx.queryDepth.getOrElse(-1)))
-                  .add("complexity", Json.fromDouble(ctx.queryComplexity.getOrElse(-1D)).get)
-              )
+            complete(
+              statusCode → response.asObject.get
+                .add("depth", Json.fromInt(ctx.queryDepth.getOrElse(-1)))
+                .add("complexity", Json.fromDouble(ctx.queryComplexity.getOrElse(-1D)).get)
+            )
           case Failure(ex) ⇒
             system.log.error(ex, "Failure to complete query")
             complete(StatusCodes.BadRequest → "Internal server error")

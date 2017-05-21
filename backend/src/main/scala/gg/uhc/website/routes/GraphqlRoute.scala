@@ -36,10 +36,10 @@ class GraphqlRoute(createContext: () ⇒ SchemaContext) extends PartialRoute wit
   lazy val renderedSchema: String = SchemaRenderer.renderSchema(SchemaType)
 
   private val rejectionHandler = RejectionHandler.default
-  private val logDuration = extractRequestContext.flatMap { ctx =>
+  private val logDuration = extractRequestContext.flatMap { ctx ⇒
     val start = System.currentTimeMillis()
     // handling rejections here so that we get proper status codes
-    mapResponse { resp =>
+    mapResponse { resp ⇒
       val d = System.currentTimeMillis() - start
       system.log.info(s"[${resp.status.intValue()}] ${ctx.request.method.name} ${ctx.request.uri} took: ${d}ms")
       resp

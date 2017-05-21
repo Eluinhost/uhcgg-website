@@ -6,10 +6,10 @@ object EmailValidation {
 
   implicit class ValidateEmailString(s: String) {
     def isValidEmailFormat: Boolean = s match {
-      case null                                          => false
-      case e if e.trim.isEmpty                           => false
-      case e if emailRegex.findFirstMatchIn(e).isDefined => true
-      case _                                             => false
+      case null                                          ⇒ false
+      case e if e.trim.isEmpty                           ⇒ false
+      case e if emailRegex.findFirstMatchIn(e).isDefined ⇒ true
+      case _                                             ⇒ false
     }
   }
 }

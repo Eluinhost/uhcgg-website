@@ -1,0 +1,3 @@
+package gg.uhc.website.schema.scalars
+
+object CustomScalars extends InstantScalarTypeSupport with UuidScalarTypeSupport with InetAddressScalarTypeSupport

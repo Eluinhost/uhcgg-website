@@ -17,6 +17,7 @@ import io.circe.parser._
 import io.circe.syntax._
 import pdi.jwt.algorithms.JwtHmacAlgorithm
 import pdi.jwt.{JwtCirce, JwtClaim}
+import gg.uhc.website.validation.EmailValidation._
 
 import scala.util.{Failure, Success}
 
@@ -42,7 +43,7 @@ case class RegisterRequest(email: String, password: String, token: String) {
     "Password must contain at least 8 characters"
   )
   require(
-    Emails.isValid(email),
+    email.isValidEmailFormat,
     "Invalid email provided"
   )
 }

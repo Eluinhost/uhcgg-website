@@ -317,18 +317,5 @@ object Types {
       ::: VersionQueries.query
   )
 
-  lazy val MutationType = ObjectType(
-    "Mutation",
-    description = "Root mutation object",
-    fields = fields[SchemaContext, Unit](
-      Field(
-        name = "generateFakeData",
-        fieldType = UserType,
-        arguments = Nil,
-        resolve = ctx ⇒ ctx.ctx.generateFakeUser()
-      )
-    )
-  )
-
-  lazy val SchemaType = Schema(QueryType, Some(MutationType), None)
+  lazy val SchemaType = Schema(QueryType, Some(Mutations.mutations), None)
 }

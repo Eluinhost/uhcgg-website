@@ -13,7 +13,7 @@ import sangria.execution._
 import sangria.marshalling.InputUnmarshaller
 import sangria.parser.{QueryParser, SyntaxError}
 import sangria.renderer.SchemaRenderer
-import gg.uhc.website.schema.SchemaContext
+import gg.uhc.website.schema.{AuthenticationException, AuthorisationException, SchemaContext}
 import gg.uhc.website.schema.definitions.Fetchers
 import gg.uhc.website.schema.definitions.Types.SchemaType
 
@@ -21,7 +21,7 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 case class GraphqlRequest(operationName: Option[String], query: String, variables: Option[Json])
-case class QueryTooComplexException(max: Int) extends Exception(s"Query exceeded max complexity $max") with UserFacingError
+case class QueryTooComplexException(max: Int) extends Exception(s"Query exceeded max complexity $max")
 
 class GraphqlRoute(createContext: () ⇒ SchemaContext)
     extends PartialRoute
@@ -78,7 +78,10 @@ class GraphqlRoute(createContext: () ⇒ SchemaContext)
     * Custom exception handler to make sure the right error message is sent to the client for complexity/depth exceeding
     */
   private val exceptionHandler: Executor.ExceptionHandler = {
-    case (_, e @ (_: QueryTooComplexException | _: MaxQueryDepthReachedError)) ⇒ HandledException(e.getMessage)
+    case (_, e: QueryTooComplexException)  ⇒ HandledException(e.getMessage)
+    case (_, e: MaxQueryDepthReachedError) ⇒ HandledException(e.getMessage)
+    case (_, e: AuthorisationException)    ⇒ HandledException(e.getMessage)
+    case (_, e: AuthenticationException)   ⇒ HandledException(e.getMessage)
   }
 
   /**
@@ -104,8 +107,7 @@ class GraphqlRoute(createContext: () ⇒ SchemaContext)
           variables
             .flatMap(_.asObject)
             .getOrElse(JsonObject.empty)
-            .toMap
-        ),
+            .toMap),
         operationName = operation,
         deferredResolver = DeferredResolver.fetchers(Fetchers.fetchers: _*),
         queryReducers = depthReducer :: complexityReducer :: Nil, // query depth before complexity

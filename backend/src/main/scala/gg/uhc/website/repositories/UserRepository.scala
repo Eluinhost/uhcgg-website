@@ -15,6 +15,14 @@ import scalaz._
 import Scalaz._
 
 class UserRepository(db: DatabaseService) extends RepositorySupport {
+  def changePassword(id: UUID, password: String): Future[Boolean] = db.run(
+    sql"UPDATE users SET password = ${password.bcrypt} WHERE id = $id"
+      .asInstanceOf[Fragment]
+      .update
+      .run
+      .map(_ > 0)
+  )
+
   private[this] val baseSelect =
     fr"SELECT id, username, email, password, created FROM users".asInstanceOf[Fragment]
 
@@ -70,5 +78,13 @@ class UserRepository(db: DatabaseService) extends RepositorySupport {
     (baseSelect ++ Fragments.whereAnd(fr"username = $username".asInstanceOf[Fragment]))
       .query[User]
       .option
+  )
+
+  def authenticate(username: String, password: String): Future[Option[String]] = db.run(
+    sql"SELECT id,password FROM users WHERE (username = $username OR email = $username)"
+      .asInstanceOf[Fragment]
+      .query[(String,String)]
+      .list
+      .map(list ⇒ list.filter(item ⇒ password.isBcrypted(item._2)).map(_._1).headOption)
   )
 }

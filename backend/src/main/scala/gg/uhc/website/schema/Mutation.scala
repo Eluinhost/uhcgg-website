@@ -1,10 +1,10 @@
 package gg.uhc.website.schema
 
-import gg.uhc.website.schema.model.User
+import java.util.UUID
 
 import scala.concurrent.Future
 
 trait Mutation { this: SchemaContext ⇒
-
-  def generateFakeUser(): Future[User] = users.createUser("test", "test@example.com", "test-password")
+  def login(username: String, password: String): Future[Option[String]] = users.authenticate(username, password)
+  def changePassword(id: UUID, password: String): Future[Boolean] = users.changePassword(id, password)
 }

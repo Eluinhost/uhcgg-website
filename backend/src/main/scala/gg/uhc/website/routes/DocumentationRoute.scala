@@ -1,9 +1,9 @@
 package gg.uhc.website.routes
 
-import akka.http.scaladsl.server.{Directives, Route}
+import akka.http.scaladsl.server.Route
 import akkahttptwirl.TwirlSupport
 
-class DocumentationRoute extends PartialRoute with TwirlSupport with Directives {
+class DocumentationRoute extends PartialRoute with TwirlSupport {
   val route: Route =
     (get & pathPrefix("docs")) {
       pathEndOrSingleSlash {

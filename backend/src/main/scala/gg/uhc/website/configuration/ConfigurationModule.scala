@@ -2,6 +2,7 @@ package gg.uhc.website.configuration
 
 import com.typesafe.config.ConfigFactory
 import com.softwaremill.tagging._
+import pdi.jwt.JwtAlgorithm
 
 trait ConfigurationModule {
   private[this] val config = ConfigFactory.load()
@@ -36,5 +37,13 @@ trait ConfigurationModule {
 
   lazy val redditRedirectUriConfig: String @@ RedditRedirectUriConfig = {
     config.getString("reddit.redirectUri").taggedWith[RedditRedirectUriConfig]
+  }
+
+  lazy val jwtSecret: String @@ JwtSecret = {
+    config.getString("jwt.secret").taggedWith[JwtSecret]
+  }
+
+  lazy val jwtAlgo: JwtAlgorithm = {
+    JwtAlgorithm.fromString(config.getString("jwt.algorithm"))
   }
 }

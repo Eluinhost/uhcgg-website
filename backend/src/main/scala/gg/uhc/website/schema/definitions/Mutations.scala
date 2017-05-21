@@ -14,17 +14,18 @@ object Mutations extends UuidScalarTypeSupport {
     description = "Root mutation object",
     fields = fields[SchemaContext, Unit](
       Field(
-        name = "login",
-        description = Some("Login with the supplied username/email and password combination"),
+        name = "token",
+        description = Some("Get a token for the supplied username/email and password combination"),
         fieldType = OptionType(StringType),
         arguments = usernameArg :: passwordArg :: Nil,
-        resolve = ctx ⇒ ctx.ctx.login(ctx.arg(usernameArg), ctx.arg(passwordArg))
+        complexity = Some((_,_,_) ⇒ 100),
+        resolve = ctx ⇒ ctx.ctx.token(username = ctx.arg(usernameArg), password = ctx.arg(passwordArg))
       ),
       Field(
         name = "changePassword", // TODO definitely remove this
         fieldType = BooleanType,
         arguments = userIdArg :: passwordArg :: Nil,
-        resolve = ctx ⇒ ctx.ctx.changePassword(ctx.arg(userIdArg), ctx.arg(passwordArg))
+        resolve = ctx ⇒ ctx.ctx.changePassword(id = ctx.arg(userIdArg), password = ctx.arg(passwordArg))
       )
     )
   )

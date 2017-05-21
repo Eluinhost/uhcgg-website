@@ -4,18 +4,17 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.{RejectionHandler, Route}
 import akka.stream.ActorMaterializer
-import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
-import io.circe.generic.AutoDerivation
+import gg.uhc.website.CustomJsonCodec
+import gg.uhc.website.schema.definitions.Fetchers
+import gg.uhc.website.schema.definitions.Types.SchemaType
+import gg.uhc.website.schema.{AuthenticationException, AuthorisationException, SchemaContext}
 import io.circe.{Json, JsonObject}
 import sangria.ast.Document
-import sangria.execution.deferred.DeferredResolver
 import sangria.execution._
+import sangria.execution.deferred.DeferredResolver
 import sangria.marshalling.InputUnmarshaller
 import sangria.parser.{QueryParser, SyntaxError}
 import sangria.renderer.SchemaRenderer
-import gg.uhc.website.schema.{AuthenticationException, AuthorisationException, SchemaContext}
-import gg.uhc.website.schema.definitions.Fetchers
-import gg.uhc.website.schema.definitions.Types.SchemaType
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -23,10 +22,7 @@ import scala.util.{Failure, Success}
 case class GraphqlRequest(operationName: Option[String], query: String, variables: Option[Json])
 case class QueryTooComplexException(max: Int) extends Exception(s"Query exceeded max complexity $max")
 
-class GraphqlRoute(createContext: () ⇒ SchemaContext)
-    extends PartialRoute
-    with FailFastCirceSupport
-    with AutoDerivation {
+class GraphqlRoute(createContext: () ⇒ SchemaContext) extends PartialRoute with CustomJsonCodec {
   import sangria.marshalling.circe._
 
   implicit val system       = ActorSystem("sangria-server")

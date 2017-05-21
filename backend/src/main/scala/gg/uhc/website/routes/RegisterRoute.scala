@@ -4,13 +4,12 @@ import java.net.URLEncoder
 import java.util.UUID
 
 import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.{Directives, Route}
+import akka.http.scaladsl.server.Route
 import akkahttptwirl.TwirlSupport
 import com.softwaremill.session.SessionOptions.{oneOff, usingCookies}
 import com.softwaremill.session.{SessionDirectives, SessionManager}
-import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
+import gg.uhc.website.CustomJsonCodec
 import gg.uhc.website.helpers.reddit.{RedditAuthenticationApi, RedditSecuredApi}
-import io.circe.generic.AutoDerivation
 import gg.uhc.website.repositories.UserRepository
 import gg.uhc.website.security.Sessions
 import gg.uhc.website.security.Sessions.{PostAuthRegistrationSession, PreAuthRegistrationSession, RegistrationSession}
@@ -53,9 +52,7 @@ class RegisterRoute(
     redditSecuredApi: RedditSecuredApi)
     extends PartialRoute
     with TwirlSupport
-    with FailFastCirceSupport
-    with AutoDerivation
-    with Directives
+    with CustomJsonCodec
     with SessionDirectives {
 
   implicit val _: SessionManager[RegistrationSession] = Sessions.registrationSessionManager

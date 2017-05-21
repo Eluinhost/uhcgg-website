@@ -11,3 +11,5 @@ trait DatabasePasswordConfig         extends ConfigurationOption
 trait RedditClientIdConfig    extends ConfigurationOption
 trait RedditSecretConfig      extends ConfigurationOption
 trait RedditRedirectUriConfig extends ConfigurationOption
+
+trait JwtSecret extends ConfigurationOption

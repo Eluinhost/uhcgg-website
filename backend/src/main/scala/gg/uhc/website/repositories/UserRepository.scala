@@ -2,19 +2,17 @@ package gg.uhc.website.repositories
 
 import java.util.UUID
 
-import gg.uhc.website.database.DatabaseService
-import doobie.imports.Fragment
-
-import scala.concurrent.Future
 import com.github.t3hnar.bcrypt._
-import doobie.imports._
+import doobie.imports.{Fragment, _}
 import doobie.postgres.imports._
+import gg.uhc.website.CustomJsonCodec
+import gg.uhc.website.database.DatabaseService
 import gg.uhc.website.schema.model.User
 
-import scalaz._
-import Scalaz._
+import scala.concurrent.Future
+import scalaz.Scalaz._
 
-class UserRepository(db: DatabaseService) extends RepositorySupport {
+class UserRepository(db: DatabaseService) extends RepositorySupport with CustomJsonCodec {
   def changePassword(id: UUID, password: String): Future[Boolean] = db.run(
     sql"UPDATE users SET password = ${password.bcrypt} WHERE id = $id"
       .asInstanceOf[Fragment]
@@ -80,11 +78,15 @@ class UserRepository(db: DatabaseService) extends RepositorySupport {
       .option
   )
 
-  def authenticate(username: String, password: String): Future[Option[String]] = db.run(
-    sql"SELECT id,password FROM users WHERE (username = $username OR email = $username)"
+  def authenticate(username: String, password: String): Future[Option[User]] = db.run(
+    (baseSelect
+      ++ Fragments.whereOr(
+        fr"username = $username".asInstanceOf[Fragment],
+        fr"email = $username".asInstanceOf[Fragment]
+      ))
       .asInstanceOf[Fragment]
-      .query[(String,String)]
+      .query[User]
       .list
-      .map(list ⇒ list.filter(item ⇒ password.isBcrypted(item._2)).map(_._1).headOption)
+      .map(_.find(it ⇒ password.isBcrypted(it.password)))
   )
 }

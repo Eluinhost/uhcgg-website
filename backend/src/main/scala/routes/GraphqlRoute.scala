@@ -34,6 +34,9 @@ class GraphqlRoute(createContext: () ⇒ SchemaContext)
 
   import system.dispatcher
 
+  /**
+    * Render the schema once and serve that for each request
+    */
   lazy val renderedSchema: String = SchemaRenderer.renderSchema(SchemaType)
 
   private val rejectionHandler = RejectionHandler.default
@@ -47,14 +50,22 @@ class GraphqlRoute(createContext: () ⇒ SchemaContext)
     } & handleRejections(rejectionHandler)
   }
 
+  /**
+    * Used to measure query complexity. Stores the measured complexity in the context and will throw an exception
+    * if the max complexity of 1000 is exceeded
+    */
   private val complexityReducer = QueryReducer.measureComplexity[SchemaContext] { (complexity, ctx) ⇒
     ctx.queryComplexity = Some(complexity)
 
-    if (complexity > 1000) throw QueryTooComplexException()
+    if (complexity > 1000) throw QueryTooComplexException(1000)
 
     ctx
   }
 
+  /**
+    * Used to measure query depth. Stores the measured depth in the context and will throw an exception if the max
+    * depth of 7 is exceeded
+    */
   private val depthReducer = QueryReducer.measureDepth[SchemaContext] { (depth, ctx) ⇒
     ctx.queryDepth = Some(depth)
 
@@ -63,10 +74,21 @@ class GraphqlRoute(createContext: () ⇒ SchemaContext)
     ctx
   }
 
+  /**
+    * Custom exception handler to make sure the right error message is sent to the client for complexity/depth exceeding
+    */
   private val exceptionHandler: Executor.ExceptionHandler = {
     case (_, e @ (_: QueryTooComplexException | _: MaxQueryDepthReachedError)) ⇒ HandledException(e.getMessage)
   }
 
+  /**
+    * Runs the actual GraphQL query and produces a response that can be sent to the client
+    * @param ctx the context to run the query under
+    * @param query the actual query to run
+    * @param operation idk
+    * @param variables the variables provided by the user to go alongside the query
+    * @return a Future that will resovle to a status code + JSON response to send to the client
+    */
   def runQuery(
       ctx: SchemaContext,
       query: Document,
@@ -78,7 +100,7 @@ class GraphqlRoute(createContext: () ⇒ SchemaContext)
         schema = SchemaType,
         queryAst = query,
         userContext = ctx,
-        variables = InputUnmarshaller.mapVars(
+        variables = InputUnmarshaller.mapVars( // convert the optional provided variables into an Input object
           variables
             .flatMap(_.asObject)
             .getOrElse(JsonObject.empty)
@@ -86,18 +108,17 @@ class GraphqlRoute(createContext: () ⇒ SchemaContext)
         ),
         operationName = operation,
         deferredResolver = DeferredResolver.fetchers(Fetchers.fetchers: _*),
-        queryReducers = depthReducer :: complexityReducer :: Nil,
+        queryReducers = depthReducer :: complexityReducer :: Nil, // query depth before complexity
         exceptionHandler = exceptionHandler
       )
-      .map { result ⇒
-        StatusCodes.OK → result
-      }
+      .map(StatusCodes.OK → _)
       .recover {
         case error: QueryAnalysisError ⇒ StatusCodes.BadRequest          → error.resolveError
         case error: ErrorWithResolver  ⇒ StatusCodes.InternalServerError → error.resolveError
       }
 
   def endpoint(query: GraphqlRequest): Route =
+    // First try parsing the query
     QueryParser.parse(query.query) match {
       // can't parse GraphQL query, return error
       case Failure(error: SyntaxError) ⇒
@@ -112,9 +133,11 @@ class GraphqlRoute(createContext: () ⇒ SchemaContext)
           )
         )
       case Failure(error) ⇒
+        // rethrow other errors
         system.log.error(error, "graphql failure")
         throw error
       case Success(ast) ⇒
+        // Build a new context for each request
         val ctx = createContext()
 
         val future = runQuery(

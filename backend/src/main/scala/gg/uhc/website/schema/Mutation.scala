@@ -6,7 +6,7 @@ import java.util.UUID
 import gg.uhc.website.CustomJsonCodec._
 import gg.uhc.website.schema.model.AuthorisedJwtToken
 import io.circe.syntax._
-import pdi.jwt.{JwtAlgorithm, JwtCirce, JwtClaim}
+import pdi.jwt.{JwtCirce, JwtClaim}
 
 import scala.concurrent.Future
 import scalaz.OptionT._

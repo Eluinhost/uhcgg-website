@@ -3,6 +3,7 @@ package gg.uhc.website.configuration
 import com.typesafe.config.ConfigFactory
 import com.softwaremill.tagging._
 import pdi.jwt.JwtAlgorithm
+import pdi.jwt.algorithms.JwtHmacAlgorithm
 
 trait ConfigurationModule {
   private[this] val config = ConfigFactory.load()
@@ -43,7 +44,10 @@ trait ConfigurationModule {
     config.getString("jwt.secret").taggedWith[JwtSecret]
   }
 
-  lazy val jwtAlgo: JwtAlgorithm = {
-    JwtAlgorithm.fromString(config.getString("jwt.algorithm"))
+  lazy val jwtAlgo: JwtHmacAlgorithm = {
+    JwtAlgorithm.fromString(config.getString("jwt.algorithm")) match {
+      case e: JwtHmacAlgorithm ⇒ e
+      case _ ⇒ throw new IllegalArgumentException("Expected a HMAC algorithm")
+    }
   }
 }

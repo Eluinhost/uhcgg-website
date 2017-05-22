@@ -162,8 +162,8 @@ class GraphqlRoute(createContext: () ⇒ SchemaContext) extends PartialRoute wit
         get {
           getFromResource("graphiql.html")
         } ~ post {
-          (entity(as[GraphqlRequest]) & logDuration)(endpoint) ~ complete(
-            StatusCodes.BadRequest → "Incorrect request format")
+          (entity(as[GraphqlRequest]) & logDuration)(endpoint) ~
+            complete(StatusCodes.BadRequest → "Incorrect request format")
         }
       }
     }

@@ -12,7 +12,6 @@ import gg.uhc.website.CustomJsonCodec
 import gg.uhc.website.configuration.JwtSecret
 import gg.uhc.website.helpers.reddit.{RedditAuthenticationApi, RedditSecuredApi}
 import gg.uhc.website.repositories.UserRepository
-import gg.uhc.website.validation.Emails
 import io.circe.parser._
 import io.circe.syntax._
 import pdi.jwt.algorithms.JwtHmacAlgorithm

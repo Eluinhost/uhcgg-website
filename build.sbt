@@ -46,7 +46,10 @@ lazy val backend = (project in file("backend"))
     version := Settings.version,
     scalaVersion := Settings.versions.scala,
     scalacOptions ++= Settings.scalacOptions,
-    resolvers += "Bartek's repo at Bintray" at "https://dl.bintray.com/btomala/maven",
+    resolvers ++= Seq(
+      "Bartek's repo at Bintray" at "https://dl.bintray.com/btomala/maven",
+      "jitpack" at "https://jitpack.io"
+    ),
     libraryDependencies ++= Settings.backendDependencies.value,
 //    javaOptions := Seq("-Xdebug", "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"),
     commands += ReleaseCmd,

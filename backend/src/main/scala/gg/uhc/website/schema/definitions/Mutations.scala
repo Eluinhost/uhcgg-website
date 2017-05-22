@@ -27,6 +27,6 @@ object Mutations extends UuidScalarTypeSupport {
         arguments = userIdArg :: passwordArg :: Nil,
         resolve = ctx ⇒ ctx.ctx.changePassword(id = ctx.arg(userIdArg), password = ctx.arg(passwordArg))
       )
-    )
+    ) ++ Types.MetadataFields
   )
 }

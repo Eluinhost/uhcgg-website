@@ -5,23 +5,21 @@ import gg.uhc.website.configuration.JwtSecret
 import gg.uhc.website.repositories._
 import pdi.jwt.algorithms.JwtHmacAlgorithm
 
-class SchemaContext(
-    val users: UserRepository,
-    val roles: RoleRepository,
-    val bans: BanRepository,
-    val userRoles: UserRolesRepository,
-    val regions: RegionRepository,
-    val versions: VersionRepository,
-    val networks: NetworkRepository,
-    val servers: ServerRepository,
-    val styles: StyleRepository,
-    val matches: MatchRepository,
-    val scenarios: ScenarioRepository,
-    val matchScenarios: MatchScenariosRepository,
-    val networkPermissions: NetworkPermissionRepository,
-    val jwtSecret: String @@ JwtSecret,
-    val jwtAlgorithm: JwtHmacAlgorithm)
-    extends Mutation {
-  var queryComplexity: Option[Double] = None
-  var queryDepth: Option[Int]         = None
-}
+case class SchemaContext(
+    users: UserRepository,
+    roles: RoleRepository,
+    bans: BanRepository,
+    userRoles: UserRolesRepository,
+    regions: RegionRepository,
+    versions: VersionRepository,
+    networks: NetworkRepository,
+    servers: ServerRepository,
+    styles: StyleRepository,
+    matches: MatchRepository,
+    scenarios: ScenarioRepository,
+    matchScenarios: MatchScenariosRepository,
+    networkPermissions: NetworkPermissionRepository,
+    jwtSecret: String @@ JwtSecret,
+    jwtAlgorithm: JwtHmacAlgorithm,
+    metadata: QueryMetadata)
+    extends Mutation

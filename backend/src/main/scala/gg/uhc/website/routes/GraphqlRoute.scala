@@ -20,7 +20,11 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 case class GraphqlRequest(operationName: Option[String], query: String, variables: Option[Json])
-case class QueryTooComplexException(max: Int) extends Exception(s"Query exceeded max complexity $max")
+
+case class QueryTooComplexException(max: Double, acutal: Double)
+    extends Exception(s"Query exceeded max complexity of $max, actual $acutal")
+case class QueryTooNestedException(max: Int, actual: Int)
+    extends Exception(s"Query exceeded max depth of $max, actual $actual")
 
 class GraphqlRoute(createContext: () ⇒ SchemaContext) extends PartialRoute with CustomJsonCodec {
   import sangria.marshalling.circe._
@@ -51,11 +55,9 @@ class GraphqlRoute(createContext: () ⇒ SchemaContext) extends PartialRoute wit
     * if the max complexity of 1000 is exceeded
     */
   private val complexityReducer = QueryReducer.measureComplexity[SchemaContext] { (complexity, ctx) ⇒
-    ctx.queryComplexity = Some(complexity)
+    if (complexity > 1000) throw QueryTooComplexException(1000, complexity)
 
-    if (complexity > 1000) throw QueryTooComplexException(1000)
-
-    ctx
+    ctx.copy(metadata = ctx.metadata.copy(complexity = Some(complexity)))
   }
 
   /**
@@ -63,21 +65,19 @@ class GraphqlRoute(createContext: () ⇒ SchemaContext) extends PartialRoute wit
     * depth of 7 is exceeded
     */
   private val depthReducer = QueryReducer.measureDepth[SchemaContext] { (depth, ctx) ⇒
-    ctx.queryDepth = Some(depth)
+    if (depth > 7) throw QueryTooNestedException(7, depth)
 
-    if (depth > 7) throw MaxQueryDepthReachedError(7)
-
-    ctx
+    ctx.copy(metadata = ctx.metadata.copy(depth = Some(depth)))
   }
 
   /**
     * Custom exception handler to make sure the right error message is sent to the client for complexity/depth exceeding
     */
   private val exceptionHandler: Executor.ExceptionHandler = {
-    case (_, e: QueryTooComplexException)  ⇒ HandledException(e.getMessage)
-    case (_, e: MaxQueryDepthReachedError) ⇒ HandledException(e.getMessage)
-    case (_, e: AuthorisationException)    ⇒ HandledException(e.getMessage)
-    case (_, e: AuthenticationException)   ⇒ HandledException(e.getMessage)
+    case (_, e: QueryTooComplexException) ⇒ HandledException(e.getMessage)
+    case (_, e: QueryTooNestedException)  ⇒ HandledException(e.getMessage)
+    case (_, e: AuthorisationException)   ⇒ HandledException(e.getMessage)
+    case (_, e: AuthenticationException)  ⇒ HandledException(e.getMessage)
   }
 
   /**
@@ -146,12 +146,8 @@ class GraphqlRoute(createContext: () ⇒ SchemaContext) extends PartialRoute wit
         )
 
         onComplete(future) {
-          case Success((statusCode, response)) ⇒
-            complete(
-              statusCode → response.asObject.get
-                .add("depth", Json.fromInt(ctx.queryDepth.getOrElse(-1)))
-                .add("complexity", Json.fromDouble(ctx.queryComplexity.getOrElse(-1D)).get)
-            )
+          case Success(response) ⇒
+            complete(response)
           case Failure(ex) ⇒
             system.log.error(ex, "Failure to complete query")
             complete(StatusCodes.BadRequest → "Internal server error")

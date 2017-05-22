@@ -303,6 +303,21 @@ object Types {
       )
     )
 
+  lazy val MetadataFields = fields[SchemaContext, Unit](
+    Field(
+      name = "complexity",
+      fieldType = FloatType,
+      description = Some("How complex the current query is"),
+      resolve = ctx ⇒ ctx.ctx.metadata.complexity.get // must exist if this is being resovled
+    ),
+    Field(
+      name = "depth",
+      fieldType = IntType,
+      description = Some("How nested the current query is"),
+      resolve = ctx ⇒ ctx.ctx.metadata.depth.get // must exist if this is being resovled
+    )
+  )
+
   lazy val QueryType = ObjectType(
     "Query",
     description = "Root query object",
@@ -315,6 +330,7 @@ object Types {
       ::: StyleQueries.query
       ::: UsersQueries.query
       ::: VersionQueries.query
+      ::: MetadataFields
   )
 
   lazy val SchemaType = Schema(QueryType, Some(Mutations.mutations), None)

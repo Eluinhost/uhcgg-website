@@ -1,9 +1,7 @@
 package gg.uhc.website.schema
 
-import com.softwaremill.tagging.@@
-import gg.uhc.website.configuration.JwtSecret
 import gg.uhc.website.repositories._
-import pdi.jwt.algorithms.JwtHmacAlgorithm
+import gg.uhc.website.security.{ApiSession, RegistrationSession}
 
 case class SchemaContext(
     users: UserRepository,
@@ -19,7 +17,7 @@ case class SchemaContext(
     scenarios: ScenarioRepository,
     matchScenarios: MatchScenariosRepository,
     networkPermissions: NetworkPermissionRepository,
-    jwtSecret: String @@ JwtSecret,
-    jwtAlgorithm: JwtHmacAlgorithm,
+    registrationSession: RegistrationSession,
+    apiSession: ApiSession,
     metadata: QueryMetadata)
     extends Mutation

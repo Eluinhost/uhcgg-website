@@ -9,6 +9,9 @@ object Mutations extends UuidScalarTypeSupport {
   val userIdArg = Argument(name = "id", argumentType = UuidType, description = "Username or email to login with")
   val passwordArg = Argument(name = "password", argumentType = StringType, description = "Password for the account")
 
+  val registerEmailArg = Argument(name = "email", argumentType = StringType, description = "The email to register with")
+  val registerJwtArg = Argument(name = "token", argumentType = StringType, description = "The provided token from stage 1 of registering")
+
   val mutations = ObjectType[SchemaContext, Unit](
     "Mutation",
     description = "Root mutation object",
@@ -26,6 +29,12 @@ object Mutations extends UuidScalarTypeSupport {
         fieldType = BooleanType,
         arguments = userIdArg :: passwordArg :: Nil,
         resolve = ctx ⇒ ctx.ctx.changePassword(id = ctx.arg(userIdArg), password = ctx.arg(passwordArg))
+      ),
+      Field(
+        name = "register",
+        fieldType = Types.UserType,
+        arguments = registerEmailArg :: passwordArg :: registerJwtArg :: Nil,
+        resolve = ctx ⇒ ctx.ctx.register(ctx arg registerEmailArg, ctx arg passwordArg, ctx arg registerJwtArg)
       )
     ) ++ Types.MetadataFields
   )

@@ -1,22 +1,14 @@
 package gg.uhc.website.routes
 
 import java.net.URLEncoder
-import java.time.Instant
-import java.util.UUID
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
 import akkahttptwirl.TwirlSupport
-import com.softwaremill.tagging.@@
 import gg.uhc.website.CustomJsonCodec
-import gg.uhc.website.configuration.JwtSecret
 import gg.uhc.website.helpers.reddit.{RedditAuthenticationApi, RedditSecuredApi}
 import gg.uhc.website.repositories.UserRepository
 import gg.uhc.website.security.RegistrationSession
-import io.circe.parser._
-import io.circe.syntax._
-import pdi.jwt.algorithms.JwtHmacAlgorithm
-import pdi.jwt.{JwtCirce, JwtClaim}
 import gg.uhc.website.validation.EmailValidation._
 
 import scala.util.{Failure, Success}

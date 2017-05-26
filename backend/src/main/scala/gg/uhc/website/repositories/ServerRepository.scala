@@ -8,20 +8,26 @@ import gg.uhc.website.schema.definitions.Relations
 import gg.uhc.website.schema.model.Server
 
 import scala.concurrent.Future
+import scalaz.NonEmptyList
 import scalaz.Scalaz._
 
-class ServerRepository(db: DatabaseRunner) extends RepositorySupport {
-  import db.Implicits._
-
+object ServerRepository {
   private[this] val baseSelect =
     fr"SELECT id, owner, networkid, name, address, ip, port, location, region, created, modified, deleted FROM servers"
       .asInstanceOf[Fragment]
 
+  def relationsQuery(networkIds: Option[NonEmptyList[Long]]): Query0[Server] =
+    (baseSelect ++ Fragments.whereOrOpt(
+      networkIds.map(ids ⇒ Fragments.in(fr"networkid".asInstanceOf[Fragment], ids))
+    )).query[Server]
+}
+
+class ServerRepository(db: DatabaseRunner) extends RepositorySupport {
+  import ServerRepository._
+  import db.Implicits._
+
   def getByRelations(rel: RelationIds[Server]): Future[List[Server]] =
-    (baseSelect ++ Fragments.whereAndOpt(
-      rel
-        .get(Relations.serverByNetworkId)
-        .flatMap(_.toList.toNel) // convert to a non-empty list first
-        .map(Fragments.in(fr"networkid".asInstanceOf[Fragment], _))
-    )).query[Server].list.runOnDatabase
+    relationsQuery(
+      networkIds = rel.get(Relations.serverByNetworkId).flatMap(_.toList.toNel)
+    ).list.runOnDatabase
 }

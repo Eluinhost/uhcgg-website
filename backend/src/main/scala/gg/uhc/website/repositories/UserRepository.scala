@@ -27,10 +27,10 @@ object UserRepository {
       .asInstanceOf[Fragment]
       .update
 
-  def checkUsernameInUseQuery(username: String): Query0[Int] =
+  def checkUsernameInUseQuery(username: String): Query0[Long] =
     sql"SELECT COUNT(*) AS COUNT FROM users WHERE username = $username"
       .asInstanceOf[Fragment]
-      .query[Int]
+      .query[Long]
 
   def getByIdsQuery(ids: NonEmptyList[UUID]): Query0[User] =
     (baseSelect ++ Fragments.whereAnd(Fragments.in(fr"id".asInstanceOf[Fragment], ids))).query[User]
@@ -48,7 +48,7 @@ object UserRepository {
     (baseSelect ++ Fragments.whereOr(
       fr"username = $login".asInstanceOf[Fragment],
       fr"email = $login".asInstanceOf[Fragment]
-    )).asInstanceOf[Fragment].query[User]
+    )).query[User]
 }
 
 class UserRepository(db: DatabaseRunner) extends RepositorySupport with CustomJsonCodec {

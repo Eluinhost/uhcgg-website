@@ -5,20 +5,26 @@ import gg.uhc.website.database.DatabaseRunner
 import gg.uhc.website.schema.model.Region
 
 import scala.concurrent.Future
+import scalaz.NonEmptyList
 import scalaz.Scalaz._
 
-class RegionRepository(db: DatabaseRunner) extends RepositorySupport {
-  import db.Implicits._
-
+object RegionRepository {
   private[this] val baseSelect = fr"SELECT id, short, long FROM regions".asInstanceOf[Fragment]
 
-  def getAll: Future[List[Region]] = baseSelect.query[Region].list.runOnDatabase
+  val getAllQuery: Query0[Region] = baseSelect.query[Region]
+
+  def getByIdsQuery(ids: NonEmptyList[Int]): Query0[Region] =
+    (baseSelect ++ Fragments.whereAnd(Fragments.in(fr"id".asInstanceOf[Fragment], ids))).query[Region]
+}
+
+class RegionRepository(db: DatabaseRunner) extends RepositorySupport {
+  import RegionRepository._
+  import db.Implicits._
+
+  def getAll: Future[List[Region]] = getAllQuery.list.runOnDatabase
 
   def getByIds(ids: Seq[Int]): Future[List[Region]] = ids.toList.toNel match {
-    case None ⇒ Future successful List()
-    case Some(nel) ⇒
-      (baseSelect ++ Fragments.whereAnd(
-        Fragments.in(fr"id".asInstanceOf[Fragment], nel)
-      )).query[Region].list.runOnDatabase
+    case None      ⇒ Future successful List()
+    case Some(nel) ⇒ getByIdsQuery(nel).list.runOnDatabase
   }
 }

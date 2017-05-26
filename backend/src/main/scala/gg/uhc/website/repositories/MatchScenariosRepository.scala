@@ -7,22 +7,30 @@ import gg.uhc.website.schema.definitions.Relations
 import gg.uhc.website.schema.model.MatchScenario
 
 import scala.concurrent.Future
+import scalaz.NonEmptyList
 import scalaz.Scalaz._
 
-class MatchScenariosRepository(db: DatabaseRunner) extends RepositorySupport {
-  import db.Implicits._
-
+object MatchScenariosRepository {
   private[this] val baseSelect = fr"SELECT matchid, scenarioid FROM match_scenarios".asInstanceOf[Fragment]
 
-  def getByRelations(rel: RelationIds[MatchScenario]): Future[List[MatchScenario]] =
+  def relationsQuery(
+      matchIds: Option[NonEmptyList[Long]],
+      scenarioIds: Option[NonEmptyList[Long]]
+    ): Query0[MatchScenario] =
     (baseSelect ++ Fragments.whereOrOpt(
-      rel
-        .get(Relations.matchScenarioByMatchId)
-        .flatMap(_.toList.toNel) // convert to a non-empty list first
-        .map(Fragments.in(fr"matchid".asInstanceOf[Fragment], _)),
-      rel
-        .get(Relations.matchScenarioByScenarioId)
-        .flatMap(_.toList.toNel)
-        .map(Fragments.in(fr"scenarioid".asInstanceOf[Fragment], _))
-    )).query[MatchScenario].list.runOnDatabase
+      matchIds.map(ids ⇒ Fragments.in(fr"matchid".asInstanceOf[Fragment], ids)),
+      scenarioIds.map(ids ⇒ Fragments.in(fr"scenarioid".asInstanceOf[Fragment], ids))
+    )).query[MatchScenario]
+
+}
+
+class MatchScenariosRepository(db: DatabaseRunner) extends RepositorySupport {
+  import MatchScenariosRepository._
+  import db.Implicits._
+
+  def getByRelations(rel: RelationIds[MatchScenario]): Future[List[MatchScenario]] =
+    relationsQuery(
+      matchIds = rel.get(Relations.matchScenarioByMatchId).flatMap(_.toList.toNel),
+      scenarioIds = rel.get(Relations.matchScenarioByScenarioId).flatMap(_.toList.toNel)
+    ).list.runOnDatabase
 }

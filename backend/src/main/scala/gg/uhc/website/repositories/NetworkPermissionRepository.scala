@@ -1,5 +1,7 @@
 package gg.uhc.website.repositories
 
+import java.util.UUID
+
 import doobie.imports.{Fragment, _}
 import doobie.postgres.imports._
 import gg.uhc.website.database.DatabaseRunner
@@ -8,22 +10,29 @@ import gg.uhc.website.schema.definitions.Relations
 import gg.uhc.website.schema.model.NetworkPermission
 
 import scala.concurrent.Future
+import scalaz.NonEmptyList
 import scalaz.Scalaz._
 
-class NetworkPermissionRepository(db: DatabaseRunner) extends RepositorySupport {
-  import db.Implicits._
-
+object NetworkPermissionRepository {
   private[this] val baseSelect = fr"SELECT networkid, userid, isadmin FROM network_permissions".asInstanceOf[Fragment]
 
-  def getByRelations(rel: RelationIds[NetworkPermission]): Future[List[NetworkPermission]] =
+  def relationsQuery(
+      userIds: Option[NonEmptyList[UUID]],
+      networkIds: Option[NonEmptyList[Long]]
+    ): Query0[NetworkPermission] =
     (baseSelect ++ Fragments.whereOrOpt(
-      rel
-        .get(Relations.networkPermissionByUserId)
-        .flatMap(_.toList.toNel) // convert to a non-empty list first
-        .map(Fragments.in(fr"userid".asInstanceOf[Fragment], _)),
-      rel
-        .get(Relations.networkPermissionByNetworkId)
-        .flatMap(_.toList.toNel)
-        .map(Fragments.in(fr"networkid".asInstanceOf[Fragment], _))
-    )).query[NetworkPermission].list.runOnDatabase
+      userIds.map(ids ⇒ Fragments.in(fr"userid".asInstanceOf[Fragment], ids)),
+      networkIds.map(ids ⇒ Fragments.in(fr"networkid".asInstanceOf[Fragment], ids))
+    )).query[NetworkPermission]
+}
+
+class NetworkPermissionRepository(db: DatabaseRunner) extends RepositorySupport {
+  import NetworkPermissionRepository._
+  import db.Implicits._
+
+  def getByRelations(rel: RelationIds[NetworkPermission]): Future[List[NetworkPermission]] =
+    relationsQuery(
+      userIds = rel.get(Relations.networkPermissionByUserId).flatMap(_.toList.toNel),
+      networkIds = rel.get(Relations.networkPermissionByNetworkId).flatMap(_.toList.toNel)
+    ).list.runOnDatabase
 }

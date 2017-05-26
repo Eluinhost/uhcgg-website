@@ -1,28 +1,25 @@
 package gg.uhc.website.repositories
 
-import gg.uhc.website.database.DatabaseService
 import doobie.imports.{Fragment, _}
+import gg.uhc.website.database.DatabaseRunner
 import gg.uhc.website.schema.model.Style
 
 import scala.concurrent.Future
 import scalaz.Scalaz._
 
-class StyleRepository(db: DatabaseService) extends RepositorySupport {
+class StyleRepository(db: DatabaseRunner) extends RepositorySupport {
+  import db.Implicits._
+
   private[this] val baseSelect =
     fr"SELECT id, shortname, fullname, description, requiressize FROM styles".asInstanceOf[Fragment]
 
-  def getAll: Future[List[Style]] = db.run(baseSelect.query[Style].list)
+  def getAll: Future[List[Style]] = baseSelect.query[Style].list.runOnDatabase
 
   def getByIds(ids: Seq[Int]): Future[List[Style]] = ids.toList.toNel match {
     case None ⇒ Future successful List()
     case Some(nel) ⇒
-      db.run(
-        (
-          baseSelect
-            ++ Fragments.whereAnd(
-              Fragments.in(fr"id".asInstanceOf[Fragment], nel)
-            )
-        ).query[Style].list
-      )
+      (baseSelect ++ Fragments.whereAnd(
+        Fragments.in(fr"id".asInstanceOf[Fragment], nel)
+      )).query[Style].list.runOnDatabase
   }
 }

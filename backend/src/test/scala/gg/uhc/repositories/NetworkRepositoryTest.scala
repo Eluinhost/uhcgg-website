@@ -8,16 +8,13 @@ import org.scalatest._
 import scalaz.NonEmptyList
 
 @DoNotDiscover
-class NetworkRepositoryTest extends FunSuite with Matchers with BaseRepositoryTest {
-  test("query all") {
+class NetworkRepositoryTest extends FlatSpec with BaseRepositoryTest {
+  "NetworkRepository" should "have valid getAllQuery query" in
     check(NetworkRepository.getAllQuery)
-  }
 
-  test("query by ids") {
+  it should "have valid getByIdsQuery query" in
     check(NetworkRepository.getByIdsQuery(NonEmptyList(1L, 2L)))
-  }
 
-  test("query by relation") {
+  it should "have valid relationsQuery query" in
     check(NetworkRepository.relationsQuery(ownerIds = Some(NonEmptyList(UUID.randomUUID(), UUID.randomUUID()))))
-  }
 }

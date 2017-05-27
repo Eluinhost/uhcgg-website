@@ -8,20 +8,13 @@ import org.scalatest._
 import scalaz.NonEmptyList
 
 @DoNotDiscover
-class BanRepositoryTest extends FunSuite with Matchers with BaseRepositoryTest {
-  test("query by ids") {
+class BanRepositoryTest extends FlatSpec with BaseRepositoryTest {
+  "BanRepository" should "have valid getBansByIdsQuery query" in
     check(BanRepository.getBansByIdsQuery(NonEmptyList(1, 2)))
-  }
 
-  test("query all showing expired") {
+  it should "have valid getAllBansQuery query" in
     check(BanRepository.getAllBansQuery(true))
-  }
 
-  test("query all not showing expired") {
-    check(BanRepository.getAllBansQuery(false))
-  }
-
-  test("query by user ids") {
+  it should "have valid relationQuery query" in
     check(BanRepository.relationQuery(Some(NonEmptyList(UUID.randomUUID(), UUID.randomUUID()))))
-  }
 }

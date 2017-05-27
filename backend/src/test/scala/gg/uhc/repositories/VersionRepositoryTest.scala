@@ -6,12 +6,10 @@ import org.scalatest._
 import scalaz.NonEmptyList
 
 @DoNotDiscover
-class VersionRepositoryTest extends FunSuite with Matchers with BaseRepositoryTest {
-  test("query all") {
+class VersionRepositoryTest extends FlatSpec with BaseRepositoryTest {
+  "VersionRepository" should "have valid getAllQuery query" in
     check(VersionRepository.getAllQuery)
-  }
 
-  test("query by ids") {
+  it should "have valid getByIdsQuery query" in
     check(VersionRepository.getByIdsQuery(NonEmptyList(1, 2)))
-  }
 }

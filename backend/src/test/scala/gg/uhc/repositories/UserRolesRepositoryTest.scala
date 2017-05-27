@@ -8,12 +8,12 @@ import org.scalatest._
 import scalaz.NonEmptyList
 
 @DoNotDiscover
-class UserRolesRepositoryTest extends FunSuite with Matchers with BaseRepositoryTest {
-  test("query by relation") {
+class UserRolesRepositoryTest extends FlatSpec with BaseRepositoryTest {
+  "UserRolesRespository" should "have valid relationsQuery query" in
     check(
       UserRolesRepository.relationsQuery(
         userIds = Some(NonEmptyList(UUID.randomUUID(), UUID.randomUUID())),
         roleIds = Some(NonEmptyList(1, 2))
-      ))
-  }
+      )
+    )
 }

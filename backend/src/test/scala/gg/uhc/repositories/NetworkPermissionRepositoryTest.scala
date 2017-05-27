@@ -8,12 +8,12 @@ import org.scalatest._
 import scalaz.NonEmptyList
 
 @DoNotDiscover
-class NetworkPermissionRepositoryTest extends FunSuite with Matchers with BaseRepositoryTest {
-  test("query by relation") {
+class NetworkPermissionRepositoryTest extends FlatSpec with BaseRepositoryTest {
+  "NetworkPermissionRepository" should "have valid relationsQuery query" in
     check(
       NetworkPermissionRepository.relationsQuery(
         userIds = Some(NonEmptyList(UUID.randomUUID(), UUID.randomUUID())),
         networkIds = Some(NonEmptyList(1L, 2L))
-      ))
-  }
+      )
+    )
 }

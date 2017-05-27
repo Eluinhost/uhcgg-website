@@ -6,12 +6,10 @@ import org.scalatest._
 import scalaz.NonEmptyList
 
 @DoNotDiscover
-class RoleRepositoryTest extends FunSuite with Matchers with BaseRepositoryTest {
-  test("query all") {
+class RoleRepositoryTest extends FlatSpec with BaseRepositoryTest {
+  "Role Repository" should "have valid getAllQuery query" in
     check(RoleRepository.getAllQuery)
-  }
 
-  test("query by ids") {
+  it should "have valid getByIdsQuery query" in
     check(RoleRepository.getByIdsQuery(NonEmptyList(1, 2)))
-  }
 }

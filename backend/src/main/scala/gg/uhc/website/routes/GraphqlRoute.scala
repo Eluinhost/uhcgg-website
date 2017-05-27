@@ -4,7 +4,9 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.{RejectionHandler, Route}
 import akka.stream.ActorMaterializer
+import com.softwaremill.tagging.@@
 import gg.uhc.website.CustomJsonCodec
+import gg.uhc.website.configuration.{MaxGraphQlComplexity, MaxGraphQlDepth}
 import gg.uhc.website.schema.definitions.Fetchers
 import gg.uhc.website.schema.definitions.Types.SchemaType
 import gg.uhc.website.schema.{AuthenticationException, AuthorisationException, SchemaContext}
@@ -26,7 +28,12 @@ case class QueryTooComplexException(max: Double, acutal: Double)
 case class QueryTooNestedException(max: Int, actual: Int)
     extends Exception(s"Query exceeded max depth of $max, actual $actual")
 
-class GraphqlRoute(createContext: () ⇒ SchemaContext) extends PartialRoute with CustomJsonCodec {
+class GraphqlRoute(
+    createContext: () ⇒ SchemaContext,
+    maxComplexity: Int @@ MaxGraphQlComplexity,
+    maxDepth: Int @@ MaxGraphQlDepth)
+    extends PartialRoute
+    with CustomJsonCodec {
   import sangria.marshalling.circe._
 
   implicit val system       = ActorSystem("sangria-server")
@@ -55,17 +62,17 @@ class GraphqlRoute(createContext: () ⇒ SchemaContext) extends PartialRoute wit
     * if the max complexity of 1000 is exceeded
     */
   private val complexityReducer = QueryReducer.measureComplexity[SchemaContext] { (complexity, ctx) ⇒
-    if (complexity > 1000) throw QueryTooComplexException(1000, complexity)
+    if (complexity > maxComplexity) throw QueryTooComplexException(maxComplexity, complexity)
 
     ctx.copy(metadata = ctx.metadata.copy(complexity = Some(complexity)))
   }
 
   /**
     * Used to measure query depth. Stores the measured depth in the context and will throw an exception if the max
-    * depth of 7 is exceeded
+    * depth of 13 is exceeded
     */
   private val depthReducer = QueryReducer.measureDepth[SchemaContext] { (depth, ctx) ⇒
-    if (depth > 7) throw QueryTooNestedException(7, depth)
+    if (depth > maxDepth) throw QueryTooNestedException(maxDepth, depth)
 
     ctx.copy(metadata = ctx.metadata.copy(depth = Some(depth)))
   }

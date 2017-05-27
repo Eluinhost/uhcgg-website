@@ -58,6 +58,14 @@ trait ConfigurationModule {
     config.getDuration("jwt.api-timeout").taggedWith[ApiJwtDuration]
   }
 
+  lazy val maxGraphQlComplexity: Int @@ MaxGraphQlComplexity = {
+    config.getInt("graphql.maxComplexity").taggedWith[MaxGraphQlComplexity]
+  }
+
+  lazy val maxGraphQlDepth: Int @@ MaxGraphQlDepth = {
+    config.getInt("graphql.maxDepth").taggedWith[MaxGraphQlDepth]
+  }
+
   lazy val jwtAlgo: JwtHmacAlgorithm = {
     JwtAlgorithm.fromString(config.getString("jwt.algorithm")) match {
       case e: JwtHmacAlgorithm ⇒ e

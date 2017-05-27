@@ -16,4 +16,7 @@ trait RedditApiQueueConfig    extends ConfigurationOption
 trait RegistrationJwtDuration extends ConfigurationOption
 trait ApiJwtDuration          extends ConfigurationOption
 
+trait MaxGraphQlComplexity extends ConfigurationOption
+trait MaxGraphQlDepth      extends ConfigurationOption
+
 trait JwtSecret extends ConfigurationOption

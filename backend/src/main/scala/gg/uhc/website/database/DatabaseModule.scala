@@ -44,8 +44,6 @@ object DatabaseModule {
 }
 
 class DatabaseRunner(transactor: Transactor[IOLite]) {
-  import scala.language.implicitConversions
-
   val system = ActorSystem("database-access")
 
   object Implicits {

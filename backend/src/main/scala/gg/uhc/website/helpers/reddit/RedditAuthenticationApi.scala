@@ -4,7 +4,12 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{Authorization, BasicHttpCredentials}
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import com.softwaremill.tagging.@@
-import gg.uhc.website.configuration.{RedditClientIdConfig, RedditRedirectUriConfig, RedditSecretConfig}
+import gg.uhc.website.configuration.{
+  RedditApiQueueConfig,
+  RedditClientIdConfig,
+  RedditRedirectUriConfig,
+  RedditSecretConfig
+}
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
 
 import scala.concurrent.Future
@@ -12,8 +17,9 @@ import scala.concurrent.Future
 class RedditAuthenticationApi(
     clientId: String @@ RedditClientIdConfig,
     secret: String @@ RedditSecretConfig,
-    redirectUri: String @@ RedditRedirectUriConfig)
-    extends ApiConsumer("reddit-authentication-api", "www.reddit.com", 10) // TODO configure queue size
+    redirectUri: String @@ RedditRedirectUriConfig,
+    queueSize: Int @@ RedditApiQueueConfig)
+    extends ApiConsumer("reddit-authentication-api", "www.reddit.com", queueSize)
     with FailFastCirceSupport {
   import io.circe.generic.auto._
 

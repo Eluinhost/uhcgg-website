@@ -3,13 +3,15 @@ package gg.uhc.website.helpers.reddit
 import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
 import akka.http.scaladsl.model.{HttpMethods, HttpRequest, StatusCodes}
 import akka.http.scaladsl.unmarshalling.Unmarshal
+import com.softwaremill.tagging.@@
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
+import gg.uhc.website.configuration.RedditApiQueueConfig
 import io.circe.generic.AutoDerivation
 
 import scala.concurrent.Future
 
-class RedditSecuredApi()
-    extends ApiConsumer("reddit-secured-api", "oauth.reddit.com", 10) // TODO configure queue size
+class RedditSecuredApi(queueSize: Int @@ RedditApiQueueConfig)
+    extends ApiConsumer("reddit-secured-api", "oauth.reddit.com", queueSize)
     with FailFastCirceSupport
     with AutoDerivation {
 

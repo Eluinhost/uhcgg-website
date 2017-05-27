@@ -40,6 +40,10 @@ trait ConfigurationModule {
     config.getString("reddit.redirectUri").taggedWith[RedditRedirectUriConfig]
   }
 
+  lazy val redditApiQueueConfig: Int @@ RedditApiQueueConfig = {
+    config.getInt("reddit.queueSize").taggedWith[RedditApiQueueConfig]
+  }
+
   lazy val jwtSecret: String @@ JwtSecret = {
     config.getString("jwt.secret").taggedWith[JwtSecret]
   }

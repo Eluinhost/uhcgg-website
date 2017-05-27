@@ -67,7 +67,7 @@ CREATE TABLE regions (
 CREATE TABLE servers (
   id        BIGSERIAL   NOT NULL CONSTRAINT "PK__servers" PRIMARY KEY,
   owner     UUID        NOT NULL CONSTRAINT "FK__servers__users__owner" REFERENCES users (id),
-  networkId BIGINT NOT NULL CONSTRAINT "FK__servers_networks__networkId" REFERENCES networks (id),
+  networkId BIGINT      NOT NULL CONSTRAINT "FK__servers_networks__networkId" REFERENCES networks (id),
   name      TEXT        NOT NULL CONSTRAINT "UQ__servers__name" UNIQUE,
   address   TEXT,
   ip        INET        NOT NULL,
@@ -80,8 +80,9 @@ CREATE TABLE servers (
 );
 
 CREATE TABLE versions (
-  id   SERIAL NOT NULL CONSTRAINT "PK__versions" PRIMARY KEY,
-  name TEXT   NOT NULL CONSTRAINT "UQ__versions__name" UNIQUE
+  id   SERIAL  NOT NULL CONSTRAINT "PK__versions" PRIMARY KEY,
+  name TEXT    NOT NULL CONSTRAINT "UQ__versions__name" UNIQUE,
+  live BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 CREATE TABLE styles (

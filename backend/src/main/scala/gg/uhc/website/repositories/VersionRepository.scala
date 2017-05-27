@@ -9,7 +9,7 @@ import scalaz.NonEmptyList
 import scalaz.Scalaz._
 
 object VersionRepository {
-  private[this] val baseSelect = fr"SELECT id, name FROM versions".asInstanceOf[Fragment]
+  private[this] val baseSelect = fr"SELECT id, name, live FROM versions".asInstanceOf[Fragment]
 
   val getAllQuery: Query0[Version] = baseSelect.query[Version]
 
@@ -23,8 +23,6 @@ object VersionRepository {
 class VersionRepository(db: DatabaseRunner) extends RepositorySupport {
   import VersionRepository._
   import db.Implicits._
-
-  // TODO something about 'selectable' so that they can be turned off but still work
 
   def getAll: Future[List[Version]] = getAllQuery.list.runOnDatabase
 

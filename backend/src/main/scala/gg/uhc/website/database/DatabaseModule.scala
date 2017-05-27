@@ -3,20 +3,17 @@ package gg.uhc.website.database
 import javax.sql.DataSource
 
 import akka.actor.ActorSystem
-import com.softwaremill.tagging.@@
 import com.softwaremill.macwire._
+import com.softwaremill.tagging.@@
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import doobie.hikari.hikaritransactor.HikariTransactor
 import doobie.imports._
-import gg.uhc.website.configuration.{
-  ConfigurationModule,
-  DatabaseConnectionStringConfig,
-  DatabasePasswordConfig,
-  DatabaseUsernameConfig
-}
+import gg.uhc.website.configuration.{ConfigurationModule, DatabaseConnectionStringConfig, DatabasePasswordConfig, DatabaseUsernameConfig}
 import org.flywaydb.core.Flyway
 
-import scala.concurrent.Future
+import scala.concurrent.{Future, Promise}
+import scalaz.concurrent.Task
+import scalaz.{-\/, \/-}
 
 object DatabaseModule {
   def createHikariConfig(
@@ -33,8 +30,8 @@ object DatabaseModule {
     config
   }
 
-  def createHikariDataSource(config: HikariConfig)                       = new HikariDataSource(config)
-  def createTransactor(dataSource: HikariDataSource): Transactor[IOLite] = HikariTransactor[IOLite](dataSource)
+  def createHikariDataSource(config: HikariConfig)                     = new HikariDataSource(config)
+  def createTransactor(dataSource: HikariDataSource): Transactor[Task] = HikariTransactor[Task](dataSource)
 
   def createFlyway(source: DataSource): Flyway = {
     val flyway = new Flyway()
@@ -43,23 +40,30 @@ object DatabaseModule {
   }
 }
 
-class DatabaseRunner(transactor: Transactor[IOLite]) {
-  val system = ActorSystem("database-access")
+class DatabaseRunner(transactor: Transactor[Task]) {
+  val system      = ActorSystem("database-access")
+  implicit val ec = system.dispatcher
 
-  object Implicits {
-    implicit class ConnectionIOTransaction[A](program: ConnectionIO[A]) {
-      def runOnDatabase: Future[A] =
-        Future {
-          program.transact(transactor).unsafePerformIO
-        }(system.dispatcher)
-    }
+  def run[A](connectionIO: ConnectionIO[A]): Future[A] = {
+    val promise = Promise[A]()
+
+    transactor
+      .trans(connectionIO)
+      .unsafePerformAsync {
+        case -\/(t) ⇒ promise failure t
+        case \/-(v) ⇒ promise success v
+      }
+
+    promise.future
   }
+
+  def apply[A](connectionIO: ConnectionIO[A]): Future[A] = run(connectionIO)
 }
 
 trait DatabaseModule extends ConfigurationModule {
   lazy val hikariConfig: HikariConfig     = wireWith(DatabaseModule.createHikariConfig _)
   lazy val dataSource: HikariDataSource   = wireWith(DatabaseModule.createHikariDataSource _)
-  lazy val transactor: Transactor[IOLite] = wireWith(DatabaseModule.createTransactor _)
+  lazy val transactor: Transactor[Task]   = wireWith(DatabaseModule.createTransactor _)
   lazy val migrations: Flyway             = wireWith(DatabaseModule.createFlyway _)
-  lazy val dbRunner: DatabaseRunner       = wire[DatabaseRunner]
+  lazy val databaseRunner: DatabaseRunner = wire[DatabaseRunner]
 }

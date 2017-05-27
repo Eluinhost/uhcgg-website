@@ -1,5 +1,6 @@
 package gg.uhc.website.schema
 
+import gg.uhc.website.database.DatabaseRunner
 import gg.uhc.website.repositories._
 import gg.uhc.website.security.{ApiSession, RegistrationSession}
 
@@ -19,5 +20,6 @@ case class SchemaContext(
     networkPermissions: NetworkPermissionRepository,
     registrationSession: RegistrationSession,
     apiSession: ApiSession,
+    run: DatabaseRunner,
     metadata: QueryMetadata)
     extends Mutation

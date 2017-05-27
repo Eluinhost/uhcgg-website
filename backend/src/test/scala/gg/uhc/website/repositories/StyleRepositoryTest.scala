@@ -1,15 +1,16 @@
-package gg.uhc.repositories
+package gg.uhc.website.repositories
 
-import gg.uhc.website.repositories.StyleRepository
 import org.scalatest._
 
 import scalaz.NonEmptyList
 
 @DoNotDiscover
 class StyleRepositoryTest extends FlatSpec with BaseRepositoryTest {
+  val repo = new StyleRepository
+
   "StyleRepository" should "have valid getAllQuery query" in
-    check(StyleRepository.getAllQuery)
+    check(repo.getAllQuery)
 
   it should "have valid getByIdsQuery query" in
-    check(StyleRepository.getByIdsQuery(NonEmptyList(1, 2)))
+    check(repo.getByIdsQuery(NonEmptyList(1, 2)))
 }

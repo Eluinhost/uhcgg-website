@@ -1,45 +1,35 @@
 package gg.uhc.website.repositories
 
-import java.util.UUID
-
 import gg.uhc.website.schema.definitions.Relations
 import gg.uhc.website.schema.model.Ban
-
-import scala.concurrent.Future
-import scalaz._
-import Scalaz._
-import doobie.imports._
-import doobie.postgres.imports._
-import gg.uhc.website.database.DatabaseRunner
 import sangria.execution.deferred.RelationIds
 
-object BanRepository {
-  private[this] val baseQuery: Fragment =
+import scalaz.Scalaz._
+
+class BanRepository
+    extends Repository[Ban]
+    with CanQuery[Ban]
+    with CanQueryByIds[Long, Ban]
+    with CanQueryAll[Ban]
+    with CanQueryByRelations[Ban] {
+  import doobie.imports._
+  import doobie.postgres.imports._
+
+  override val composite: Composite[Ban] = implicitly
+  override val idParam: Param[Long]      = implicitly
+
+  override private[repositories] val baseSelectQuery: Fragment =
     fr"SELECT id, reason, created, expires, userid, author FROM bans".asInstanceOf[Fragment]
 
-  def getBansByIdsQuery(ids: NonEmptyList[Long]): Query0[Ban] =
-    (baseQuery ++ Fragments.whereAnd(Fragments.in(fr"id".asInstanceOf[Fragment], ids))).query[Ban]
+  override def relationsFragment(relationIds: RelationIds[Ban]): Fragment =
+    Fragments.whereOrOpt(
+      simpleRelationFragment(relationIds, Relations.banByBannedUserId, "userid")
+    )
 
-  def getAllBansQuery(showExpired: Boolean): Query0[Ban] =
-    (baseQuery ++ Fragments.whereAndOpt(showExpired.option(fr"expires > NOW()".asInstanceOf[Fragment]))).query[Ban]
+  private[repositories] def getByExpiredStatusQuery(showExpired: Boolean): Query0[Ban] =
+    (baseSelectQuery ++ Fragments.whereAndOpt(showExpired.option(fr"expires > NOW()".asInstanceOf[Fragment])))
+      .query[Ban]
 
-  def relationQuery(userIds: Option[NonEmptyList[UUID]]): Query0[Ban] =
-    (baseQuery ++ Fragments.whereOrOpt(
-      userIds.map(ids ⇒ Fragments.in(fr"userid".asInstanceOf[Fragment], ids))
-    )).query[Ban]
-}
-
-class BanRepository(db: DatabaseRunner) extends RepositorySupport {
-  import BanRepository._
-  import db.Implicits._
-
-  def getBansByIds(ids: Seq[Long]): Future[List[Ban]] = ids.toList.toNel match {
-    case None      ⇒ Future successful List()
-    case Some(nel) ⇒ getBansByIdsQuery(nel).list.runOnDatabase
-  }
-
-  def getBans(showExpired: Boolean): Future[List[Ban]] = getAllBansQuery(showExpired).list.runOnDatabase
-
-  def getByRelations(rel: RelationIds[Ban]): Future[List[Ban]] =
-    relationQuery(userIds = rel.get(Relations.banByBannedUserId).flatMap(_.toList.toNel)).list.runOnDatabase
+  def getBansByExpiredStatus(showExpired: Boolean): ConnectionIO[List[Ban]] =
+    getByExpiredStatusQuery(showExpired).list
 }

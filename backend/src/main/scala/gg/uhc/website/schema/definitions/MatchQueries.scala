@@ -1,9 +1,9 @@
 package gg.uhc.website.schema.definitions
 
-import sangria.schema._
 import gg.uhc.website.schema.SchemaContext
+import sangria.schema._
 
-object MatchQueries {
+object MatchQueries extends QuerySupport {
   val idArg  = Argument(name = "id", argumentType = LongType, description = "ID to match")
   val idsArg = Argument(name = "ids", argumentType = ListInputType(LongType), description = "IDs to match")
 
@@ -12,21 +12,21 @@ object MatchQueries {
       name = "matchById",
       fieldType = OptionType(Types.MatchType),
       arguments = idArg :: Nil,
-      resolve = ctx ⇒ Fetchers.matches.deferOpt(ctx arg idArg),
+      resolve = implicit ctx ⇒ Fetchers.matches.deferOpt(idArg.resolve),
       description = Some("Looks up a match with the given id")
     ),
     Field(
       name = "matchesByIds",
       fieldType = ListType(Types.MatchType),
       arguments = idsArg :: Nil,
-      resolve = ctx ⇒ Fetchers.matches.deferSeqOpt(ctx arg idsArg),
+      resolve = implicit ctx ⇒ Fetchers.matches.deferSeqOpt(idsArg.resolve),
       description = Some("Looks up matches with the given ids")
     ),
     Field(
       "matches",
       ListType(Types.MatchType),
       arguments = Nil, // TODO pagination + filters
-      resolve = ctx ⇒ ctx.ctx.matches.getAll,
+      resolve = implicit ctx ⇒ ctx.ctx.matches.getAll,
       description = Some("Fetches all matches")
     )
   )

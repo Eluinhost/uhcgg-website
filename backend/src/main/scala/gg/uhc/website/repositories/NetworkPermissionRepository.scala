@@ -1,38 +1,25 @@
 package gg.uhc.website.repositories
 
-import java.util.UUID
-
-import doobie.imports.{Fragment, _}
-import doobie.postgres.imports._
-import gg.uhc.website.database.DatabaseRunner
-import sangria.execution.deferred.RelationIds
 import gg.uhc.website.schema.definitions.Relations
 import gg.uhc.website.schema.model.NetworkPermission
+import sangria.execution.deferred.RelationIds
 
-import scala.concurrent.Future
-import scalaz.NonEmptyList
-import scalaz.Scalaz._
+class NetworkPermissionRepository
+    extends Repository[NetworkPermission]
+    with CanQuery[NetworkPermission]
+    with CanQueryByRelations[NetworkPermission] {
+  import doobie.imports._
+  import doobie.postgres.imports._
 
-object NetworkPermissionRepository {
-  private[this] val baseSelect = fr"SELECT networkid, userid, isadmin FROM network_permissions".asInstanceOf[Fragment]
+  override val composite: Composite[NetworkPermission] = implicitly
 
-  def relationsQuery(
-      userIds: Option[NonEmptyList[UUID]],
-      networkIds: Option[NonEmptyList[Long]]
-    ): Query0[NetworkPermission] =
-    (baseSelect ++ Fragments.whereOrOpt(
-      userIds.map(ids ⇒ Fragments.in(fr"userid".asInstanceOf[Fragment], ids)),
-      networkIds.map(ids ⇒ Fragments.in(fr"networkid".asInstanceOf[Fragment], ids))
-    )).query[NetworkPermission]
-}
+  override private[repositories] val baseSelectQuery: Fragment =
+    fr"SELECT networkid, userid, isadmin FROM network_permissions".asInstanceOf[Fragment]
 
-class NetworkPermissionRepository(db: DatabaseRunner) extends RepositorySupport {
-  import NetworkPermissionRepository._
-  import db.Implicits._
+  override def relationsFragment(relationIds: RelationIds[NetworkPermission]): Fragment =
+    Fragments.whereOrOpt(
+      simpleRelationFragment(relationIds, Relations.networkPermissionByNetworkId, "networkid"),
+      simpleRelationFragment(relationIds, Relations.networkPermissionByUserId, "userid")
+    )
 
-  def getByRelations(rel: RelationIds[NetworkPermission]): Future[List[NetworkPermission]] =
-    relationsQuery(
-      userIds = rel.get(Relations.networkPermissionByUserId).flatMap(_.toList.toNel),
-      networkIds = rel.get(Relations.networkPermissionByNetworkId).flatMap(_.toList.toNel)
-    ).list.runOnDatabase
 }

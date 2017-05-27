@@ -2,40 +2,35 @@ package gg.uhc.website.repositories
 
 import java.util.UUID
 
-import doobie.imports.{Fragment, _}
-import doobie.postgres.imports._
-import gg.uhc.website.database.DatabaseRunner
-import sangria.execution.deferred.RelationIds
 import gg.uhc.website.schema.definitions.Relations
 import gg.uhc.website.schema.model.UserRole
+import sangria.execution.deferred.RelationIds
 
-import scala.concurrent.Future
-import scalaz.NonEmptyList
-import scalaz.Scalaz._
+class UserRolesRepository extends Repository[UserRole] with CanQuery[UserRole] with CanQueryByRelations[UserRole] {
+  import doobie.imports._
+  import doobie.postgres.imports._
 
-object UserRolesRepository {
-  private[this] val baseSelect = fr"SELECT userid, roleid FROM user_roles".asInstanceOf[Fragment]
+  override val composite: Composite[UserRole] = implicitly
 
-  def relationsQuery(userIds: Option[NonEmptyList[UUID]], roleIds: Option[NonEmptyList[Int]]): Query0[UserRole] =
-    (baseSelect ++ Fragments.whereOrOpt(
-      userIds.map(ids ⇒ Fragments.in(fr"userid".asInstanceOf[Fragment], ids)),
-      roleIds.map(ids ⇒ Fragments.in(fr"roleid".asInstanceOf[Fragment], ids))
-    )).query[UserRole]
-}
+  private[repositories] val baseSelectQuery: Fragment =
+    fr"SELECT userid, roleid FROM user_roles".asInstanceOf[Fragment]
 
-class UserRolesRepository(db: DatabaseRunner) extends RepositorySupport {
-  import UserRolesRepository._
-  import db.Implicits._
+  def forUser(userId: UUID): ConnectionIO[List[UserRole]] =
+    search(userIds = Some(Seq(userId))).map(_.filter(_.userId == userId))
 
-  def search(userIds: Option[Seq[UUID]] = None, roleIds: Option[Seq[Int]] = None): Future[List[UserRole]] =
+  def search(userIds: Option[Seq[UUID]] = None, roleIds: Option[Seq[Int]] = None): ConnectionIO[List[UserRole]] =
     relationsQuery(
-      userIds = userIds.flatMap(_.toList.toNel),
-      roleIds = roleIds.flatMap(_.toList.toNel)
-    ).list.runOnDatabase
+      buildRelationIds(
+        Map(
+          Relations.userRoleByUserId → userIds,
+          Relations.userRoleByRoleId → roleIds
+        )
+      )
+    ).list
 
-  def getByRelations(rel: RelationIds[UserRole]): Future[List[UserRole]] =
-    search(
-      rel.get(Relations.userRoleByUserId),
-      rel.get(Relations.userRoleByRoleId)
+  override def relationsFragment(relationIds: RelationIds[UserRole]): Fragment =
+    Fragments.whereOrOpt(
+      simpleRelationFragment(relationIds, Relations.userRoleByUserId, "userid"),
+      simpleRelationFragment(relationIds, Relations.userRoleByRoleId, "roleid")
     )
 }

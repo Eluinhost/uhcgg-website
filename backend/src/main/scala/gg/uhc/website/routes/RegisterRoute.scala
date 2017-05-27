@@ -6,6 +6,7 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
 import akkahttptwirl.TwirlSupport
 import gg.uhc.website.CustomJsonCodec
+import gg.uhc.website.database.DatabaseRunner
 import gg.uhc.website.helpers.reddit.{RedditAuthenticationApi, RedditSecuredApi}
 import gg.uhc.website.repositories.UserRepository
 import gg.uhc.website.security.RegistrationSession
@@ -46,7 +47,8 @@ class RegisterRoute(
     userRepository: UserRepository,
     redditAuthenticationApi: RedditAuthenticationApi,
     redditSecuredApi: RedditSecuredApi,
-    registrationSession: RegistrationSession)
+    registrationSession: RegistrationSession,
+    databaseRunner: DatabaseRunner)
     extends PartialRoute
     with TwirlSupport
     with CustomJsonCodec {
@@ -80,7 +82,7 @@ class RegisterRoute(
           val task = for {
             accessToken ← redditAuthenticationApi.getAccessToken(authCode = code)
             username    ← redditSecuredApi.getUsername(accessToken)
-            inUse       ← userRepository.isUsernameInUse(username)
+            inUse       ← databaseRunner(userRepository.isUsernameInUse(username))
           } yield (username, inUse)
 
           onComplete(task) {

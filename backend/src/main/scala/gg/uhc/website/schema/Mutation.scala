@@ -2,26 +2,43 @@ package gg.uhc.website.schema
 
 import java.util.UUID
 
-import gg.uhc.website.schema.model.User
+import doobie.imports.ConnectionIO
+import gg.uhc.website.schema.model.{Role, User}
 
-import scala.concurrent.Future
-import scalaz.OptionT._
-import scalaz.std.scalaFuture.futureInstance
+import scalaz.OptionT
+import scalaz.Scalaz.some
 
 trait Mutation { this: SchemaContext ⇒
-  def token(username: String, password: String): Future[Option[String]] = {
-    import scala.concurrent.ExecutionContext.Implicits.global
+  type ConnectionIOResult[A] = OptionT[ConnectionIO, A]
 
+  /**
+    * Checks the username and password and if they are valid generates a JWT for use in authentication
+    */
+  def token(username: String, password: String): ConnectionIO[Option[String]] =
     (for {
-      user      ← optionT(users.authenticate(username, password))
-      userRoles ← optionT(userRoles.search(userIds = Some(Seq(user.id))).map(Option(_)))
-      roles     ← optionT(roles.getByIds(userRoles.map(_.roleId)).map(Option(_)))
+      user ← OptionT[ConnectionIO, User] {
+        users.authenticate(username, password)
+      }
+      roleIds ← OptionT[ConnectionIO, List[Int]] {
+        userRoles
+          .forUser(user.id)
+          .map(_.map(_.roleId))
+          .map(some)
+      }
+      roles ← OptionT[ConnectionIO, List[Role]] {
+        roles
+          .getByIds(roleIds)
+          .map(some)
+      }
     } yield apiSession.generateToken(user, roles)).run
-  }
 
-  def changePassword(id: UUID, password: String): Future[Boolean] = users.changePassword(id, password)
+  def changePassword(id: UUID, password: String): ConnectionIO[Boolean] =
+    users.changePassword(id, password)
 
-  def register(email: String, password: String, token: String): Future[User] = {
+  /**
+    * Register the user with the given email + password. Username should be contained in the provided valid JWT token
+    */
+  def register(email: String, password: String, token: String): ConnectionIO[User] = {
     // check valid token + username exists
     val maybeUsername = for {
       session  ← registrationSession.parseDataFromToken(token)
@@ -29,8 +46,12 @@ trait Mutation { this: SchemaContext ⇒
     } yield username
 
     if (maybeUsername.isEmpty)
-      Future failed new IllegalStateException("Invalid token provided")
+      throw new IllegalStateException("Invalid token provided")
 
-    users.createUser(maybeUsername.get, email, password)
+    // create the user and return the created data
+    for {
+      uuid ← users.createUser(maybeUsername.get, email, password)
+      user ← users.getById(uuid)
+    } yield user.get // user must exist
   }
 }

@@ -4,7 +4,12 @@ import java.net.InetAddress
 import java.time.Instant
 import java.util.UUID
 
+import sangria.execution.deferred.HasId
 import sangria.macros.derive.{GraphQLDescription, GraphQLName}
+
+object Server {
+  implicit val hasId: HasId[Server, Long] = HasId(_.id)
+}
 
 @GraphQLName("Server")
 @GraphQLDescription("A hostable server, part of a single network")
@@ -21,3 +26,4 @@ case class Server(
     @GraphQLDescription("When the server was first created") created: Instant,
     @GraphQLDescription("When the server was last modified") modified: Instant,
     @GraphQLDescription("Whether the server has been deleted or not") deleted: Boolean)
+    extends IdentifiableModel[Long]

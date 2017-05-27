@@ -1,36 +1,23 @@
 package gg.uhc.website.repositories
 
-import doobie.imports.{Fragment, _}
-import gg.uhc.website.database.DatabaseRunner
-import sangria.execution.deferred.RelationIds
 import gg.uhc.website.schema.definitions.Relations
 import gg.uhc.website.schema.model.MatchScenario
+import sangria.execution.deferred.RelationIds
 
-import scala.concurrent.Future
-import scalaz.NonEmptyList
-import scalaz.Scalaz._
+class MatchScenariosRepository
+    extends Repository[MatchScenario]
+    with CanQuery[MatchScenario]
+    with CanQueryByRelations[MatchScenario] {
+  import doobie.imports._
 
-object MatchScenariosRepository {
-  private[this] val baseSelect = fr"SELECT matchid, scenarioid FROM match_scenarios".asInstanceOf[Fragment]
+  override val composite: Composite[MatchScenario] = implicitly
 
-  def relationsQuery(
-      matchIds: Option[NonEmptyList[Long]],
-      scenarioIds: Option[NonEmptyList[Long]]
-    ): Query0[MatchScenario] =
-    (baseSelect ++ Fragments.whereOrOpt(
-      matchIds.map(ids ⇒ Fragments.in(fr"matchid".asInstanceOf[Fragment], ids)),
-      scenarioIds.map(ids ⇒ Fragments.in(fr"scenarioid".asInstanceOf[Fragment], ids))
-    )).query[MatchScenario]
+  override private[repositories] val baseSelectQuery: Fragment =
+    fr"SELECT matchid, scenarioid FROM match_scenarios".asInstanceOf[Fragment]
 
-}
-
-class MatchScenariosRepository(db: DatabaseRunner) extends RepositorySupport {
-  import MatchScenariosRepository._
-  import db.Implicits._
-
-  def getByRelations(rel: RelationIds[MatchScenario]): Future[List[MatchScenario]] =
-    relationsQuery(
-      matchIds = rel.get(Relations.matchScenarioByMatchId).flatMap(_.toList.toNel),
-      scenarioIds = rel.get(Relations.matchScenarioByScenarioId).flatMap(_.toList.toNel)
-    ).list.runOnDatabase
+  override def relationsFragment(relationIds: RelationIds[MatchScenario]): Fragment =
+    Fragments.whereOrOpt(
+      simpleRelationFragment(relationIds, Relations.matchScenarioByScenarioId, "scenarioid"),
+      simpleRelationFragment(relationIds, Relations.matchScenarioByMatchId, "matchid")
+    )
 }

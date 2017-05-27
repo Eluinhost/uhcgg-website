@@ -1,9 +1,9 @@
 package gg.uhc.website.schema.definitions
 
-import sangria.schema._
 import gg.uhc.website.schema.SchemaContext
+import sangria.schema._
 
-object ScenarioQueries {
+object ScenarioQueries extends QuerySupport {
   val idArg  = Argument(name = "id", argumentType = LongType, description = "ID to match")
   val idsArg = Argument(name = "ids", argumentType = ListInputType(LongType), description = "IDs to match")
 
@@ -12,7 +12,7 @@ object ScenarioQueries {
       name = "scenarioById",
       fieldType = OptionType(Types.ScenarioType),
       arguments = idArg :: Nil,
-      resolve = ctx ⇒ Fetchers.scenarios.deferOpt(ctx arg idArg),
+      resolve = implicit ctx ⇒ Fetchers.scenarios.deferOpt(idArg.resolve),
       description = Some("Looks up a scenario with the given id")
     ),
     Field(
@@ -20,14 +20,14 @@ object ScenarioQueries {
       fieldType = ListType(Types.ScenarioType),
       arguments = idsArg :: Nil,
       complexity = Some((_, args, childScore) ⇒ 20 + (args.arg(idsArg).length * childScore)),
-      resolve = ctx ⇒ Fetchers.scenarios.deferSeqOpt(ctx arg idsArg),
+      resolve = implicit ctx ⇒ Fetchers.scenarios.deferSeqOpt(idsArg.resolve),
       description = Some("Looks up scenarios with the given ids")
     ),
     Field(
       "scenarios",
       ListType(Types.ScenarioType),
       arguments = Nil, // TODO pagination + filters
-      resolve = ctx ⇒ ctx.ctx.scenarios.getAll,
+      resolve = implicit ctx ⇒ ctx.ctx.scenarios.getAll,
       description = Some("Fetches all scenarios")
     )
   )

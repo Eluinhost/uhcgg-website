@@ -1,33 +1,17 @@
 package gg.uhc.website.repositories
 
-import doobie.imports.{Fragment, _}
-import gg.uhc.website.database.DatabaseRunner
 import gg.uhc.website.schema.model.Version
 
-import scala.concurrent.Future
-import scalaz.NonEmptyList
-import scalaz.Scalaz._
+class VersionRepository
+    extends Repository[Version]
+    with CanQuery[Version]
+    with CanQueryByIds[Int, Version]
+    with CanQueryAll[Version] {
+  import doobie.imports._
 
-object VersionRepository {
-  private[this] val baseSelect = fr"SELECT id, name, live FROM versions".asInstanceOf[Fragment]
+  override val composite: Composite[Version] = implicitly
+  override val idParam: Param[Int]           = implicitly
 
-  val getAllQuery: Query0[Version] = baseSelect.query[Version]
-
-  def getByIdsQuery(ids: NonEmptyList[Int]): Query0[Version] =
-    (baseSelect ++ Fragments.whereAnd(
-      Fragments.in(fr"id".asInstanceOf[Fragment], ids)
-    )).query[Version]
-
-}
-
-class VersionRepository(db: DatabaseRunner) extends RepositorySupport {
-  import VersionRepository._
-  import db.Implicits._
-
-  def getAll: Future[List[Version]] = getAllQuery.list.runOnDatabase
-
-  def getByIds(ids: Seq[Int]): Future[List[Version]] = ids.toList.toNel match {
-    case None      ⇒ Future successful List()
-    case Some(nel) ⇒ getByIdsQuery(nel).list.runOnDatabase
-  }
+  override private[repositories] val baseSelectQuery: Fragment =
+    fr"SELECT id, name, live FROM versions".asInstanceOf[Fragment]
 }

@@ -1,9 +1,9 @@
 package gg.uhc.website.schema.definitions
 
-import sangria.schema._
 import gg.uhc.website.schema.SchemaContext
+import sangria.schema._
 
-object VersionQueries {
+object VersionQueries extends QuerySupport {
   val idArg  = Argument(name = "id", argumentType = IntType, description = "ID to match")
   val idsArg = Argument(name = "ids", argumentType = ListInputType(IntType), description = "IDs to match")
 
@@ -12,7 +12,7 @@ object VersionQueries {
       name = "versionById",
       fieldType = OptionType(Types.VersionType),
       arguments = idArg :: Nil,
-      resolve = ctx ⇒ Fetchers.versions.deferOpt(ctx arg idArg),
+      resolve = implicit ctx ⇒ Fetchers.versions.deferOpt(idArg.resolve),
       description = Some("Looks up a version with the given id")
     ),
     Field(
@@ -20,14 +20,14 @@ object VersionQueries {
       fieldType = ListType(Types.VersionType),
       arguments = idsArg :: Nil,
       complexity = Some((_, args, childScore) ⇒ 20 + (args.arg(idsArg).length * childScore)),
-      resolve = ctx ⇒ Fetchers.versions.deferSeqOpt(ctx arg idsArg),
+      resolve = implicit ctx ⇒ Fetchers.versions.deferSeqOpt(idsArg.resolve),
       description = Some("Looks up versions with the given ids")
     ),
     Field(
       "versions",
       ListType(Types.VersionType),
       arguments = Nil, // TODO pagination
-      resolve = ctx ⇒ ctx.ctx.versions.getAll,
+      resolve = implicit ctx ⇒ ctx.ctx.versions.getAll,
       description = Some("Fetches all versions")
     )
   )

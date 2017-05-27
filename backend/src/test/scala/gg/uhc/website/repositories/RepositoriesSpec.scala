@@ -1,4 +1,4 @@
-package gg.uhc.repositories
+package gg.uhc.website.repositories
 
 import org.flywaydb.core.Flyway
 import org.scalatest.{BeforeAndAfterAll, Suites}

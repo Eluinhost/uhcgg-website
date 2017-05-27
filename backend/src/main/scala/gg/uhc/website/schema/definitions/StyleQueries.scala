@@ -1,9 +1,9 @@
 package gg.uhc.website.schema.definitions
 
-import sangria.schema._
 import gg.uhc.website.schema.SchemaContext
+import sangria.schema._
 
-object StyleQueries {
+object StyleQueries extends QuerySupport {
   val idArg  = Argument(name = "id", argumentType = IntType, description = "ID to match")
   val idsArg = Argument(name = "ids", argumentType = ListInputType(IntType), description = "IDs to match")
 
@@ -12,7 +12,7 @@ object StyleQueries {
       name = "styleById",
       fieldType = OptionType(Types.StyleType),
       arguments = idArg :: Nil,
-      resolve = ctx ⇒ Fetchers.styles.deferOpt(ctx arg idArg),
+      resolve = implicit ctx ⇒ Fetchers.styles.deferOpt(idArg.resolve),
       description = Some("Looks up a style with the given id")
     ),
     Field(
@@ -20,14 +20,14 @@ object StyleQueries {
       fieldType = ListType(Types.StyleType),
       arguments = idsArg :: Nil,
       complexity = Some((_, args, childScore) ⇒ 20 + (args.arg(idsArg).length * childScore)),
-      resolve = ctx ⇒ Fetchers.styles.deferSeqOpt(ctx arg idsArg),
+      resolve = implicit ctx ⇒ Fetchers.styles.deferSeqOpt(idsArg.resolve),
       description = Some("Looks up styles with the given ids")
     ),
     Field(
       "styles",
       ListType(Types.StyleType), // TODO pagination
       arguments = Nil,
-      resolve = ctx ⇒ ctx.ctx.styles.getAll,
+      resolve = implicit ctx ⇒ ctx.ctx.styles.getAll,
       description = Some("Fetches all styles")
     )
   )

@@ -1,9 +1,9 @@
 package gg.uhc.website.schema.definitions
 
-import sangria.schema._
 import gg.uhc.website.schema.SchemaContext
+import sangria.schema._
 
-object RolesQueries {
+object RolesQueries extends QuerySupport {
   val idArg  = Argument(name = "id", argumentType = IntType, description = "ID to match")
   val idsArg = Argument(name = "ids", argumentType = ListInputType(IntType), description = "IDs to match")
 
@@ -12,7 +12,7 @@ object RolesQueries {
       name = "roleById",
       fieldType = OptionType(Types.RoleType),
       arguments = idArg :: Nil,
-      resolve = ctx ⇒ Fetchers.roles.deferOpt(ctx arg idArg),
+      resolve = implicit ctx ⇒ Fetchers.roles.deferOpt(idArg.resolve),
       description = Some("Looks up a role with the given id")
     ),
     Field(
@@ -20,14 +20,14 @@ object RolesQueries {
       fieldType = ListType(Types.RoleType),
       arguments = idsArg :: Nil,
       complexity = Some((_, args, childScore) ⇒ 20 + (args.arg(idsArg).length * childScore)),
-      resolve = ctx ⇒ Fetchers.roles.deferSeqOpt(ctx arg idsArg),
+      resolve = implicit ctx ⇒ Fetchers.roles.deferSeqOpt(idsArg.resolve),
       description = Some("Looks up roles with the given ids")
     ),
     Field(
       "roles",
       ListType(Types.RoleType), // TODO pagination
       arguments = Nil,
-      resolve = ctx ⇒ ctx.ctx.roles.getRoles,
+      resolve = implicit ctx ⇒ ctx.ctx.roles.getAll,
       description = Some("Fetches all roles")
     )
   )

@@ -3,7 +3,7 @@ package gg.uhc.website.schema.definitions
 import sangria.schema._
 import gg.uhc.website.schema.SchemaContext
 
-object BansQueries {
+object BansQueries extends QuerySupport {
   val showExpired = Argument(
     "showExpired",
     OptionInputType(BooleanType),
@@ -16,7 +16,7 @@ object BansQueries {
       "bans",
       ListType(Types.BanType), // TODO pagination
       arguments = showExpired :: Nil,
-      resolve = ctx ⇒ ctx.ctx.bans.getBans(ctx arg showExpired),
+      resolve = implicit ctx ⇒ ctx.ctx.bans.getBansByExpiredStatus(showExpired.resolve),
       description = Some("Look up current bans for the given user id")
     )
   )

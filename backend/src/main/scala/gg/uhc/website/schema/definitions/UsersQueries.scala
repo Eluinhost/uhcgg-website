@@ -4,7 +4,7 @@ import sangria.schema._
 import gg.uhc.website.schema.SchemaContext
 import gg.uhc.website.schema.scalars.CustomScalars._
 
-object UsersQueries {
+object UsersQueries extends QuerySupport {
   val idArg       = Argument(name = "id", argumentType = UuidType, description = "ID to match")
   val usernameArg = Argument(name = "username", argumentType = StringType, description = "Username to match")
 
@@ -20,14 +20,14 @@ object UsersQueries {
       name = "userById",
       fieldType = OptionType(Types.UserType),
       arguments = idArg :: Nil,
-      resolve = ctx ⇒ Fetchers.users.defer(ctx arg idArg),
+      resolve = implicit ctx ⇒ Fetchers.users.deferOpt(idArg.resolve),
       description = Some("Fetch a user with the given ID")
     ),
     Field(
       name = "userByUsername",
       fieldType = OptionType(Types.UserType),
       arguments = usernameArg :: Nil,
-      resolve = ctx ⇒ ctx.ctx.users.getByUsername(ctx arg usernameArg),
+      resolve = implicit ctx ⇒ ctx.ctx.users.getByUsername(usernameArg.resolve),
       description = Some("Fetch a user with the given username")
     ),
     Field(
@@ -35,7 +35,7 @@ object UsersQueries {
       fieldType = ListType(Types.UserType),
       arguments = idsArg :: Nil,
       complexity = Some((_, args, childScore) ⇒ 20 + (args.arg(idsArg).length * childScore)),
-      resolve = ctx ⇒ Fetchers.users.deferSeq(ctx arg idsArg),
+      resolve = implicit ctx ⇒ Fetchers.users.deferSeqOpt(idsArg.resolve),
       description = Some("Fetch users with the given IDs")
     ),
     Field(
@@ -43,7 +43,7 @@ object UsersQueries {
       fieldType = ListType(Types.UserType),
       arguments = usernamesArg :: Nil,
       complexity = Some((_, args, childScore) ⇒ 20 + (args.arg(usernamesArg).length * childScore)),
-      resolve = ctx ⇒ ctx.ctx.users.getByUsernames(ctx arg usernamesArg),
+      resolve = implicit ctx ⇒ ctx.ctx.users.getByUsernames(usernamesArg.resolve),
       description = Some("Fetch users with the given usernames")
     )
   )

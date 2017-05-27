@@ -55,7 +55,7 @@ object Settings {
       "io.circe"                           %% "circe-java8"      % "0.8.0",
       "com.softwaremill.macwire"           %% "macros"           % "2.3.0" % Provided,
       "com.softwaremill.macwire"           %% "util"             % "2.3.0",
-      "com.github.sangria-graphql"         % "sangria"           % "1.2.1",
+      "org.sangria-graphql"                %% "sangria"          % "1.2.1",
       "org.sangria-graphql"                %% "sangria-circe"    % "1.0.1",
       "com.pauldijou"                      %% "jwt-circe"        % "0.12.1",
       "org.scalatest"                      %% "scalatest"        % "3.0.1" % "test"

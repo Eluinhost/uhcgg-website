@@ -1,9 +1,9 @@
 package gg.uhc.website.schema.definitions
 
-import sangria.schema._
 import gg.uhc.website.schema.SchemaContext
+import sangria.schema._
 
-object NetworkQueries {
+object NetworkQueries extends QuerySupport {
   val idArg  = Argument(name = "id", argumentType = LongType, description = "ID to match")
   val idsArg = Argument(name = "ids", argumentType = ListInputType(LongType), description = "IDs to match")
 
@@ -12,7 +12,7 @@ object NetworkQueries {
       name = "networkById",
       fieldType = OptionType(Types.NetworkType),
       arguments = idArg :: Nil,
-      resolve = ctx ⇒ Fetchers.networks.deferOpt(ctx arg idArg),
+      resolve = implicit ctx ⇒ Fetchers.networks.deferOpt(idArg.resolve),
       description = Some("Looks up a version with the given id")
     ),
     Field(
@@ -20,14 +20,14 @@ object NetworkQueries {
       fieldType = ListType(Types.NetworkType),
       arguments = idsArg :: Nil,
       complexity = Some((_, args, childScore) ⇒ 20 + (args.arg(idsArg).length * childScore)),
-      resolve = ctx ⇒ Fetchers.networks.deferSeqOpt(ctx arg idsArg),
+      resolve = implicit ctx ⇒ Fetchers.networks.deferSeqOpt(idsArg.resolve),
       description = Some("Looks up versions with the given ids")
     ),
     Field(
       "networks",
       ListType(Types.NetworkType),
       arguments = Nil, // TODO pagination
-      resolve = ctx ⇒ ctx.ctx.networks.getAll,
+      resolve = implicit ctx ⇒ ctx.ctx.networks.getAll,
       description = Some("Fetches all versions")
     )
   )

@@ -1,9 +1,9 @@
 package gg.uhc.website.schema.definitions
 
-import sangria.schema._
 import gg.uhc.website.schema.SchemaContext
+import sangria.schema._
 
-object RegionQueries {
+object RegionQueries extends QuerySupport {
   val idArg  = Argument(name = "id", argumentType = IntType, description = "ID to match")
   val idsArg = Argument(name = "ids", argumentType = ListInputType(IntType), description = "IDs to match")
 
@@ -12,7 +12,7 @@ object RegionQueries {
       name = "regionById",
       fieldType = OptionType(Types.RegionType),
       arguments = idArg :: Nil,
-      resolve = ctx ⇒ Fetchers.regions.deferOpt(ctx arg idArg),
+      resolve = implicit ctx ⇒ Fetchers.regions.deferOpt(idArg.resolve),
       description = Some("Looks up a region with the given id")
     ),
     Field(
@@ -20,14 +20,14 @@ object RegionQueries {
       fieldType = ListType(Types.RegionType),
       arguments = idsArg :: Nil,
       complexity = Some((_, args, childScore) ⇒ 20 + (args.arg(idsArg).length * childScore)),
-      resolve = ctx ⇒ Fetchers.regions.deferSeqOpt(ctx arg idsArg),
+      resolve = implicit ctx ⇒ Fetchers.regions.deferSeqOpt(idsArg.resolve),
       description = Some("Looks up regions with the given ids")
     ),
     Field(
       "regions",
       ListType(Types.RegionType),
       arguments = Nil, // TODO pagination
-      resolve = ctx ⇒ ctx.ctx.regions.getAll,
+      resolve = implicit ctx ⇒ ctx.ctx.regions.getAll,
       description = Some("Fetches all regions")
     )
   )

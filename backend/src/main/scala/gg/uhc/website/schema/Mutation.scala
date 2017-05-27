@@ -9,8 +9,6 @@ import scalaz.OptionT
 import scalaz.Scalaz.some
 
 trait Mutation { this: SchemaContext ⇒
-  type ConnectionIOResult[A] = OptionT[ConnectionIO, A]
-
   /**
     * Checks the username and password and if they are valid generates a JWT for use in authentication
     */

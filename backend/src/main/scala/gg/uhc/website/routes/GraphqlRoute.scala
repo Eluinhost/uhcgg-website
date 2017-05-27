@@ -9,7 +9,7 @@ import gg.uhc.website.CustomJsonCodec
 import gg.uhc.website.configuration.{MaxGraphQlComplexity, MaxGraphQlDepth}
 import gg.uhc.website.schema.definitions.Fetchers
 import gg.uhc.website.schema.definitions.Types.SchemaType
-import gg.uhc.website.schema.{AuthenticationException, AuthorisationException, SchemaContext}
+import gg.uhc.website.schema.{AuthenticationException, AuthorisationException, QueryMetadata, SchemaContext}
 import io.circe.{Json, JsonObject}
 import sangria.ast.Document
 import sangria.execution._
@@ -20,6 +20,7 @@ import sangria.renderer.SchemaRenderer
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
+import scalaz.Lens
 
 case class GraphqlRequest(operationName: Option[String], query: String, variables: Option[Json])
 
@@ -57,6 +58,22 @@ class GraphqlRoute(
     } & handleRejections(rejectionHandler)
   }
 
+  val metadataLens: Lens[SchemaContext, QueryMetadata] = Lens.lensu[SchemaContext, QueryMetadata](
+    set = (a, value) ⇒ a.copy(metadata = value),
+    get = _.metadata
+  )
+
+  val schemaComplexityLens: Lens[SchemaContext, Option[Double]] = metadataLens >=> Lens
+    .lensu[QueryMetadata, Option[Double]](
+      set = (a, value) ⇒ a.copy(complexity = value),
+      get = _.complexity
+    )
+
+  val schemaDepthLens: Lens[SchemaContext, Option[Int]] = metadataLens >=> Lens.lensu[QueryMetadata, Option[Int]](
+    set = (a, value) ⇒ a.copy(depth = value),
+    get = _.depth
+  )
+
   /**
     * Used to measure query complexity. Stores the measured complexity in the context and will throw an exception
     * if the max complexity of 1000 is exceeded
@@ -64,7 +81,7 @@ class GraphqlRoute(
   private val complexityReducer = QueryReducer.measureComplexity[SchemaContext] { (complexity, ctx) ⇒
     if (complexity > maxComplexity) throw QueryTooComplexException(maxComplexity, complexity)
 
-    ctx.copy(metadata = ctx.metadata.copy(complexity = Some(complexity)))
+    schemaComplexityLens.set(ctx, Some(complexity))
   }
 
   /**
@@ -74,7 +91,7 @@ class GraphqlRoute(
   private val depthReducer = QueryReducer.measureDepth[SchemaContext] { (depth, ctx) ⇒
     if (depth > maxDepth) throw QueryTooNestedException(maxDepth, depth)
 
-    ctx.copy(metadata = ctx.metadata.copy(depth = Some(depth)))
+    schemaDepthLens.set(ctx, Some(depth))
   }
 
   /**

@@ -67,7 +67,7 @@ CREATE TABLE regions (
 CREATE TABLE servers (
   id        BIGSERIAL   NOT NULL CONSTRAINT "PK__servers" PRIMARY KEY,
   owner     UUID        NOT NULL CONSTRAINT "FK__servers__users__owner" REFERENCES users (id),
-  networkId BIGINT CONSTRAINT "FK__servers_networks__networkId" REFERENCES networks (id),
+  networkId BIGINT NOT NULL CONSTRAINT "FK__servers_networks__networkId" REFERENCES networks (id),
   name      TEXT        NOT NULL CONSTRAINT "UQ__servers__name" UNIQUE,
   address   TEXT,
   ip        INET        NOT NULL,

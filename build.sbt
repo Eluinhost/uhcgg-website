@@ -60,7 +60,8 @@ lazy val backend = (project in file("backend"))
     pipelineStages in Assets := Seq(scalaJSPipeline),
     managedClasspath in Runtime += (packageBin in Assets).value,
     LessKeys.compress in Assets := true,
-    WebKeys.packagePrefix in Assets := "public/"
+    WebKeys.packagePrefix in Assets := "public/",
+    parallelExecution in Test := false // otherwise migrations explode
   )
   .enablePlugins(SbtTwirl, JavaAppPackaging, WebScalaJSBundlerPlugin)
 //  .aggregate(frontends.map(projectToRef): _*)

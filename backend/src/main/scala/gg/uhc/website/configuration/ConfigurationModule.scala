@@ -1,5 +1,7 @@
 package gg.uhc.website.configuration
 
+import java.time.Duration
+
 import com.typesafe.config.ConfigFactory
 import com.softwaremill.tagging._
 import pdi.jwt.JwtAlgorithm
@@ -46,6 +48,14 @@ trait ConfigurationModule {
 
   lazy val jwtSecret: String @@ JwtSecret = {
     config.getString("jwt.secret").taggedWith[JwtSecret]
+  }
+
+  lazy val registrationJwtDuration: Duration @@ RegistrationJwtDuration = {
+    config.getDuration("jwt.registration-timeout").taggedWith[RegistrationJwtDuration]
+  }
+
+  lazy val apiJwtDuration: Duration @@ ApiJwtDuration = {
+    config.getDuration("jwt.api-timeout").taggedWith[ApiJwtDuration]
   }
 
   lazy val jwtAlgo: JwtHmacAlgorithm = {

@@ -13,4 +13,7 @@ trait RedditSecretConfig      extends ConfigurationOption
 trait RedditRedirectUriConfig extends ConfigurationOption
 trait RedditApiQueueConfig    extends ConfigurationOption
 
+trait RegistrationJwtDuration extends ConfigurationOption
+trait ApiJwtDuration          extends ConfigurationOption
+
 trait JwtSecret extends ConfigurationOption

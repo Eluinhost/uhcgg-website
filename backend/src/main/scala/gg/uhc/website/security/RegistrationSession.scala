@@ -1,22 +1,25 @@
 package gg.uhc.website.security
 
-import java.time.Instant
+import java.time.{Duration, Instant}
 import java.util.UUID
 
 import com.softwaremill.tagging.@@
 import gg.uhc.website.CustomJsonCodec
-import gg.uhc.website.configuration.JwtSecret
+import gg.uhc.website.configuration.{JwtSecret, RegistrationJwtDuration}
 import io.circe.parser.parse
 import pdi.jwt.algorithms.JwtHmacAlgorithm
 import pdi.jwt.{JwtCirce, JwtClaim}
-
 import io.circe.syntax._
 
 object RegistrationSession {
   case class Data(username: Option[String], randomState: String)
 }
 
-class RegistrationSession(jwtSecret: String @@ JwtSecret, jwtAlgorithm: JwtHmacAlgorithm) extends CustomJsonCodec {
+class RegistrationSession(
+    jwtSecret: String @@ JwtSecret,
+    jwtAlgorithm: JwtHmacAlgorithm,
+    registrationTimeout: Duration @@ RegistrationJwtDuration)
+    extends CustomJsonCodec {
   def parseDataFromToken(token: String): Option[RegistrationSession.Data] =
     (for {
       claim   ← JwtCirce.decode(token, jwtSecret, Seq(jwtAlgorithm)).toEither.right
@@ -24,7 +27,7 @@ class RegistrationSession(jwtSecret: String @@ JwtSecret, jwtAlgorithm: JwtHmacA
       session ← json.as[RegistrationSession.Data].right
     } yield session).toOption
 
-  def generateStage1Token() = generateToken(username = None)
+  def generateStage1Token()                 = generateToken(username = None)
   def generateStage2Token(username: String) = generateToken(username = Some(username))
 
   private def generateToken(username: Option[String]): String = {
@@ -35,7 +38,7 @@ class RegistrationSession(jwtSecret: String @@ JwtSecret, jwtAlgorithm: JwtHmacA
 
     val claim = JwtClaim(
       content = RegistrationSession.Data(username, randomState).asJson.noSpaces,
-      expiration = Some(now.plusSeconds(5 * 60).getEpochSecond), // TODO move into configuration
+      expiration = Some(now.plus(registrationTimeout).getEpochSecond),
       issuedAt = Some(now.getEpochSecond)
     )
 

@@ -1,16 +1,15 @@
 package gg.uhc.website.security
 
-import java.time.Instant
+import java.time.{Duration, Instant}
 import java.util.UUID
 
 import com.softwaremill.tagging.@@
 import gg.uhc.website.CustomJsonCodec
-import gg.uhc.website.configuration.JwtSecret
+import gg.uhc.website.configuration.{ApiJwtDuration, JwtSecret}
 import gg.uhc.website.schema.model.{Role, User}
 import io.circe.parser.parse
 import pdi.jwt.{JwtCirce, JwtClaim}
 import pdi.jwt.algorithms.JwtHmacAlgorithm
-
 import io.circe.syntax._
 
 object ApiSession {
@@ -27,7 +26,11 @@ object ApiSession {
   }
 }
 
-class ApiSession(jwtSecret: String @@ JwtSecret, jwtAlgorithm: JwtHmacAlgorithm) extends CustomJsonCodec {
+class ApiSession(
+    jwtSecret: String @@ JwtSecret,
+    jwtAlgorithm: JwtHmacAlgorithm,
+    jwtTimeout: Duration @@ ApiJwtDuration)
+    extends CustomJsonCodec {
   def parseDataFromToken(token: String): Option[ApiSession.Data] =
     (for {
       claim   ← JwtCirce.decode(token, jwtSecret, Seq(jwtAlgorithm)).toEither.right
@@ -36,10 +39,12 @@ class ApiSession(jwtSecret: String @@ JwtSecret, jwtAlgorithm: JwtHmacAlgorithm)
     } yield session).toOption
 
   def generateToken(user: User, roles: Seq[Role]): String = {
+    val now = Instant.now()
+
     val claim = JwtClaim(
       content = ApiSession.Data(user, roles).asJson.noSpaces,
-      expiration = Some(Instant.now.plusSeconds(3600).getEpochSecond),
-      issuedAt = Some(Instant.now.getEpochSecond)
+      expiration = Some(now.plus(jwtTimeout).getEpochSecond),
+      issuedAt = Some(now.getEpochSecond)
     )
 
     JwtCirce.encode(claim, jwtSecret, jwtAlgorithm)

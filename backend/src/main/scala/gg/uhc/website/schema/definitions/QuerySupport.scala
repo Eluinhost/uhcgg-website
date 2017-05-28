@@ -12,6 +12,6 @@ trait QuerySupport {
     ctx.ctx.run(value)
 
   implicit class ArgumentOps[A](argument: Argument[A])(implicit ctx: Context[_, _]) {
-    def resolve: A = implicitly[Context[_,_]].arg(argument)
+    def resolve: A = ctx.arg(argument)
   }
 }

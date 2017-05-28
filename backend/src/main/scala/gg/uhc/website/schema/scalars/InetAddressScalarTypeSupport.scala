@@ -5,6 +5,7 @@ import java.net.InetAddress
 import sangria.ast
 import sangria.schema.ScalarType
 import sangria.validation.ValueCoercionViolation
+import scalaz.Scalaz._
 
 import scala.util.Try
 
@@ -16,7 +17,7 @@ trait InetAddressScalarTypeSupport {
 
   implicit val InetType: ScalarType[InetAddress] = ScalarType[InetAddress](
     "Inet",
-    description = Some("An IP address"),
+    description = "An IP address".some,
     coerceOutput = (i, _) ⇒ i.toString,
     coerceInput = {
       case ast.StringValue(i, _, _) ⇒ tryConvertStringToInet(i)

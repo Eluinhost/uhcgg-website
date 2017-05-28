@@ -10,6 +10,7 @@ import io.circe.parser.parse
 import pdi.jwt.algorithms.JwtHmacAlgorithm
 import pdi.jwt.{JwtCirce, JwtClaim}
 import io.circe.syntax._
+import scalaz.Scalaz._
 
 object RegistrationSession {
   case class Data(username: Option[String], randomState: String)
@@ -27,8 +28,8 @@ class RegistrationSession(
       session ← json.as[RegistrationSession.Data].right
     } yield session).toOption
 
-  def generateStage1Token()                 = generateToken(username = None)
-  def generateStage2Token(username: String) = generateToken(username = Some(username))
+  def generateStage1Token()                 = generateToken(username = none)
+  def generateStage2Token(username: String) = generateToken(username = username.some)
 
   private def generateToken(username: Option[String]): String = {
     val now = Instant.now()
@@ -38,8 +39,8 @@ class RegistrationSession(
 
     val claim = JwtClaim(
       content = RegistrationSession.Data(username, randomState).asJson.noSpaces,
-      expiration = Some(now.plus(registrationTimeout).getEpochSecond),
-      issuedAt = Some(now.getEpochSecond)
+      expiration = now.plus(registrationTimeout).getEpochSecond.some,
+      issuedAt = now.getEpochSecond.some
     )
 
     JwtCirce.encode(claim, jwtSecret, jwtAlgorithm)

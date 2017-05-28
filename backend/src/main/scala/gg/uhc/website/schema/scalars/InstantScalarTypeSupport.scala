@@ -5,6 +5,7 @@ import java.time.Instant
 import sangria.ast
 import sangria.schema.ScalarType
 import sangria.validation.ValueCoercionViolation
+import scalaz.Scalaz._
 
 import scala.util.Try
 
@@ -16,7 +17,7 @@ trait InstantScalarTypeSupport {
 
   implicit val DateType: ScalarType[Instant] = ScalarType[Instant](
     "Date",
-    description = Some("A timestamp"),
+    description = "A timestamp".some,
     coerceOutput = (i, _) ⇒ i.toEpochMilli,
     coerceInput = {
       case ast.BigIntValue(i, _, _) ⇒ tryConvertLongToInstant(i.longValue())

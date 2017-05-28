@@ -19,7 +19,7 @@ class BanRepository
   override val idParam: Param[Long]      = implicitly
 
   override private[repositories] val baseSelectQuery: Fragment =
-    fr"SELECT id, reason, created, expires, userid, author FROM bans".asInstanceOf[Fragment]
+    fr"SELECT id, reason, created, modified, expires, userid, author FROM bans".asInstanceOf[Fragment]
 
   override def relationsFragment(relationIds: RelationIds[Ban]): Fragment =
     Fragments.whereOrOpt(

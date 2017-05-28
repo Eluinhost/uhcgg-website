@@ -5,6 +5,7 @@ import java.util.UUID
 import sangria.ast
 import sangria.schema.ScalarType
 import sangria.validation.ValueCoercionViolation
+import scalaz.Scalaz._
 
 import scala.util.Try
 
@@ -12,7 +13,7 @@ trait UuidScalarTypeSupport {
   case object UuidCoercionViolation extends ValueCoercionViolation("UUID value expected")
   implicit val UuidType: ScalarType[UUID] = ScalarType[UUID](
     "UUID",
-    description = Some("A unique identifier for an object"),
+    description = "A unique identifier for an object".some,
     coerceOutput = (t: UUID, _) ⇒ t.toString,
     coerceUserInput = {
       case s: String ⇒

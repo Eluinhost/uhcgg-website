@@ -11,6 +11,7 @@ import io.circe.parser.parse
 import pdi.jwt.{JwtCirce, JwtClaim}
 import pdi.jwt.algorithms.JwtHmacAlgorithm
 import io.circe.syntax._
+import scalaz.Scalaz._
 
 object ApiSession {
   case class Data(userId: UUID, username: String, email: String, permissions: Seq[String], roles: Seq[String])
@@ -43,8 +44,8 @@ class ApiSession(
 
     val claim = JwtClaim(
       content = ApiSession.Data(user, roles).asJson.noSpaces,
-      expiration = Some(now.plus(jwtTimeout).getEpochSecond),
-      issuedAt = Some(now.getEpochSecond)
+      expiration = now.plus(jwtTimeout).getEpochSecond.some,
+      issuedAt = now.getEpochSecond.some
     )
 
     JwtCirce.encode(claim, jwtSecret, jwtAlgorithm)

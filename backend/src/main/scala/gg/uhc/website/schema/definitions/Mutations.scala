@@ -3,8 +3,9 @@ package gg.uhc.website.schema.definitions
 import gg.uhc.website.schema.SchemaContext
 import gg.uhc.website.schema.scalars.UuidScalarTypeSupport
 import sangria.schema._
+import scalaz.Scalaz._
 
-object Mutations extends UuidScalarTypeSupport with QuerySupport {
+object Mutations extends UuidScalarTypeSupport with SchemaSupport {
   val usernameArg =
     Argument(name = "username", argumentType = StringType, description = "Username or email to login with")
   val userIdArg   = Argument(name = "id", argumentType = UuidType, description = "Username or email to login with")
@@ -21,7 +22,7 @@ object Mutations extends UuidScalarTypeSupport with QuerySupport {
     fields = fields[SchemaContext, Unit](
       Field(
         name = "token",
-        description = Some("Get a token for the supplied username/email and password combination"),
+        description = "Get a token for the supplied username/email and password combination".some,
         fieldType = OptionType(StringType),
         arguments = usernameArg :: passwordArg :: Nil,
         complexity = Some((_, _, _) ⇒ 100),
@@ -35,11 +36,11 @@ object Mutations extends UuidScalarTypeSupport with QuerySupport {
       ),
       Field(
         name = "register",
-        fieldType = Types.UserType,
+        fieldType = UserSchema.Type,
         arguments = registerEmailArg :: passwordArg :: registerJwtArg :: Nil,
         resolve =
           implicit ctx ⇒ ctx.ctx.register(registerEmailArg.resolve, passwordArg.resolve, registerJwtArg.resolve)
       )
-    ) ++ Types.MetadataFields
+    ) ++ QueryMetadataSchema.queries
   )
 }

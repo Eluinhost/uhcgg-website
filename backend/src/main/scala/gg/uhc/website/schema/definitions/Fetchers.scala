@@ -8,7 +8,7 @@ import gg.uhc.website.schema.model._
 import sangria.execution.deferred._
 
 object Fetchers {
-  private def simpleFetcher[ID, A <: IdentifiableModel[ID], R <: CanQueryByIds[ID, A]](
+  private def simpleFetcher[ID, A <: IdentificationFields[ID], R <: CanQueryByIds[ID, A]](
       repo: SchemaContext ⇒ R
     )(implicit id: HasId[A, ID]
     ): Fetcher[SchemaContext, A, A, ID] =
@@ -16,7 +16,7 @@ object Fetchers {
       fetch = (ctx: SchemaContext, ids: Seq[ID]) ⇒ ctx run repo(ctx).getByIds(ids)
     )
 
-  private def relFetcher[ID, A <: IdentifiableModel[ID], R <: CanQueryByIds[ID, A] with CanQueryByRelations[A]](
+  private def relFetcher[ID, A <: IdentificationFields[ID], R <: CanQueryByIds[ID, A] with CanQueryByRelations[A]](
       repo: SchemaContext ⇒ R
     )(implicit id: HasId[A, ID]
     ): Fetcher[SchemaContext, A, A, ID] =

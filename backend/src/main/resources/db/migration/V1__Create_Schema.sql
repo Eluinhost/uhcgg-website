@@ -13,16 +13,18 @@ CREATE TABLE users (
   username TEXT        NOT NULL CONSTRAINT "UQ__users__username" UNIQUE,
   email    TEXT        NOT NULL,
   password TEXT        NOT NULL,
-  created  TIMESTAMPTZ NOT NULL                                    DEFAULT NOW()
+  created  TIMESTAMPTZ NOT NULL                                    DEFAULT NOW(),
+  modified TIMESTAMPTZ NOT NULL                                    DEFAULT NOW()
 );
 
 CREATE TABLE bans (
-  id      BIGSERIAL   NOT NULL CONSTRAINT "PK__bans" PRIMARY KEY,
-  userId  UUID        NOT NULL CONSTRAINT "FK__bans__users__userId" REFERENCES users (id),
-  author  UUID        NOT NULL CONSTRAINT "FK__bans__users__author" REFERENCES users (id),
-  reason  TEXT        NOT NULL,
-  created TIMESTAMPTZ NOT NULL,
-  expires TIMESTAMPTZ NOT NULL
+  id       BIGSERIAL   NOT NULL CONSTRAINT "PK__bans" PRIMARY KEY,
+  userId   UUID        NOT NULL CONSTRAINT "FK__bans__users__userId" REFERENCES users (id),
+  author   UUID        NOT NULL CONSTRAINT "FK__bans__users__author" REFERENCES users (id),
+  reason   TEXT        NOT NULL,
+  created  TIMESTAMPTZ NOT NULL,
+  modified TIMESTAMPTZ NOT NULL,
+  expires  TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE user_roles (

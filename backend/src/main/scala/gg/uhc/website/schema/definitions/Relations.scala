@@ -11,6 +11,7 @@ object Relations {
   val userRoleByRoleId  = Relation[UserRole, Int]("userRoleByRoleId", userRole ⇒ Seq(userRole.roleId))
   val networkByUserId   = Relation[Network, UUID]("networkByUserId", network ⇒ Seq(network.owner))
   val serverByNetworkId = Relation[Server, Long]("serverByNetworkId", server ⇒ Seq(server.networkId))
+  val serverByRegionId  = Relation[Server, Int]("serverByRegionId", server ⇒ Seq(server.region))
   val matchByHostId     = Relation[Match, UUID]("matchByHostId", m ⇒ Seq(m.host))
   val matchByServerId   = Relation[Match, Long]("matchByServerId", m ⇒ Seq(m.serverId))
   val matchByVersionId  = Relation[Match, Int]("matchByVersionId", m ⇒ Seq(m.versionId))

@@ -5,6 +5,7 @@ import java.util.UUID
 import gg.uhc.website.schema.definitions.Relations
 import gg.uhc.website.schema.model.UserRole
 import sangria.execution.deferred.RelationIds
+import scalaz.Scalaz._
 
 class UserRolesRepository extends Repository[UserRole] with CanQuery[UserRole] with CanQueryByRelations[UserRole] {
   import doobie.imports._
@@ -16,7 +17,8 @@ class UserRolesRepository extends Repository[UserRole] with CanQuery[UserRole] w
     fr"SELECT userid, roleid FROM user_roles".asInstanceOf[Fragment]
 
   def forUser(userId: UUID): ConnectionIO[List[UserRole]] =
-    search(userIds = Some(Seq(userId))).map(_.filter(_.userId == userId))
+    search(userIds = Seq(userId).some)
+      .map(_.filter(_.userId == userId))
 
   def search(userIds: Option[Seq[UUID]] = None, roleIds: Option[Seq[Int]] = None): ConnectionIO[List[UserRole]] =
     relationsQuery(

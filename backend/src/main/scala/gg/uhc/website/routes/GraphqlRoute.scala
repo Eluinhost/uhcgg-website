@@ -7,8 +7,7 @@ import akka.stream.ActorMaterializer
 import com.softwaremill.tagging.@@
 import gg.uhc.website.CustomJsonCodec
 import gg.uhc.website.configuration.{MaxGraphQlComplexity, MaxGraphQlDepth}
-import gg.uhc.website.schema.definitions.Fetchers
-import gg.uhc.website.schema.definitions.Types.SchemaType
+import gg.uhc.website.schema.definitions.{Fetchers, ApplicationSchema}
 import gg.uhc.website.schema.{AuthenticationException, AuthorisationException, QueryMetadata, SchemaContext}
 import io.circe.{Json, JsonObject}
 import sangria.ast.Document
@@ -21,6 +20,7 @@ import sangria.renderer.SchemaRenderer
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 import scalaz.Lens
+import scalaz.Scalaz._
 
 case class GraphqlRequest(operationName: Option[String], query: String, variables: Option[Json])
 
@@ -45,7 +45,7 @@ class GraphqlRoute(
   /**
     * Render the schema once and serve that for each request
     */
-  lazy val renderedSchema: String = SchemaRenderer.renderSchema(SchemaType)
+  lazy val renderedSchema: String = SchemaRenderer.renderSchema(ApplicationSchema)
 
   private val rejectionHandler = RejectionHandler.default
   private val logDuration = extractRequestContext.flatMap { ctx ⇒
@@ -81,7 +81,7 @@ class GraphqlRoute(
   private val complexityReducer = QueryReducer.measureComplexity[SchemaContext] { (complexity, ctx) ⇒
     if (complexity > maxComplexity) throw QueryTooComplexException(maxComplexity, complexity)
 
-    schemaComplexityLens.set(ctx, Some(complexity))
+    schemaComplexityLens.set(ctx, complexity.some)
   }
 
   /**
@@ -91,7 +91,7 @@ class GraphqlRoute(
   private val depthReducer = QueryReducer.measureDepth[SchemaContext] { (depth, ctx) ⇒
     if (depth > maxDepth) throw QueryTooNestedException(maxDepth, depth)
 
-    schemaDepthLens.set(ctx, Some(depth))
+    schemaDepthLens.set(ctx, depth.some)
   }
 
   /**
@@ -120,7 +120,7 @@ class GraphqlRoute(
     ): Future[(StatusCode, Json)] =
     Executor
       .execute(
-        schema = SchemaType,
+        schema = ApplicationSchema,
         queryAst = query,
         userContext = ctx,
         variables = InputUnmarshaller.mapVars( // convert the optional provided variables into an Input object

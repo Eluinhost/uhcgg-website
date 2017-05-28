@@ -64,6 +64,7 @@
         <attribute name="email" source="person.email" unique="true"/>
         <attribute name="password" source="userNoun.singular" converter="passwordConverter"/>
         <attribute name="created" generator="dtGen"/>
+        <attribute name="modified" generator="dtGen"/>
 
         <!-- add the default role to every user -->
         <generate type="user_roles" count="1" consumer="ConsoleExporter,output">
@@ -156,6 +157,7 @@
         <reference name="author" targetType="users" script="author.id"/>
         <attribute name="reason" generator="NounGenerator"/>
         <attribute name="created" generator="dtGen"/>
+        <attribute name="modified" generator="dtGen"/>
         <attribute name="expires" generator="banExpireDtGen"/> <!-- TODO validate expires after created -->
     </generate>
 

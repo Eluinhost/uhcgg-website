@@ -1,5 +1,5 @@
 package gg.uhc.website.schema.model
 
-trait IdentifiableModel[ID] {
+trait IdentificationFields[ID] {
   val id: ID
 }

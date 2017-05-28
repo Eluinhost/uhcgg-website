@@ -2,7 +2,7 @@ package gg.uhc.website.repositories
 
 import doobie.imports._
 import doobie.postgres.imports._
-import gg.uhc.website.schema.model.IdentifiableModel
+import gg.uhc.website.schema.model.IdentificationFields
 import sangria.execution.deferred.{Relation, RelationIds}
 
 import scalaz.Scalaz._
@@ -18,7 +18,7 @@ trait CanQuery[A] { self: Repository[A] ⇒
   implicit def composite: Composite[A]
 }
 
-trait CanQueryByIds[ID, A <: IdentifiableModel[ID]] { self: CanQuery[A] ⇒
+trait CanQueryByIds[ID, A <: IdentificationFields[ID]] { self: CanQuery[A] ⇒
   implicit def idParam: Param[ID]
 
   implicit val logHandler: LogHandler

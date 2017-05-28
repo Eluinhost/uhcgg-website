@@ -13,7 +13,8 @@ class ServerRepositoryTest extends FlatSpec with BaseRepositoryTest {
     check(
       repo.relationsQuery(
         Seq(
-          Relations.serverByNetworkId → Seq(1L, 2L)
+          Relations.serverByNetworkId → Seq(1L, 2L),
+          Relations.serverByRegionId → Seq(1, 2)
         )
       )
     )

@@ -21,6 +21,7 @@ class ServerRepository
 
   override def relationsFragment(relationIds: RelationIds[Server]): Fragment =
     Fragments.whereOrOpt(
-      simpleRelationFragment(relationIds, Relations.serverByNetworkId, "networkid")
+      simpleRelationFragment(relationIds, Relations.serverByNetworkId, "networkid"),
+      simpleRelationFragment(relationIds, Relations.serverByRegionId, "region")
     )
 }

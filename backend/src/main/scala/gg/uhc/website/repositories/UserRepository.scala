@@ -17,7 +17,7 @@ class UserRepository extends Repository[User] with CanQuery[User] with CanQueryB
   override val idParam: Param[UUID]       = implicitly
 
   override private[repositories] val baseSelectQuery: Fragment =
-    fr"SELECT id, username, email, password, created FROM users".asInstanceOf[Fragment]
+    fr"SELECT id, username, email, password, created, modified FROM users".asInstanceOf[Fragment]
 
   private[repositories] def changePasswordQuery(id: UUID, password: String): Update0 =
     sql"UPDATE users SET password = ${password.bcrypt} WHERE id = $id"

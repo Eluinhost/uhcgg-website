@@ -5,10 +5,10 @@ import gg.uhc.website.schema.SchemaContext
 import sangria.schema.{Argument, Context, ReduceAction}
 
 trait QuerySupport {
-  implicit def connectionIO2FutureAction[Ctx, Val](
-      value: ConnectionIO[Val]
+  implicit def connectionIO2FutureAction[A](
+      value: ConnectionIO[A]
     )(implicit ctx: Context[SchemaContext, _]
-    ): ReduceAction[Ctx, Val] =
+    ): ReduceAction[SchemaContext, A] =
     ctx.ctx.run(value)
 
   implicit class ArgumentOps[A](argument: Argument[A])(implicit ctx: Context[_, _]) {

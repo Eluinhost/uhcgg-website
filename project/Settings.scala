@@ -76,8 +76,8 @@ object Settings {
 
   val jsDependencies = Def.setting(
     Seq(
-      "react"     → versions.react,
-      "react-dom" → versions.react
+      "org.webjars.bower" % "react" % versions.react / "react-with-addons.js" minified "react-with-addons.min.js" commonJSName "React",
+      "org.webjars.bower" % "react" % versions.react / "react-dom.js" minified "react-dom.min.js" commonJSName "ReactDOM"
     )
   )
 

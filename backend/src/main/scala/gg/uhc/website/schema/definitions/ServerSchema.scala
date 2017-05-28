@@ -36,6 +36,12 @@ object ServerSchema extends SchemaDefinition[Server] with SchemaSupport {
           description = "Text description of where about the server is hosted".some,
           resolve = _.value.location
         ),
+        Field(
+          name = "name",
+          fieldType = StringType,
+          description = "The unique name (per-network) of this server".some,
+          resolve = _.value.name
+        ),
         //////////////////////////
         // Relations below here //
         //////////////////////////

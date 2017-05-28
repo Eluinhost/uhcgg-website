@@ -1,13 +1,7 @@
-package gg.uhc.website.schema.model
+package gg.uhc.website.model
 
 import java.time.Instant
 import java.util.UUID
-
-import sangria.execution.deferred.HasId
-
-object Match {
-  implicit val hasId: HasId[Match, Long] = HasId(_.id)
-}
 
 case class Match(
     id: Long,

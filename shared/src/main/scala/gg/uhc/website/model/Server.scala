@@ -1,14 +1,8 @@
-package gg.uhc.website.schema.model
+package gg.uhc.website.model
 
 import java.net.InetAddress
 import java.time.Instant
 import java.util.UUID
-
-import sangria.execution.deferred.HasId
-
-object Server {
-  implicit val hasId: HasId[Server, Long] = HasId(_.id)
-}
 
 case class Server(
     id: Long,

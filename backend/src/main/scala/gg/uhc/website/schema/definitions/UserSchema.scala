@@ -2,9 +2,10 @@ package gg.uhc.website.schema.definitions
 
 import java.util.UUID
 
+import gg.uhc.website.model.User
 import sangria.schema._
 import gg.uhc.website.schema.SchemaContext
-import gg.uhc.website.schema.model.User
+import gg.uhc.website.schema.SchemaIds._
 
 import scalaz.Scalaz._
 

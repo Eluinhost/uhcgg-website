@@ -1,8 +1,7 @@
 package gg.uhc.website.repositories
 
 import doobie.imports._
-import doobie.postgres.imports._
-import gg.uhc.website.schema.model.IdentificationFields
+import gg.uhc.website.model.IdentificationFields
 import sangria.execution.deferred.{Relation, RelationIds}
 
 import scalaz.Scalaz._

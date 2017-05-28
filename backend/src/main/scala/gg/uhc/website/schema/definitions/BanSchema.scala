@@ -1,8 +1,10 @@
 package gg.uhc.website.schema.definitions
 
+import gg.uhc.website.model.Ban
 import sangria.schema._
 import gg.uhc.website.schema.SchemaContext
-import gg.uhc.website.schema.model.Ban
+import gg.uhc.website.schema.SchemaIds._
+
 import scalaz.Scalaz._
 
 object BanSchema extends SchemaDefinition[Ban] with SchemaQueries with SchemaSupport {

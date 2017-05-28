@@ -1,6 +1,6 @@
 package gg.uhc.website.schema.definitions
 
-import gg.uhc.website.schema.model.NetworkPermission
+import gg.uhc.website.model.NetworkPermission
 import sangria.schema._
 
 import scalaz.Scalaz._

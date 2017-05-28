@@ -4,7 +4,7 @@ import java.util.UUID
 
 import com.github.t3hnar.bcrypt._
 import gg.uhc.website.CustomJsonCodec
-import gg.uhc.website.schema.model.User
+import gg.uhc.website.model.User
 
 import scalaz.NonEmptyList
 import scalaz.Scalaz._

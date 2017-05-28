@@ -1,6 +1,7 @@
 package gg.uhc.website.schema.definitions
 
-import gg.uhc.website.schema.model.Server
+import gg.uhc.website.model.Server
+import gg.uhc.website.schema.SchemaIds._
 import sangria.schema._
 
 import scalaz.Scalaz._

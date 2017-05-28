@@ -1,7 +1,7 @@
 package gg.uhc.website.repositories
 
+import gg.uhc.website.model.Scenario
 import gg.uhc.website.schema.definitions.Relations
-import gg.uhc.website.schema.model.Scenario
 import sangria.execution.deferred.RelationIds
 
 class ScenarioRepository

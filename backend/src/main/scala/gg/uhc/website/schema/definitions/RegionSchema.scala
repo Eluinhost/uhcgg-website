@@ -1,7 +1,8 @@
 package gg.uhc.website.schema.definitions
 
+import gg.uhc.website.model.Region
 import gg.uhc.website.schema.SchemaContext
-import gg.uhc.website.schema.model.Region
+import gg.uhc.website.schema.SchemaIds._
 import sangria.schema._
 
 import scalaz.Scalaz._

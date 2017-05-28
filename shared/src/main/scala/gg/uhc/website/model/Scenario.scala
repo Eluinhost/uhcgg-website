@@ -1,18 +1,11 @@
-package gg.uhc.website.schema.model
+package gg.uhc.website.model
 
 import java.time.Instant
 import java.util.UUID
 
-import sangria.execution.deferred.HasId
-
-object Network {
-  implicit val hasId: HasId[Network, Long] = HasId(_.id)
-}
-
-case class Network(
+case class Scenario(
     id: Long,
     name: String,
-    tag: String,
     description: String,
     created: Instant,
     modified: Instant,

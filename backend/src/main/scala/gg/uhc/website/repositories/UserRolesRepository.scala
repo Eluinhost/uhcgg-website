@@ -2,9 +2,10 @@ package gg.uhc.website.repositories
 
 import java.util.UUID
 
+import gg.uhc.website.model.UserRole
 import gg.uhc.website.schema.definitions.Relations
-import gg.uhc.website.schema.model.UserRole
 import sangria.execution.deferred.RelationIds
+
 import scalaz.Scalaz._
 
 class UserRolesRepository extends Repository[UserRole] with CanQuery[UserRole] with CanQueryByRelations[UserRole] {

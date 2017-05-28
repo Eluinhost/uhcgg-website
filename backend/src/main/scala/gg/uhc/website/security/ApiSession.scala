@@ -6,11 +6,12 @@ import java.util.UUID
 import com.softwaremill.tagging.@@
 import gg.uhc.website.CustomJsonCodec
 import gg.uhc.website.configuration.{ApiJwtDuration, JwtSecret}
-import gg.uhc.website.schema.model.{Role, User}
+import gg.uhc.website.model.{Role, User}
 import io.circe.parser.parse
 import pdi.jwt.{JwtCirce, JwtClaim}
 import pdi.jwt.algorithms.JwtHmacAlgorithm
 import io.circe.syntax._
+
 import scalaz.Scalaz._
 
 object ApiSession {

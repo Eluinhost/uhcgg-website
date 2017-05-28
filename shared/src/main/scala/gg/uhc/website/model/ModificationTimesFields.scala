@@ -1,4 +1,4 @@
-package gg.uhc.website.schema.model
+package gg.uhc.website.model
 
 import java.time.Instant
 

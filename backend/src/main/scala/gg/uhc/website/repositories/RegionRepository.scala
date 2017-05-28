@@ -1,6 +1,6 @@
 package gg.uhc.website.repositories
 
-import gg.uhc.website.schema.model.Region
+import gg.uhc.website.model.Region
 
 class RegionRepository
     extends Repository[Region]

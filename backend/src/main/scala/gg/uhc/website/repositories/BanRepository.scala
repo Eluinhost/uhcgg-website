@@ -1,7 +1,7 @@
 package gg.uhc.website.repositories
 
+import gg.uhc.website.model.Ban
 import gg.uhc.website.schema.definitions.Relations
-import gg.uhc.website.schema.model.Ban
 import sangria.execution.deferred.RelationIds
 
 import scalaz.Scalaz._

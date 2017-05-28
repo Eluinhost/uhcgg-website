@@ -1,6 +1,6 @@
 package gg.uhc.website.repositories
 
-import gg.uhc.website.schema.model.Style
+import gg.uhc.website.model.Style
 
 class StyleRepository
     extends Repository[Style]

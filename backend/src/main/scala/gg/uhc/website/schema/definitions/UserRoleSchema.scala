@@ -1,6 +1,6 @@
 package gg.uhc.website.schema.definitions
 
-import gg.uhc.website.schema.model.UserRole
+import gg.uhc.website.model.UserRole
 import sangria.schema._
 
 import scalaz.Scalaz._

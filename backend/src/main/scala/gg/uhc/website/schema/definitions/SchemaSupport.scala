@@ -1,8 +1,8 @@
 package gg.uhc.website.schema.definitions
 
 import doobie.imports.ConnectionIO
+import gg.uhc.website.model.{DeleteableFields, IdentificationFields, ModificationTimesFields}
 import gg.uhc.website.schema.SchemaContext
-import gg.uhc.website.schema.model.{DeleteableFields, IdentificationFields, ModificationTimesFields}
 import gg.uhc.website.schema.scalars.{InetAddressScalarTypeSupport, InstantScalarTypeSupport, UuidScalarTypeSupport}
 import sangria.execution.deferred.HasId
 import sangria.schema._
@@ -18,6 +18,8 @@ trait SchemaQueries {
 }
 
 trait SchemaSupport extends InetAddressScalarTypeSupport with InstantScalarTypeSupport with UuidScalarTypeSupport {
+  import scala.language.implicitConversions
+
   implicit def connectionIO2FutureAction[A](
       value: ConnectionIO[A]
     )(implicit ctx: Context[SchemaContext, _]

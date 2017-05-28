@@ -1,8 +1,10 @@
 package gg.uhc.website.schema.definitions
 
+import gg.uhc.website.model.Version
 import gg.uhc.website.schema.SchemaContext
-import gg.uhc.website.schema.model.Version
+import gg.uhc.website.schema.SchemaIds._
 import sangria.schema._
+
 import scalaz.Scalaz._
 
 object VersionSchema extends SchemaDefinition[Version] with SchemaQueries with SchemaSupport {

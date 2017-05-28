@@ -11,6 +11,8 @@ import org.scalatest.{Assertions, Matchers}
 import sangria.execution.deferred.{Relation, RelationIds}
 
 trait BaseRepositoryTest extends Matchers with QueryChecker with Assertions with ConfigurationModule {
+  import scala.language.implicitConversions
+
   val dataSource: DataSource = {
     val source = new PGSimpleDataSource
     source.setUser(databaseUsernameConfig)

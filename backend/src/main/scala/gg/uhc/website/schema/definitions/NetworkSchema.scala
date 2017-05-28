@@ -1,8 +1,10 @@
 package gg.uhc.website.schema.definitions
 
+import gg.uhc.website.model.Network
 import gg.uhc.website.schema.SchemaContext
-import gg.uhc.website.schema.model.Network
+import gg.uhc.website.schema.SchemaIds._
 import sangria.schema._
+
 import scalaz.Scalaz._
 
 object NetworkSchema extends SchemaDefinition[Network] with SchemaQueries with SchemaSupport {

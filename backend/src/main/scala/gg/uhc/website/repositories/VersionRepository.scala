@@ -1,6 +1,6 @@
 package gg.uhc.website.repositories
 
-import gg.uhc.website.schema.model.Version
+import gg.uhc.website.model.Version
 
 class VersionRepository
     extends Repository[Version]

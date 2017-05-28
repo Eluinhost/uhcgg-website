@@ -2,9 +2,11 @@ package gg.uhc.website.schema.definitions
 
 import java.util.UUID
 
+import gg.uhc.website.model._
 import gg.uhc.website.repositories._
 import gg.uhc.website.schema.SchemaContext
-import gg.uhc.website.schema.model._
+import gg.uhc.website.schema.SchemaIds._
+
 import sangria.execution.deferred._
 
 object Fetchers {

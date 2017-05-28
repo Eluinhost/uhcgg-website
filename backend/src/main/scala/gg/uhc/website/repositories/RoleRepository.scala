@@ -1,6 +1,6 @@
 package gg.uhc.website.repositories
 
-import gg.uhc.website.schema.model.Role
+import gg.uhc.website.model.Role
 
 class RoleRepository
     extends Repository[Role]

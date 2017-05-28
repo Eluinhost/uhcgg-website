@@ -3,7 +3,7 @@ package gg.uhc.website.schema.definitions
 import java.util.UUID
 
 import sangria.execution.deferred.Relation
-import gg.uhc.website.schema.model._
+import gg.uhc.website.model._
 
 object Relations {
   val banByBannedUserId = Relation[Ban, UUID]("banByBannedUserId", ban ⇒ Seq(ban.userId))

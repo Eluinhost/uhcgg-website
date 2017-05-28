@@ -1,6 +1,6 @@
 package gg.uhc.website.schema.definitions
 
-import gg.uhc.website.schema.model.MatchScenario
+import gg.uhc.website.model.MatchScenario
 import sangria.schema.{Field, ObjectType, fields}
 
 import scalaz.Scalaz._

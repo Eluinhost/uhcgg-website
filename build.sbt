@@ -35,7 +35,7 @@ lazy val frontend = (project in file("frontend"))
     testFrameworks += new TestFramework("utest.runner.Framework"),
     emitSourceMaps := true
   )
-  .enablePlugins(ScalaJSBundlerPlugin, ScalaJSWeb)
+  .enablePlugins(ScalaJSPlugin, ScalaJSWeb)
   .dependsOn(sharedFrontend)
 
 lazy val backend = (project in file("backend"))
@@ -52,7 +52,7 @@ lazy val backend = (project in file("backend"))
 //    javaOptions := Seq("-Xdebug", "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"),
     commands += ReleaseCmd,
     // triggers scalaJSPipeline when using compile or continuous compilation
-    compile in Compile := ((compile in Compile) dependsOn scalaJSPipeline).value,
+    compile in Compile := ((compile in Compile) dependsOn scalaJSPipeline.map(f ⇒ f(Seq.empty))).value,
     // connect to the client project
     scalaJSProjects := Seq(frontend),
     pipelineStages in Assets := Seq(scalaJSPipeline),
@@ -61,7 +61,7 @@ lazy val backend = (project in file("backend"))
     WebKeys.packagePrefix in Assets := "public/",
     parallelExecution in Test := false // otherwise migrations explode
   )
-  .enablePlugins(SbtTwirl, JavaAppPackaging, WebScalaJSBundlerPlugin)
+  .enablePlugins(SbtTwirl, JavaAppPackaging, SbtWeb)
 //  .aggregate(frontends.map(projectToRef): _*)
   .dependsOn(sharedBackend)
 

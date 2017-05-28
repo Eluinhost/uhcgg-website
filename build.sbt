@@ -24,12 +24,10 @@ lazy val frontend = (project in file("frontend"))
     scalacOptions ++= Settings.scalacOptions,
     // setup scalajs + npm dependencies
     libraryDependencies ++= Settings.frontendDependencies.value,
-    npmDependencies in Compile ++= Settings.jsDependencies.value,
     // by default we do development build, no eliding
     elideOptions := Seq(),
     scalacOptions ++= elideOptions.value,
-    // RuntimeDOM is needed for tests
-    jsDependencies += RuntimeDOM % "test",
+    jsDependencies ++= Settings.jsDependencies.value,
     // use Scala.js provided launcher code to start the client app
     scalaJSUseMainModuleInitializer := true,
     scalaJSUseMainModuleInitializer in Test := false,

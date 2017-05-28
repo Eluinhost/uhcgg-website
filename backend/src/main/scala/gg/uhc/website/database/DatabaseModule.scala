@@ -2,7 +2,6 @@ package gg.uhc.website.database
 
 import javax.sql.DataSource
 
-import akka.actor.ActorSystem
 import com.softwaremill.macwire._
 import com.softwaremill.tagging.@@
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
@@ -11,9 +10,7 @@ import doobie.imports._
 import gg.uhc.website.configuration.{ConfigurationModule, DatabaseConnectionStringConfig, DatabasePasswordConfig, DatabaseUsernameConfig}
 import org.flywaydb.core.Flyway
 
-import scala.concurrent.{Future, Promise}
 import scalaz.concurrent.Task
-import scalaz.{-\/, \/-}
 
 object DatabaseModule {
   def createHikariConfig(
@@ -38,26 +35,6 @@ object DatabaseModule {
     flyway.setDataSource(source)
     flyway
   }
-}
-
-class DatabaseRunner(transactor: Transactor[Task]) {
-  val system      = ActorSystem("database-access")
-  implicit val ec = system.dispatcher
-
-  def run[A](connectionIO: ConnectionIO[A]): Future[A] = {
-    val promise = Promise[A]()
-
-    transactor
-      .trans(connectionIO)
-      .unsafePerformAsync {
-        case -\/(t) ⇒ promise failure t
-        case \/-(v) ⇒ promise success v
-      }
-
-    promise.future
-  }
-
-  def apply[A](connectionIO: ConnectionIO[A]): Future[A] = run(connectionIO)
 }
 
 trait DatabaseModule extends ConfigurationModule {

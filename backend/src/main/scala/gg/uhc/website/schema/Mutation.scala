@@ -47,9 +47,6 @@ trait Mutation { this: SchemaContext ⇒
       throw new IllegalStateException("Invalid token provided")
 
     // create the user and return the created data
-    for {
-      uuid ← users.createUser(maybeUsername.get, email, password)
-      user ← users.getById(uuid)
-    } yield user.get // user must exist
+    users.createUser(maybeUsername.get, email, password)
   }
 }

@@ -1,5 +1,7 @@
 import sbt.Keys._
 
+lazy val frontend = (project in file("frontend"))
+
 lazy val backend = (project in file("backend"))
   .settings(
     name := "backend",

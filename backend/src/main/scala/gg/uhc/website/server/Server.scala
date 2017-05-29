@@ -6,18 +6,18 @@ import akka.http.scaladsl.Http.ServerBinding
 import akka.stream.ActorMaterializer
 import com.softwaremill.tagging.@@
 import gg.uhc.website.configuration.{ServerHostConfig, ServerPortConfig}
-import gg.uhc.website.routes.BaseRoute
+import gg.uhc.website.routes.ApiRoute
 
-import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.language.postfixOps
 
-class Server(baseRoute: BaseRoute, host: String @@ ServerHostConfig, port: Int @@ ServerPortConfig) {
+class Server(api: ApiRoute, host: String @@ ServerHostConfig, port: Int @@ ServerPortConfig) {
   implicit val system               = ActorSystem("http-actor-system")
   implicit val ec: ExecutionContext = system.dispatcher
   implicit val materializer         = ActorMaterializer()
 
-  def bind(): Future[ServerBinding] = Http().bindAndHandle(baseRoute.route, host, port)
+  def bind(): Future[ServerBinding] = Http().bindAndHandle(api.route, host, port)
 
   def afterStart(binding: ServerBinding): Unit = system.log.info(s"Server started on ${binding.localAddress.toString}")
 

@@ -4,7 +4,6 @@ import java.net.URLEncoder
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
-import akkahttptwirl.TwirlSupport
 import gg.uhc.website.CustomJsonCodec
 import gg.uhc.website.database.DatabaseRunner
 import gg.uhc.website.helpers.reddit.{RedditAuthenticationApi, RedditSecuredApi}
@@ -50,7 +49,6 @@ class RegisterRoute(
     registrationSession: RegistrationSession,
     databaseRunner: DatabaseRunner)
     extends PartialRoute
-    with TwirlSupport
     with CustomJsonCodec {
 
   /**

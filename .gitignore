@@ -19,3 +19,4 @@ dist
 node_modules
 /seed/benerator.log
 /seed/seed.sql
+npm-debug.log

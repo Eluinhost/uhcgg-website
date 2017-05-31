@@ -1,0 +1,11 @@
+query Networks {
+    networks {
+        id
+        name
+        servers {
+            id
+            name
+            ip
+        }
+    }
+}

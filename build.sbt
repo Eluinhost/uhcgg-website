@@ -14,7 +14,7 @@ lazy val backend = (project in file("backend"))
     commands += ReleaseCmd,
     parallelExecution in Test := false // otherwise migrations explode
   )
-  .enablePlugins(SbtTwirl, JavaAppPackaging)
+  .enablePlugins(JavaAppPackaging)
 
 // Command for building a release
 lazy val ReleaseCmd = Command.command("release") { state ⇒

@@ -29,7 +29,6 @@ object Settings {
     val akkaHttpSession = "0.4.0"
     val akkaHttpCors    = "0.1.11"
     val akkaHttpCirce   = "1.15.0"
-    val akkaHttpTwirl   = "1.2.0"
     val postgresql      = "42.1.0"
     val flyway          = "3.2.1"
     val hikaricp        = "2.4.5"
@@ -52,7 +51,6 @@ object Settings {
       "ch.megard"                          %% "akka-http-cors"   % versions.akkaHttpCors,
       "com.softwaremill.akka-http-session" %% "core"             % versions.akkaHttpSession,
       "de.heikoseeberger"                  %% "akka-http-circe"  % versions.akkaHttpCirce,
-      "btomala"                            %% "akka-http-twirl"  % versions.akkaHttpTwirl,
       "org.tpolecat"                       %% "doobie-core"      % versions.doobie,
       "org.tpolecat"                       %% "doobie-hikari"    % versions.doobie,
       "org.tpolecat"                       %% "doobie-postgres"  % versions.doobie,

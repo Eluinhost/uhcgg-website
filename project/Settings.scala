@@ -1,8 +1,9 @@
 import sbt._
 
 object Settings {
-  val name    = "uhcgg-mvp"
-  val version = "0.0.1"
+  val organisation = "gg.uhc"
+  val name         = "uhcgg-mvp"
+  val version      = "0.0.1"
 
   val scalacOptions = Seq(
     "-Xlint",

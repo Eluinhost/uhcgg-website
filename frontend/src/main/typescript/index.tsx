@@ -17,5 +17,5 @@ ReactDOM.render(
     <ApolloProvider client={client}>
         <ApolloExample />
     </ApolloProvider>,
-    document.getElementById("example")
+    document.getElementById("react-app-holder")
 );

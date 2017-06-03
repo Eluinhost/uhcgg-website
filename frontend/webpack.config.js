@@ -1,9 +1,10 @@
 const { CheckerPlugin } = require('awesome-typescript-loader');
+const { optimize } = require('webpack');
 
 module.exports = {
     entry: './src/main/typescript/index.tsx',
     output: {
-        filename: 'bundle.js',
+        filename: '[name].bundle.js',
         path: __dirname + '/dist'
     },
     devtool: 'source-map',
@@ -30,7 +31,11 @@ module.exports = {
         ]
     },
     plugins: [
-        new CheckerPlugin()
+        new CheckerPlugin(),
+        new optimize.CommonsChunkPlugin({
+            name: 'vendor',
+            minChunks: module => module.context && module.context.indexOf('node_modules') !== -1
+        })
     ]
 
 };

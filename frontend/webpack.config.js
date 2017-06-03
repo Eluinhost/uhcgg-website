@@ -1,5 +1,6 @@
 const { CheckerPlugin } = require('awesome-typescript-loader');
 const { optimize } = require('webpack');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = {
     entry: './src/main/typescript/index.tsx',
@@ -27,6 +28,14 @@ module.exports = {
                 loader: 'source-map-loader',
                 enforce: 'pre',
                 exclude: /node_modules/
+            },
+            {
+                test: /\.css$/,
+                use: ExtractTextPlugin.extract({
+                    publicPath: '/dist',
+                    fallback: 'style-loader',
+                    use: 'css-loader'
+                })
             }
         ]
     },
@@ -35,7 +44,8 @@ module.exports = {
         new optimize.CommonsChunkPlugin({
             name: 'vendor',
             minChunks: module => module.context && module.context.indexOf('node_modules') !== -1
-        })
+        }),
+        new ExtractTextPlugin("styles.css")
     ]
 
 };

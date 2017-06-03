@@ -1,8 +1,11 @@
+require('antd/dist/antd.min.css');
+require('../css/styles.css');
+
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { ApolloClient, createNetworkInterface } from 'react-apollo';
 
-import { ApolloExample } from './ApolloExample';
+import { Layout } from './Layout';
 import ApolloProvider from "react-apollo/src/ApolloProvider";
 
 const networkInterface = createNetworkInterface({
@@ -15,7 +18,7 @@ const client = new ApolloClient({
 
 ReactDOM.render(
     <ApolloProvider client={client}>
-        <ApolloExample />
+        <Layout />
     </ApolloProvider>,
     document.getElementById("react-app-holder")
 );

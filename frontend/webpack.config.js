@@ -1,14 +1,17 @@
+const path = require('path');
+const { HotModuleReplacementPlugin } = require('webpack');
 const { CheckerPlugin } = require('awesome-typescript-loader');
 const { optimize } = require('webpack');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
-    entry: './src/main/typescript/index.tsx',
+    entry: path.join(__dirname, 'src', 'main', 'typescript', 'index.tsx'),
     output: {
         filename: '[name].bundle.js',
         path: __dirname + '/dist'
     },
-    devtool: 'source-map',
+    devtool: 'eval',
     resolve: {
         extensions: ['.ts', '.tsx', '.js', '.json', '.graphql']
     },
@@ -21,7 +24,7 @@ module.exports = {
             },
             {
                 test: /\.tsx?$/,
-                loader: 'awesome-typescript-loader'
+                loader: ['react-hot-loader/webpack', 'awesome-typescript-loader']
             },
             {
                 test: /\.(js|tsx?)$/,
@@ -48,7 +51,17 @@ module.exports = {
         new ExtractTextPlugin({
             filename: '[name].bundle.css',
             allChunks: true
+        }),
+        new HotModuleReplacementPlugin(),
+        new HtmlWebpackPlugin({
+            hash: true
         })
-    ]
+    ],
+    devServer: {
+        contentBase: path.join(__dirname, 'dist'),
+        compress: true,
+        port: 10000,
+        hot: true
+    }
 
 };

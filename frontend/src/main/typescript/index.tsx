@@ -4,6 +4,7 @@ require('../css/main.css');
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { ApolloClient, createNetworkInterface } from 'react-apollo';
+import { AppContainer } from 'react-hot-loader';
 
 import { App } from './components/App';
 import ApolloProvider from "react-apollo/src/ApolloProvider";
@@ -16,9 +17,22 @@ const client = new ApolloClient({
     networkInterface: networkInterface
 });
 
-ReactDOM.render(
-    <ApolloProvider client={client}>
-        <App />
-    </ApolloProvider>,
-    document.getElementById("react-app-holder")
+const root = document.createElement('div');
+document.body.appendChild(root);
+
+const render = (NextApp: React.SFC<{}>) => ReactDOM.render(
+    <AppContainer>
+        <ApolloProvider client={client}>
+            <NextApp />
+        </ApolloProvider>
+    </AppContainer>,
+    root
 );
+
+render(App);
+
+if (module.hot) {
+    module.hot.accept('./components/App', () => {
+        render(require('./components/App').App);
+    })
+}

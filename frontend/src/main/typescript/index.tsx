@@ -1,3 +1,5 @@
+require('react-hot-loader/patch');
+
 require('antd/dist/antd.min.css');
 require('../css/main.css');
 

@@ -21,7 +21,7 @@ const SidebarComponent: SiderSFC = ({ location: { pathname }}) =>
                     <span>
                         <Icon type="home" />
                         <span className="nav-text">Home</span>
-                      </span>
+                    </span>
                 </Link>
             </Menu.Item>
             <Menu.Item key="/register">
@@ -29,7 +29,7 @@ const SidebarComponent: SiderSFC = ({ location: { pathname }}) =>
                     <span>
                         <Icon type="user" />
                         <span className="nav-text">Register</span>
-                      </span>
+                     </span>
                 </Link>
             </Menu.Item>
             <Menu.Item key="/example">

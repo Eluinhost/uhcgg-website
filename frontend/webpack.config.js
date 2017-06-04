@@ -45,7 +45,10 @@ module.exports = {
             name: 'vendor',
             minChunks: module => module.context && module.context.indexOf('node_modules') !== -1
         }),
-        new ExtractTextPlugin("styles.css")
+        new ExtractTextPlugin({
+            filename: '[name].bundle.css',
+            allChunks: true
+        })
     ]
 
 };

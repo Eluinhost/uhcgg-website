@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Form, Icon, Input, Button } from 'antd';
 import { FormItemColOption } from 'antd/lib/form/FormItem';
-const FormItem = Form.Item;
+import {FormComponentProps, WrappedFormUtils} from 'antd/lib/form/Form';
 
 const formItemLayout = {
     labelCol: {
@@ -34,7 +34,7 @@ const passwordRules = [
     { min: 8, message: 'Must contain at least 8 characters'}
 ];
 
-const repeatPasswordRules = (form: any) => [
+const repeatPasswordRules = (form: WrappedFormUtils) => [
     { required: true, validator: (rule: any, value: any, callback: any) => {
         if (value !== form.getFieldValue('password')) {
             callback('Passwords do not match');
@@ -44,10 +44,10 @@ const repeatPasswordRules = (form: any) => [
     }}
 ];
 
-const handleSubmit = (form: any) => (e: any) => {
+const handleSubmit = (form: WrappedFormUtils) => (e: any) => {
     e.preventDefault();
 
-    form.validateFieldsAndScroll((err: any, values: any) => {
+    form.validateFieldsAndScroll({}, (err: any, values: any) => {
         if (!err) {
             console.log('Received values of form: ', values);
 
@@ -65,37 +65,33 @@ const handleSubmit = (form: any) => (e: any) => {
     });
 };
 
-interface RegisterFormProps {
-    username: String,
-    form: any
+export interface RegisterFormProps {
+    username: String
 }
 
-class RegisterFormComponent extends React.PureComponent<RegisterFormProps, any> {
-    render() {
-        return <Form className="login-form" onSubmit={handleSubmit(this.props.form)}>
-            <FormItem {...formItemLayout} label="Username">
-                <Input prefix={<Icon type="user" style={{fontSize: 13}}/>} value={this.props.username} disabled={true} />
-            </FormItem>
-            <FormItem {...formItemLayout} label="Email">
-                {this.props.form.getFieldDecorator('email', {rules: emailRules})(
-                    <Input prefix={<Icon type="user" style={{fontSize: 13}}/>} placeholder="Email"/>
-                )}
-            </FormItem>
-            <FormItem {...formItemLayout} label="Password">
-                {this.props.form.getFieldDecorator('password', {rules: passwordRules})(
-                    <Input prefix={<Icon type="lock" style={{fontSize: 13}}/>} type="password" placeholder="Password"/>
-                )}
-            </FormItem>
-            <FormItem {...formItemLayout} label="Confirm Password">
-                {this.props.form.getFieldDecorator('confirm', {rules: repeatPasswordRules(this.props.form)})(
-                    <Input prefix={<Icon type="lock" style={{fontSize: 13}}/>} type="password" placeholder="Confirm Password"/>
-                )}
-            </FormItem>
-            <FormItem {...formItemLayout}>
-                <Button type="primary" htmlType="submit" size="large">Register</Button>
-            </FormItem>
-        </Form>;
-    }
-}
+export const RegisterFormComponent: React.SFC<FormComponentProps & RegisterFormProps> = ({ form, username }) =>
+    <Form className="login-form" onSubmit={handleSubmit(form)}>
+        <Form.Item {...formItemLayout} label="Username">
+            <Input prefix={<Icon type="user" style={{fontSize: 13}}/>} value={username} disabled={true} />
+        </Form.Item>
+        <Form.Item {...formItemLayout} label="Email">
+            {form.getFieldDecorator('email', {rules: emailRules})(
+                <Input prefix={<Icon type="user" style={{fontSize: 13}}/>} placeholder="Email"/>
+            )}
+        </Form.Item>
+        <Form.Item {...formItemLayout} label="Password">
+            {form.getFieldDecorator('password', {rules: passwordRules})(
+                <Input prefix={<Icon type="lock" style={{fontSize: 13}}/>} type="password" placeholder="Password"/>
+            )}
+        </Form.Item>
+        <Form.Item {...formItemLayout} label="Confirm Password">
+            {form.getFieldDecorator('confirm', {rules: repeatPasswordRules(form)})(
+                <Input prefix={<Icon type="lock" style={{fontSize: 13}}/>} type="password" placeholder="Confirm Password"/>
+            )}
+        </Form.Item>
+        <Form.Item {...formItemLayout}>
+            <Button type="primary" htmlType="submit" size="large">Register</Button>
+        </Form.Item>
+    </Form>;
 
-export const RegisterForm = Form.create()(RegisterFormComponent);
+export const RegisterForm = Form.create()(RegisterFormComponent as any);

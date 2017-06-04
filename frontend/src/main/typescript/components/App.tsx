@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { HashRouter, Switch, Route } from 'react-router-dom';
+import { BrowserRouter, Switch, Route } from 'react-router-dom';
 import { Breadcrumbs } from './Breadcrumbs';
 import { Sidebar } from './Sidebar';
 import { Layout } from 'antd';
@@ -10,7 +10,7 @@ import { RegisterPage } from './pages/RegisterPage';
 import { ExamplePage } from './pages/ExamplePage';
 
 export const App: React.SFC<{}> = () =>
-    <HashRouter>
+    <BrowserRouter>
         <Layout style={{ minHeight: '100%' }} >
             <Sidebar />
 
@@ -32,4 +32,4 @@ export const App: React.SFC<{}> = () =>
                 </Layout.Footer>
             </Layout.Content>
         </Layout>
-    </HashRouter>;
+    </BrowserRouter>;

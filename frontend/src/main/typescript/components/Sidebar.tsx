@@ -1,23 +1,22 @@
 import * as React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, withRouter, RouteComponentProps } from 'react-router-dom';
 import { Menu, Layout, Icon } from 'antd';
 
-export interface SiderSFC extends React.SFC<{}> {
+export interface SiderSFC extends React.SFC<RouteComponentProps<void>> {
     __ANT_LAYOUT_SIDER?: boolean
 }
 
-export const Sidebar: SiderSFC = () =>
+const SidebarComponent: SiderSFC = ({ location: { pathname }}) =>
     <Layout.Sider width={200} style={{ height: '100vh', overflow: 'auto' }} collapsible={true} >
         <div className="logo" />
 
         <Menu
             mode="inline"
             theme="dark"
-            defaultSelectedKeys={['1']}
-            defaultOpenKeys={['sub1']}
+            selectedKeys={[ pathname ]}
             style={{ height: '100%' }}
         >
-            <Menu.Item key="1">
+            <Menu.Item key="/">
                 <Link to="/">
                     <span>
                         <Icon type="home" />
@@ -25,7 +24,7 @@ export const Sidebar: SiderSFC = () =>
                       </span>
                 </Link>
             </Menu.Item>
-            <Menu.Item key="2">
+            <Menu.Item key="/register">
                 <Link to="/register">
                     <span>
                         <Icon type="user" />
@@ -33,15 +32,17 @@ export const Sidebar: SiderSFC = () =>
                       </span>
                 </Link>
             </Menu.Item>
-            <Menu.Item key="3">
+            <Menu.Item key="/example">
                 <Link to="/example">
                     <span>
                         <Icon type="database" />
-                        <span className="nav-text">Home</span>
+                        <span className="nav-text">Example Page</span>
                     </span>
                 </Link>
             </Menu.Item>
         </Menu>
     </Layout.Sider>;
 
-Sidebar.__ANT_LAYOUT_SIDER = true;
+SidebarComponent.__ANT_LAYOUT_SIDER = true;
+
+export const Sidebar: React.ComponentClass<{}> = withRouter(SidebarComponent);

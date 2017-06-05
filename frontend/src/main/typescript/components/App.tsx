@@ -5,7 +5,6 @@ import { Sidebar } from './Sidebar';
 import { Layout } from 'antd';
 
 import { HomePage } from './pages/HomePage';
-import { RegisterErrorPage } from './pages/RegisterErrorPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { ExamplePage } from './pages/ExamplePage';
 
@@ -21,7 +20,6 @@ export const App: React.SFC<{}> = () =>
                     <div style={{ textAlign: 'center', padding: 24, minHeight: '100%' }}>
                         <Switch>
                             <Route exact path="/" component={HomePage} />
-                            <Route path="/register/error" component={RegisterErrorPage} />
                             <Route path="/register" component={RegisterPage} />
                             <Route path="/example" component={ExamplePage} />
                         </Switch>

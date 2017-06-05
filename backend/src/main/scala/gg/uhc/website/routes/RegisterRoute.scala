@@ -1,7 +1,5 @@
 package gg.uhc.website.routes
 
-import java.net.URLEncoder
-
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
 import gg.uhc.website.CustomJsonCodec
@@ -64,13 +62,10 @@ class RegisterRoute(
     StatusCodes.TemporaryRedirect
   )
 
-  def redirectToFrontendWithError(error: String): Route = pass {
-    val message = s"Unable to authenticate via Reddit: $error"
-    redirect(
-      s"/register/error#${URLEncoder.encode(message, "utf-8")}",
-      StatusCodes.TemporaryRedirect
-    )
-  }
+  def redirectToFrontendWithError(error: String): Route = redirect(
+    s"/register#${registrationSession.generateErrorToken(header = "Unable to authenticate via Reddit", message = error)}",
+    StatusCodes.TemporaryRedirect
+  )
 
   def callback(code: String, state: String): Route =
     registrationSession.parseDataFromToken(state) match {

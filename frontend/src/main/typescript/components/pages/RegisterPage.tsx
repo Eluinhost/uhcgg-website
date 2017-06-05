@@ -2,6 +2,7 @@ import * as React from 'react';
 import { RouteComponentProps } from 'react-router';
 import { RegisterForm } from '../RegisterForm';
 import { Button } from 'antd';
+import * as jwtDecode from 'jwt-decode';
 
 const FinalStepPage: React.SFC<{ username: string }> = ({ username }) =>
     <div>
@@ -10,6 +11,19 @@ const FinalStepPage: React.SFC<{ username: string }> = ({ username }) =>
             To create your account please provide your chosen email address and password.
         </p>
         <RegisterForm username={username} />
+    </div>;
+
+const RegisterErrorPage: React.SFC<{ message: string, header: string }> = ({ message, header }) =>
+    <div>
+        <h1>{ header }</h1>
+
+        <p>
+            { message }
+        </p>
+
+        <p>
+            You may try again by <a href="/api/register">clicking here</a>
+        </p>
     </div>;
 
 const FirstStepPage: React.SFC<{}> = () =>
@@ -30,8 +44,30 @@ const FirstStepPage: React.SFC<{}> = () =>
     </div>;
 
 export const RegisterPage: React.SFC<RouteComponentProps<void>> = ({ location: { hash }}) => {
-    if (!hash || hash.length < 2)
+    if (!hash)
         return <FirstStepPage />;
+
+    try {
+        const claims = jwtDecode(hash);
+
+        if (claims.username) {
+            // TODO check expires and fire stuff when it expires
+
+            return <FinalStepPage username={claims.username}/>
+        } else if (claims.header && claims.message) {
+            return <RegisterErrorPage
+                header={claims.header}
+                message={claims.message}
+            />
+        }
+
+    } catch (err) {
+        return <RegisterErrorPage
+            header="Invalid Token"
+            message="There was an error parsing your token, if this continues please contact an administrator"
+        />;
+    }
+
 
     try {
         const username = decodeURIComponent(hash.substring(1));

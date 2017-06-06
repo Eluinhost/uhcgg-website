@@ -2,13 +2,20 @@ import * as React from 'react';
 import { Link, withRouter, RouteComponentProps } from 'react-router-dom';
 import { Menu, Layout, Icon } from 'antd';
 
+const logoUrl = require('../../images/logo.png');
+
 export interface SiderSFC extends React.SFC<RouteComponentProps<void>> {
     __ANT_LAYOUT_SIDER?: boolean
 }
 
 const SidebarComponent: SiderSFC = ({ location: { pathname }}) =>
     <Layout.Sider width={200} style={{ height: '100vh', overflow: 'auto' }} collapsible={true} >
-        <div className="logo" />
+        <div className="logo">
+            <Link to="/">
+                <img src={logoUrl} alt="logo" />
+                <div className="nav-text">uhc.gg</div>
+            </Link>
+        </div>
 
         <Menu
             mode="inline"

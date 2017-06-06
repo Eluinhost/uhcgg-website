@@ -11,9 +11,21 @@ html, body, #react-app-holder {
     transition: 1s;
 }
 
-.ant-layout-has-sider .logo {
+.ant-layout-has-sider .logo img {
     height: 32px;
-    background: #333;
-    border-radius: 6px;
-    margin: 16px;
+    margin-left: 16px;
+    margin-right: 16px;
+    margin-top: 16px;
+}
+
+.ant-layout-has-sider .logo .nav-text {
+    color: hsla(0,0%,100%,.67);
+    cursor: pointer;
+    text-decoration: none;
+    outline: none;
+    font-size: 120%;
+}
+
+.ant-layout-has-sider .logo {
+    text-align: center;
 }

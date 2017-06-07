@@ -5,6 +5,7 @@ import java.util.UUID
 import doobie.imports.ConnectionIO
 import gg.uhc.website.model.{Role, User}
 import gg.uhc.website.model.User
+import gg.uhc.website.security.RegistrationSession
 
 import scalaz.OptionT
 import scalaz.Scalaz.some
@@ -45,7 +46,7 @@ trait Mutation { this: SchemaContext ⇒
     } yield username
 
     if (maybeUsername.isEmpty)
-      throw new IllegalStateException("Invalid token provided")
+      throw RegistrationSession.InvalidTokenException()
 
     // create the user and return the created data
     users.createUser(maybeUsername.get, email, password)

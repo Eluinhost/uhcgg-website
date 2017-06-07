@@ -7,8 +7,9 @@ import akka.stream.ActorMaterializer
 import com.softwaremill.tagging.@@
 import gg.uhc.website.CustomJsonCodec
 import gg.uhc.website.configuration.{MaxGraphQlComplexity, MaxGraphQlDepth}
-import gg.uhc.website.schema.definitions.{Fetchers, ApplicationSchema}
+import gg.uhc.website.schema.definitions.{ApplicationSchema, Fetchers}
 import gg.uhc.website.schema.{AuthenticationException, AuthorisationException, QueryMetadata, SchemaContext}
+import gg.uhc.website.security.RegistrationSession
 import io.circe.{Json, JsonObject}
 import sangria.ast.Document
 import sangria.execution._
@@ -102,6 +103,7 @@ class GraphqlRoute(
     case (_, e: QueryTooNestedException)  ⇒ HandledException(e.getMessage)
     case (_, e: AuthorisationException)   ⇒ HandledException(e.getMessage)
     case (_, e: AuthenticationException)  ⇒ HandledException(e.getMessage)
+    case (_, e: RegistrationSession.InvalidTokenException) ⇒ HandledException("Invalid registration token")
   }
 
   /**

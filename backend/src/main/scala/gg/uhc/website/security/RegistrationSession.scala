@@ -18,6 +18,8 @@ import scalaz.Scalaz._
 object RegistrationSession {
   case class Data(username: Option[String])
   case class Error(header: String, message: String)
+
+  case class InvalidTokenException() extends Exception
 }
 
 class RegistrationSession(

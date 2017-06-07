@@ -8,6 +8,8 @@ export interface SiderSFC extends React.SFC<RouteComponentProps<void>> {
     __ANT_LAYOUT_SIDER?: boolean
 }
 
+// TODO store collapsed state in redux store + persist to localstore to stick over reloads
+
 const SidebarComponent: SiderSFC = ({ location: { pathname }}) =>
     <Layout.Sider width={200} style={{ height: '100vh', overflow: 'auto' }} collapsible={true} >
         <div className="logo">

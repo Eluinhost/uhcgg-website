@@ -99,10 +99,10 @@ class GraphqlRoute(
     * Custom exception handler to make sure the right error message is sent to the client for complexity/depth exceeding
     */
   private val exceptionHandler: Executor.ExceptionHandler = {
-    case (_, e: QueryTooComplexException) ⇒ HandledException(e.getMessage)
-    case (_, e: QueryTooNestedException)  ⇒ HandledException(e.getMessage)
-    case (_, e: AuthorisationException)   ⇒ HandledException(e.getMessage)
-    case (_, e: AuthenticationException)  ⇒ HandledException(e.getMessage)
+    case (_, e: QueryTooComplexException)                  ⇒ HandledException(e.getMessage)
+    case (_, e: QueryTooNestedException)                   ⇒ HandledException(e.getMessage)
+    case (_, e: AuthorisationException)                    ⇒ HandledException(e.getMessage)
+    case (_, e: AuthenticationException)                   ⇒ HandledException(e.getMessage)
     case (_, e: RegistrationSession.InvalidTokenException) ⇒ HandledException("Invalid registration token")
   }
 
@@ -119,17 +119,16 @@ class GraphqlRoute(
       query: Document,
       operation: Option[String],
       variables: Option[Json]
-    ): Future[(StatusCode, Json)] =
+    ): Future[(StatusCode, Json)] = {
+
+    val parsedVariables = variables.getOrElse(Json.obj())
+
     Executor
       .execute(
         schema = ApplicationSchema,
         queryAst = query,
         userContext = ctx,
-        variables = InputUnmarshaller.mapVars( // convert the optional provided variables into an Input object
-          variables
-            .flatMap(_.asObject)
-            .getOrElse(JsonObject.empty)
-            .toMap),
+        variables = parsedVariables,
         operationName = operation,
         deferredResolver = DeferredResolver.fetchers(Fetchers.fetchers: _*),
         queryReducers = depthReducer :: complexityReducer :: Nil, // query depth before complexity
@@ -140,6 +139,7 @@ class GraphqlRoute(
         case error: QueryAnalysisError ⇒ StatusCodes.BadRequest          → error.resolveError
         case error: ErrorWithResolver  ⇒ StatusCodes.InternalServerError → error.resolveError
       }
+  }
 
   def endpoint(query: GraphqlRequest): Route =
     // First try parsing the query

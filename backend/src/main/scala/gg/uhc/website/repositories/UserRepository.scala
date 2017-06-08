@@ -52,7 +52,7 @@ class UserRepository extends Repository[User] with CanQuery[User] with CanQueryB
 
   def createUser(username: String, email: String, password: String): ConnectionIO[User] =
     createUserQuery(username, email, password)
-      .withUniqueGeneratedKeys[User]("id", "username", "email", "password", "created")
+      .withUniqueGeneratedKeys[User]("id", "username", "email", "password", "created", "modified")
 
   def isUsernameInUse(username: String): ConnectionIO[Boolean] =
     checkUsernameInUseQuery(username).unique.map(_ > 0)

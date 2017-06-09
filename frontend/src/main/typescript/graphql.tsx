@@ -19,4 +19,19 @@ export interface NetworksQuery {
     } >,
   } >;
 }
+
+export interface RegisterMutationVariables {
+  email: string;
+  password: string;
+  token: string;
+}
+
+export interface RegisterMutation {
+  register: {
+    // The unique ID of this item
+    id: string,
+    // The unique username of this user
+    username: string,
+  };
+}
 /* tslint:enable */

@@ -1,16 +1,16 @@
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router';
-import { RegisterForm } from '../RegisterForm';
+import { RegisterForm, RegisterFormProps } from '../RegisterForm';
 import { Button } from 'antd';
 import * as jwtDecode from 'jwt-decode';
 
-const FinalStepPage: React.SFC<{ username: string }> = ({ username }) =>
+const FinalStepPage: React.SFC<RegisterFormProps> = props =>
     <div>
         <h1>Final Step!</h1>
         <p style={{fontSize: '120%', marginBottom: 30}}>
             To create your account please provide your chosen email address and password.
         </p>
-        <RegisterForm username={username} />
+        <RegisterForm { ...props }/>
     </div>;
 
 const RegisterErrorPage: React.SFC<{ message: string, header: string }> = ({ message, header }) =>
@@ -44,36 +44,28 @@ const FirstStepPage: React.SFC<{}> = () =>
     </div>;
 
 export const RegisterPage: React.SFC<RouteComponentProps<void>> = ({ location: { hash }}) => {
-    if (!hash)
+    if (!hash || hash.length < 2)
         return <FirstStepPage />;
 
+    const token = hash.substring(1);
+
     try {
-        const claims = jwtDecode(hash);
+        const claims = jwtDecode(token);
 
         if (claims.username) {
             // TODO check expires and fire stuff when it expires
 
-            return <FinalStepPage username={claims.username}/>
+            return <FinalStepPage username={claims.username} token={token}/>
         } else if (claims.header && claims.message) {
             return <RegisterErrorPage
                 header={claims.header}
                 message={claims.message}
             />
         }
+    } catch (ignored) {}
 
-    } catch (err) {
-        return <RegisterErrorPage
-            header="Invalid Token"
-            message="There was an error parsing your token, if this continues please contact an administrator"
-        />;
-    }
-
-
-    try {
-        const username = decodeURIComponent(hash.substring(1));
-
-        return <FinalStepPage username={username} />
-    } catch (ignored) {
-        return <FirstStepPage />
-    }
+    return <RegisterErrorPage
+        header="Invalid Token"
+        message="There was an error parsing your token, if this continues please contact an administrator"
+    />;
 };

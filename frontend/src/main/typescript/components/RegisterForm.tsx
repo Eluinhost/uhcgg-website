@@ -1,7 +1,11 @@
 import * as React from 'react';
 import { Form, Icon, Input, Button } from 'antd';
 import { FormItemColOption } from 'antd/lib/form/FormItem';
-import {FormComponentProps, WrappedFormUtils} from 'antd/lib/form/Form';
+import { FormComponentProps, WrappedFormUtils } from 'antd/lib/form/Form';
+import { graphql } from 'react-apollo';
+import { RegisterMutation, RegisterMutationVariables } from '../graphql';
+
+const registerMutation = require('../../graphql/register.graphql');
 
 const formItemLayout = {
     labelCol: {
@@ -44,19 +48,18 @@ const repeatPasswordRules = (form: WrappedFormUtils) => [
     }}
 ];
 
-const handleSubmit = (form: WrappedFormUtils) => (e: any) => {
+const handleSubmit = (form: WrappedFormUtils, mutate: RegisterMutationAction, token: string) => (e: any) => {
     e.preventDefault();
 
     form.validateFieldsAndScroll({}, (err: any, values: any) => {
         if (!err) {
             console.log('Received values of form: ', values);
 
-            fetch('/api/register', {
-                method: 'POST',
-                body: JSON.stringify(values),
-                credentials: 'same-origin',
-                headers: {
-                    'Content-Type': 'application/json'
+            mutate({
+                variables: {
+                    password: values.password,
+                    token,
+                    email: values.email
                 }
             })
 
@@ -65,12 +68,21 @@ const handleSubmit = (form: WrappedFormUtils) => (e: any) => {
     });
 };
 
-export interface RegisterFormProps {
-    username: String
+export interface RegisterMutationAction {
+    (vars: { variables: RegisterMutationVariables }): Promise<RegisterMutation>
 }
 
-export const RegisterFormComponent: React.SFC<FormComponentProps & RegisterFormProps> = ({ form, username }) =>
-    <Form className="login-form" onSubmit={handleSubmit(form)}>
+export interface RegisterFormProps {
+    username: string,
+    token: string
+}
+
+export interface RegisterFormPropsFull extends FormComponentProps, RegisterFormProps {
+    mutate: RegisterMutationAction
+}
+
+export const RegisterFormComponent: React.SFC<RegisterFormPropsFull> = ({ form, username, mutate, token }) =>
+    <Form className="login-form" onSubmit={handleSubmit(form, mutate, token)}>
         <Form.Item {...formItemLayout} label="Username">
             <Input prefix={<Icon type="user" style={{fontSize: 13}}/>} value={username} disabled={true} />
         </Form.Item>
@@ -94,4 +106,6 @@ export const RegisterFormComponent: React.SFC<FormComponentProps & RegisterFormP
         </Form.Item>
     </Form>;
 
-export const RegisterForm = Form.create()(RegisterFormComponent as any);
+const RegisterFormWithMutation: React.SFC<RegisterFormPropsFull> = graphql(registerMutation)(RegisterFormComponent);
+
+export const RegisterForm: React.SFC<RegisterFormProps> = Form.create()(RegisterFormWithMutation as any);

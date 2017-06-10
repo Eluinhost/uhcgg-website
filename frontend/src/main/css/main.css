@@ -28,6 +28,7 @@ html, body, #react-app-holder {
 
 .ant-layout-has-sider .logo {
     text-align: center;
+    margin-bottom: 10px;
 }
 
 .ant-breadcrumb-link .nav-text {

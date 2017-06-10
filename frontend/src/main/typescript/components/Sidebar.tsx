@@ -41,11 +41,11 @@ const SidebarComponent: SiderSFC = ({ location: { pathname }}) =>
                      </span>
                 </Link>
             </Menu.Item>
-            <Menu.Item key="/example">
-                <Link to="/example">
+            <Menu.Item key="/networks">
+                <Link to="/networks">
                     <span>
                         <Icon type="database" />
-                        <span className="nav-text">Example Page</span>
+                        <span className="nav-text">Networks</span>
                     </span>
                 </Link>
             </Menu.Item>

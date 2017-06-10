@@ -4,7 +4,7 @@ import { graphql, InjectedGraphQLProps } from 'react-apollo';
 import queryNetworks = require('../../graphql/queryNetworks.graphql');
 import { NetworksQuery } from '../graphql';
 
-export const ApolloExampleComponent: React.SFC<InjectedGraphQLProps<NetworksQuery>> = ({ data }) => {
+export const NetworkListComponent: React.SFC<InjectedGraphQLProps<NetworksQuery>> = ({ data }) => {
     if (!data)
         return <h4>No data found</h4>;
 
@@ -26,4 +26,4 @@ export const ApolloExampleComponent: React.SFC<InjectedGraphQLProps<NetworksQuer
     </ul>;
 };
 
-export const ApolloExample = graphql(queryNetworks)(ApolloExampleComponent);
+export const NetworkList = graphql(queryNetworks)(NetworkListComponent);

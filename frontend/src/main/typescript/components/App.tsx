@@ -6,7 +6,7 @@ import { Layout } from 'antd';
 
 import { HomePage } from './pages/HomePage';
 import { RegisterPage } from './pages/RegisterPage';
-import { ExamplePage } from './pages/ExamplePage';
+import { NetworksPage } from './pages/NetworksPage';
 
 export const App: React.SFC<{}> = () =>
     <BrowserRouter>
@@ -21,7 +21,7 @@ export const App: React.SFC<{}> = () =>
                         <Switch>
                             <Route exact path="/" component={HomePage} />
                             <Route path="/register" component={RegisterPage} />
-                            <Route path="/example" component={ExamplePage} />
+                            <Route path="/networks" component={NetworksPage} />
                         </Switch>
                     </div>
                 </Layout.Content>

@@ -10,11 +10,10 @@ import gg.uhc.website.configuration.{MaxGraphQlComplexity, MaxGraphQlDepth}
 import gg.uhc.website.schema.definitions.{ApplicationSchema, Fetchers}
 import gg.uhc.website.schema.{AuthenticationException, AuthorisationException, QueryMetadata, SchemaContext}
 import gg.uhc.website.security.RegistrationSession
-import io.circe.{Json, JsonObject}
+import io.circe.Json
 import sangria.ast.Document
 import sangria.execution._
 import sangria.execution.deferred.DeferredResolver
-import sangria.marshalling.InputUnmarshaller
 import sangria.parser.{QueryParser, SyntaxError}
 import sangria.renderer.SchemaRenderer
 

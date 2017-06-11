@@ -1,11 +1,12 @@
 import * as React from 'react';
 import { graphql, InjectedGraphQLProps } from 'react-apollo';
-import { Table } from 'antd';
+import { Table, Icon } from 'antd';
 import { TableColumnConfig } from 'antd/lib/table/Table';
 import { Link } from 'react-router-dom';
 
 import queryNetworks = require('../../graphql/queryNetworks.graphql');
 import { NetworksQuery } from '../graphql';
+import {GraphQLDataProps} from "react-apollo/lib/graphql";
 
 interface IServer {
     id: string,
@@ -79,32 +80,50 @@ const serverColumns: TableColumnConfig<IServer>[] = [
 class NetworkTable extends Table<INetwork> {}
 class ServerTable extends Table<IServer> {}
 
+const RefreshIcon: React.SFC<GraphQLDataProps> = ({ refetch, loading, networkStatus }) => {
+    console.log(networkStatus, loading);
+
+    return <Icon type="reload" spin={loading} onClick={() => {
+        if (loading)
+            return;
+
+        refetch();
+    }}/>;
+}
+
 export const NetworkListComponent: React.SFC<InjectedGraphQLProps<NetworksQuery>> = ({ data }) => {
     if (!data)
         return <h4>No data found</h4>;
 
     if (data.error)
-        return <h4>{ data.error || 'Unknown Error' }</h4>;
+        return <h4>
+            { data.error || 'Unknown Error' } <RefreshIcon {...data as GraphQLDataProps} />
+        </h4>;
 
-    return <NetworkTable
-        loading={data.loading}
-        style={{ marginTop: 30 }}
-        dataSource={data.networks || []}
-        columns={networkColumns}
-        rowKey={_ => _.id}
-        pagination={false}
-        bordered={true}
-        expandedRowRender={(record: INetwork) =>
-            <ServerTable
-                dataSource={record.servers}
-                columns={serverColumns}
-                rowKey={_ => _.id}
-                pagination={false}
-                bordered={false}
-                size="small"
-            />
-        }
-    />;
+    return <div>
+        <h2>
+            All Networks <RefreshIcon {...data as GraphQLDataProps} />
+        </h2>
+        <NetworkTable
+            loading={data.loading}
+            style={{ marginTop: 30 }}
+            dataSource={data.networks || []}
+            columns={networkColumns}
+            rowKey={_ => _.id}
+            pagination={false}
+            bordered={true}
+            expandedRowRender={(record: INetwork) =>
+                <ServerTable
+                    dataSource={record.servers}
+                    columns={serverColumns}
+                    rowKey={_ => _.id}
+                    pagination={false}
+                    bordered={false}
+                    size="small"
+                />
+            }
+        />
+    </div>;
 };
 
 export const NetworkList = graphql(queryNetworks)(NetworkListComponent);

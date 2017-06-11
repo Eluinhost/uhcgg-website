@@ -2,10 +2,17 @@ query Networks {
     networks {
         id
         name
+        tag
+        owner {
+            username
+        }
         servers {
             id
             name
             ip
+            address
+            location
+            port
         }
     }
 }

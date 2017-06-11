@@ -1,40 +1,25 @@
 import * as React from 'react';
-import { Link, Switch, Route } from 'react-router-dom';
+import { Link, Route } from 'react-router-dom';
 import { Breadcrumb, Icon } from 'antd';
 
-const HomeCrumb: React.SFC<{}> = () =>
-    <Breadcrumb.Item>
-        <Link to="/">
-            <span>
-                <Icon type="home" />
-                <span className="nav-text">Home</span>
-            </span>
-        </Link>
-    </Breadcrumb.Item>;
+export interface BreadcrumbRoute extends React.SFC<{ url: string, text: string, icon: string}> {
+    __ANT_BREADCRUMB_ITEM?: boolean
+}
 
-const RegisterCrumb: React.SFC<{}> = () =>
-    <Breadcrumb.Item>
-        <Link to="/register">
-            <span>
-                <Icon type="user" />
-                <span className="nav-text">Register</span>
-            </span>
+const RouteBreadcrumb: BreadcrumbRoute = ({ url, text, icon }) =>
+    <Route path={url} component={() => <Breadcrumb.Item>
+        <Link to={url}>
+                <span>
+                    <Icon type={icon}/>
+                    <span className="nav-text">{text}</span>
+                </span>
         </Link>
-    </Breadcrumb.Item>;
-
-const NetworksCrumb: React.SFC<{}> = () =>
-    <Breadcrumb.Item>
-        <Link to="/networks">
-            <span>
-                <Icon type="database" />
-                <span className="nav-text">Networks</span>
-            </span>
-        </Link>
-    </Breadcrumb.Item>;
+    </Breadcrumb.Item>} />;
+RouteBreadcrumb.__ANT_BREADCRUMB_ITEM = true;
 
 export const Breadcrumbs: React.SFC<{}> = () =>
     <Breadcrumb style={{ margin: '12px 0' }}>
-        <Route path="/" component={ HomeCrumb }/>
-        <Route path="/register" component={ RegisterCrumb } />
-        <Route path="/networks" component={ NetworksCrumb } />
+        <RouteBreadcrumb url="/" icon="home" text="Home" />
+        <RouteBreadcrumb url="/register" icon="user" text="Register" />
+        <RouteBreadcrumb url="/networks" icon="database" text="Networks" />
     </Breadcrumb>;

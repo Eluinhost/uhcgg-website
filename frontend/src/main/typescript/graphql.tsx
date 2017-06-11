@@ -32,6 +32,12 @@ export interface NetworksQuery {
       location: string,
       // Optional port to use to connect
       port: number | null,
+      // The region the server is hosted in
+      region: {
+        __typename: string,
+        // The 'short' verison of the name
+        short: string,
+      },
     } >,
   } >;
 }

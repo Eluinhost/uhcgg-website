@@ -13,6 +13,9 @@ query Networks {
             address
             location
             port
+            region  {
+                short
+            }
         }
     }
 }

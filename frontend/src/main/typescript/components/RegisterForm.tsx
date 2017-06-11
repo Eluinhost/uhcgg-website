@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Form, Icon, Input, Button } from 'antd';
 import { FormItemColOption } from 'antd/lib/form/FormItem';
 import { FormComponentProps, WrappedFormUtils } from 'antd/lib/form/Form';
-import { graphql } from 'react-apollo';
+import {DefaultChildProps, graphql, MutationFunc} from 'react-apollo';
 import { RegisterMutation, RegisterMutationVariables } from '../graphql';
 
 const registerMutation = require('../../graphql/register.graphql');
@@ -48,64 +48,58 @@ const repeatPasswordRules = (form: WrappedFormUtils) => [
     }}
 ];
 
-const handleSubmit = (form: WrappedFormUtils, mutate: RegisterMutationAction, token: string) => (e: any) => {
+const handleSubmit = (form: WrappedFormUtils, mutate: MutationFunc<RegisterMutation>, token: string) => (e: any) => {
     e.preventDefault();
 
     form.validateFieldsAndScroll({}, (err: any, values: any) => {
         if (!err) {
             console.log('Received values of form: ', values);
 
-            mutate({
-                variables: {
-                    password: values.password,
-                    token,
-                    email: values.email
-                }
-            })
+            const variables: RegisterMutationVariables = {
+                password: values.password,
+                token,
+                email: values.email
+            };
+
+            mutate({ variables })
 
             // TODO handle response
         }
     });
 };
 
-export interface RegisterMutationAction {
-    (vars: { variables: RegisterMutationVariables }): Promise<RegisterMutation>
-}
-
 export interface RegisterFormProps {
     username: string,
     token: string
 }
 
-export interface RegisterFormPropsFull extends FormComponentProps, RegisterFormProps {
-    mutate: RegisterMutationAction
-}
+export const RegisterFormComponent: React.SFC<DefaultChildProps<RegisterFormProps & FormComponentProps, RegisterMutationVariables>> =
+    ({ form, username, mutate, token }) =>
+        <Form className="login-form" onSubmit={handleSubmit(form, mutate as MutationFunc<RegisterMutation>, token)}>
+            <Form.Item {...formItemLayout} label="Username">
+                <Input prefix={<Icon type="user" style={{fontSize: 13}}/>} value={username} disabled={true} />
+            </Form.Item>
+            <Form.Item {...formItemLayout} label="Email">
+                {form.getFieldDecorator('email', {rules: emailRules})(
+                    <Input prefix={<Icon type="user" style={{fontSize: 13}}/>} placeholder="Email"/>
+                )}
+            </Form.Item>
+            <Form.Item {...formItemLayout} label="Password">
+                {form.getFieldDecorator('password', {rules: passwordRules})(
+                    <Input prefix={<Icon type="lock" style={{fontSize: 13}}/>} type="password" placeholder="Password"/>
+                )}
+            </Form.Item>
+            <Form.Item {...formItemLayout} label="Confirm Password">
+                {form.getFieldDecorator('confirm', {rules: repeatPasswordRules(form)})(
+                    <Input prefix={<Icon type="lock" style={{fontSize: 13}}/>} type="password" placeholder="Confirm Password"/>
+                )}
+            </Form.Item>
+            <Form.Item {...formItemLayout}>
+                <Button type="primary" htmlType="submit" size="large">Register</Button>
+            </Form.Item>
+        </Form>;
 
-export const RegisterFormComponent: React.SFC<RegisterFormPropsFull> = ({ form, username, mutate, token }) =>
-    <Form className="login-form" onSubmit={handleSubmit(form, mutate, token)}>
-        <Form.Item {...formItemLayout} label="Username">
-            <Input prefix={<Icon type="user" style={{fontSize: 13}}/>} value={username} disabled={true} />
-        </Form.Item>
-        <Form.Item {...formItemLayout} label="Email">
-            {form.getFieldDecorator('email', {rules: emailRules})(
-                <Input prefix={<Icon type="user" style={{fontSize: 13}}/>} placeholder="Email"/>
-            )}
-        </Form.Item>
-        <Form.Item {...formItemLayout} label="Password">
-            {form.getFieldDecorator('password', {rules: passwordRules})(
-                <Input prefix={<Icon type="lock" style={{fontSize: 13}}/>} type="password" placeholder="Password"/>
-            )}
-        </Form.Item>
-        <Form.Item {...formItemLayout} label="Confirm Password">
-            {form.getFieldDecorator('confirm', {rules: repeatPasswordRules(form)})(
-                <Input prefix={<Icon type="lock" style={{fontSize: 13}}/>} type="password" placeholder="Confirm Password"/>
-            )}
-        </Form.Item>
-        <Form.Item {...formItemLayout}>
-            <Button type="primary" htmlType="submit" size="large">Register</Button>
-        </Form.Item>
-    </Form>;
+export const BoundRegisterFormComponent: React.ComponentClass<RegisterFormProps & FormComponentProps> =
+    graphql<RegisterMutationVariables, RegisterFormProps & FormComponentProps>(registerMutation)(RegisterFormComponent);
 
-const RegisterFormWithMutation: React.SFC<RegisterFormPropsFull> = graphql(registerMutation)(RegisterFormComponent);
-
-export const RegisterForm: React.SFC<RegisterFormProps> = Form.create()(RegisterFormWithMutation as any);
+export const RegisterForm: React.SFC<RegisterFormProps> = Form.create()(BoundRegisterFormComponent);

@@ -200,9 +200,9 @@ anymatch@^1.3.0:
     arrify "^1.0.0"
     micromatch "^2.1.5"
 
-apollo-client@^1.2.1, apollo-client@^1.3.0:
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/apollo-client/-/apollo-client-1.3.0.tgz#e155d46cbf8fba80e5718f6451338260cf076d1b"
+apollo-client@^1.4.0, apollo-client@^1.4.2:
+  version "1.4.2"
+  resolved "https://registry.yarnpkg.com/apollo-client/-/apollo-client-1.4.2.tgz#3d49d19aefa0baf90edee5401a358e433a6e624f"
   dependencies:
     graphql "^0.10.0"
     graphql-anywhere "^3.0.1"
@@ -3450,11 +3450,11 @@ rc@^1.1.7:
     minimist "^1.2.0"
     strip-json-comments "~2.0.1"
 
-react-apollo@1.3.0-alpha.1:
-  version "1.3.0-alpha.1"
-  resolved "https://registry.yarnpkg.com/react-apollo/-/react-apollo-1.3.0-alpha.1.tgz#5a11dc85f2aac62d24b4d5857bf7a6f9b42c4dc6"
+react-apollo@^1.4.2:
+  version "1.4.2"
+  resolved "https://registry.yarnpkg.com/react-apollo/-/react-apollo-1.4.2.tgz#e8ee035310b564fd1b42ee7e4f116086b5b06834"
   dependencies:
-    apollo-client "^1.2.1"
+    apollo-client "^1.4.0"
     graphql-anywhere "^3.0.0"
     graphql-tag "^2.0.0"
     hoist-non-react-statics "^1.2.0"

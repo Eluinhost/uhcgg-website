@@ -1,12 +1,11 @@
 import * as React from 'react';
-import { graphql, InjectedGraphQLProps } from 'react-apollo';
+import { graphql, QueryProps } from 'react-apollo';
 import { Table, Icon } from 'antd';
 import { TableColumnConfig } from 'antd/lib/table/Table';
 import { Link } from 'react-router-dom';
 
 import queryNetworks = require('../../graphql/queryNetworks.graphql');
 import { NetworksQuery } from '../graphql';
-import {GraphQLDataProps} from "react-apollo/lib/graphql";
 
 interface IServer {
     id: string,
@@ -80,7 +79,7 @@ const serverColumns: TableColumnConfig<IServer>[] = [
 class NetworkTable extends Table<INetwork> {}
 class ServerTable extends Table<IServer> {}
 
-const RefreshIcon: React.SFC<GraphQLDataProps> = ({ refetch, loading, networkStatus }) => {
+const RefreshIcon: React.SFC<QueryProps> = ({ refetch, loading, networkStatus }) => {
     console.log(networkStatus, loading);
 
     return <Icon type="reload" spin={loading} onClick={() => {
@@ -89,20 +88,20 @@ const RefreshIcon: React.SFC<GraphQLDataProps> = ({ refetch, loading, networkSta
 
         refetch();
     }}/>;
-}
+};
 
-export const NetworkListComponent: React.SFC<InjectedGraphQLProps<NetworksQuery>> = ({ data }) => {
+export const NetworkListComponent = graphql<NetworksQuery>(queryNetworks)(({ data }) => {
     if (!data)
         return <h4>No data found</h4>;
 
     if (data.error)
         return <h4>
-            { data.error || 'Unknown Error' } <RefreshIcon {...data as GraphQLDataProps} />
+            { data.error || 'Unknown Error' } <RefreshIcon {...data as QueryProps} />
         </h4>;
 
     return <div>
         <h2>
-            All Networks <RefreshIcon {...data as GraphQLDataProps} />
+            All Networks <RefreshIcon {...data as QueryProps} />
         </h2>
         <NetworkTable
             loading={data.loading}
@@ -124,6 +123,6 @@ export const NetworkListComponent: React.SFC<InjectedGraphQLProps<NetworksQuery>
             }
         />
     </div>;
-};
+});
 
-export const NetworkList = graphql(queryNetworks)(NetworkListComponent);
+export const NetworkList = (NetworkListComponent);

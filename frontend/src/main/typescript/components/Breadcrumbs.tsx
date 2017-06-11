@@ -22,12 +22,12 @@ const RegisterCrumb: React.SFC<{}> = () =>
         </Link>
     </Breadcrumb.Item>;
 
-const ExampleCrumb: React.SFC<{}> = () =>
+const NetworksCrumb: React.SFC<{}> = () =>
     <Breadcrumb.Item>
-        <Link to="/example">
+        <Link to="/networks">
             <span>
                 <Icon type="database" />
-                <span className="nav-text">Example Page</span>
+                <span className="nav-text">Networks</span>
             </span>
         </Link>
     </Breadcrumb.Item>;
@@ -36,5 +36,5 @@ export const Breadcrumbs: React.SFC<{}> = () =>
     <Breadcrumb style={{ margin: '12px 0' }}>
         <Route path="/" component={ HomeCrumb }/>
         <Route path="/register" component={ RegisterCrumb } />
-        <Route path="/example" component={ ExampleCrumb } />
+        <Route path="/networks" component={ NetworksCrumb } />
     </Breadcrumb>;

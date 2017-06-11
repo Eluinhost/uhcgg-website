@@ -1,7 +1,7 @@
 const path = require('path');
 const { HotModuleReplacementPlugin } = require('webpack');
 const { CheckerPlugin } = require('awesome-typescript-loader');
-const { optimize } = require('webpack');
+const { optimize, NamedModulesPlugin } = require('webpack');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
@@ -59,7 +59,8 @@ module.exports = {
         new HotModuleReplacementPlugin(),
         new HtmlWebpackPlugin({
             hash: true
-        })
+        }),
+        new NamedModulesPlugin()
     ],
     devServer: {
         contentBase: path.join(__dirname, 'dist'),

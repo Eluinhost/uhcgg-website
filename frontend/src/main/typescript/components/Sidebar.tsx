@@ -1,25 +1,23 @@
 import * as React from 'react';
 import { Link, withRouter, RouteComponentProps } from 'react-router-dom';
 import { Menu, Layout, Icon } from 'antd';
-import {connect} from "react-redux";
-import {AppStore} from "../AppStore";
 import {SidebarActions} from "../actions";
+import {compose} from "ramda";
+import {connect_SD} from "../reduxUtil";
 
 const logoUrl = require('../../images/logo.png');
 
-export interface SidebarStateProps {
+export type SidebarStateProps = {
     collapsed: boolean
 }
 
-export interface SidebarDispatchProps {
+export type SidebarDispatchProps = {
     toggle: () => void
 }
 
-export interface SiderSFC extends React.SFC<RouteComponentProps<{}> & SidebarStateProps & SidebarDispatchProps> {
-    __ANT_LAYOUT_SIDER?: boolean
-}
+export type SidebarProps = RouteComponentProps<void> & SidebarStateProps & SidebarDispatchProps;
 
-const SidebarComponent: SiderSFC = ({ location: { pathname }, collapsed, toggle }) =>
+const SidebarComponent: React.SFC<SidebarProps> = ({ location: { pathname }, collapsed, toggle }) =>
     <Layout.Sider width={200} style={{ height: '100vh', overflow: 'auto' }} collapsible={true} collapsed={collapsed} onCollapse={toggle} >
         <div className="logo">
             <Link to="/">
@@ -61,13 +59,17 @@ const SidebarComponent: SiderSFC = ({ location: { pathname }, collapsed, toggle 
         </Menu>
     </Layout.Sider>;
 
-SidebarComponent.__ANT_LAYOUT_SIDER = true;
+// required for antd to work properly
+(SidebarComponent as any).__ANT_LAYOUT_SIDER = true;
 
-export const Sidebar: React.ComponentClass<{}> = connect(
-    (state: AppStore.All) => ({
-        collapsed: state.sidebar.collapsed
-    }),
-    dispatch => ({
-        toggle: () => dispatch(SidebarActions.toggle())
-    })
-)(withRouter<{}>(SidebarComponent));
+export const Sidebar: React.ComponentClass<{}> =
+    withRouter<{}>(
+        connect_SD<SidebarStateProps, SidebarDispatchProps>(
+            state => ({
+                collapsed: state.sidebar.collapsed,
+            }),
+            dispatch => ({
+                toggle: () => dispatch(SidebarActions.toggle())
+            })
+        )(SidebarComponent)
+    );

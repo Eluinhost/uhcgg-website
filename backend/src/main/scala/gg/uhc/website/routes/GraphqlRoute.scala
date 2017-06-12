@@ -10,7 +10,8 @@ import gg.uhc.website.configuration.{MaxGraphQlComplexity, MaxGraphQlDepth}
 import gg.uhc.website.schema.definitions.{ApplicationSchema, Fetchers}
 import gg.uhc.website.schema.{AuthenticationException, AuthorisationException, QueryMetadata, SchemaContext}
 import gg.uhc.website.security.RegistrationSession
-import io.circe.Json
+import io.circe.{Json, JsonObject}
+import io.circe.parser.parse
 import sangria.ast.Document
 import sangria.execution._
 import sangria.execution.deferred.DeferredResolver
@@ -102,7 +103,7 @@ class GraphqlRoute(
     case (_, e: QueryTooNestedException)                   ⇒ HandledException(e.getMessage)
     case (_, e: AuthorisationException)                    ⇒ HandledException(e.getMessage)
     case (_, e: AuthenticationException)                   ⇒ HandledException(e.getMessage)
-    case (_, e: RegistrationSession.InvalidTokenException) ⇒ HandledException("Invalid registration token")
+    case (_, _: RegistrationSession.InvalidTokenException) ⇒ HandledException("Invalid registration token")
   }
 
   /**
@@ -117,17 +118,14 @@ class GraphqlRoute(
       ctx: SchemaContext,
       query: Document,
       operation: Option[String],
-      variables: Option[Json]
-    ): Future[(StatusCode, Json)] = {
-
-    val parsedVariables = variables.getOrElse(Json.obj())
-
+      variables: JsonObject
+    ): Future[(StatusCode, Json)] =
     Executor
       .execute(
         schema = ApplicationSchema,
         queryAst = query,
         userContext = ctx,
-        variables = parsedVariables,
+        variables = Json.fromJsonObject(variables),
         operationName = operation,
         deferredResolver = DeferredResolver.fetchers(Fetchers.fetchers: _*),
         queryReducers = depthReducer :: complexityReducer :: Nil, // query depth before complexity
@@ -138,7 +136,24 @@ class GraphqlRoute(
         case error: QueryAnalysisError ⇒ StatusCodes.BadRequest          → error.resolveError
         case error: ErrorWithResolver  ⇒ StatusCodes.InternalServerError → error.resolveError
       }
-  }
+
+  /**
+    * Some implementations send variables as a string with JSON inside, some as actual JSON.
+    * This converts them both to the same thing
+    */
+  def coerceVariables(vars: Option[Json]): JsonObject =
+    vars
+      .flatMap {
+        case j if j.isObject ⇒
+          j.asObject
+        case j if j.isString ⇒
+          parse(j.asString.get) // get is safe as it is a JString
+          .toOption
+            .flatMap(_.asObject) // make sure its an object we're getting
+        case _ ⇒
+          None
+      }
+      .getOrElse(JsonObject.empty) // if we couldn't parse it use empty vars instead
 
   def endpoint(query: GraphqlRequest): Route =
     // First try parsing the query
@@ -167,7 +182,7 @@ class GraphqlRoute(
           ctx = ctx,
           query = ast,
           operation = query.operationName,
-          variables = query.variables
+          variables = coerceVariables(query.variables)
         )
 
         onComplete(future) {

@@ -1,17 +1,26 @@
 import * as React from 'react';
 import { Link, withRouter, RouteComponentProps } from 'react-router-dom';
 import { Menu, Layout, Icon } from 'antd';
+import {connect} from "react-redux";
+import {AppStore} from "../AppStore";
+import {SidebarActions} from "../actions";
 
 const logoUrl = require('../../images/logo.png');
 
-export interface SiderSFC extends React.SFC<RouteComponentProps<void>> {
+export interface SidebarStateProps {
+    collapsed: boolean
+}
+
+export interface SidebarDispatchProps {
+    toggle: () => void
+}
+
+export interface SiderSFC extends React.SFC<RouteComponentProps<{}> & SidebarStateProps & SidebarDispatchProps> {
     __ANT_LAYOUT_SIDER?: boolean
 }
 
-// TODO store collapsed state in redux store + persist to localstore to stick over reloads
-
-const SidebarComponent: SiderSFC = ({ location: { pathname }}) =>
-    <Layout.Sider width={200} style={{ height: '100vh', overflow: 'auto' }} collapsible={true} >
+const SidebarComponent: SiderSFC = ({ location: { pathname }, collapsed, toggle }) =>
+    <Layout.Sider width={200} style={{ height: '100vh', overflow: 'auto' }} collapsible={true} collapsed={collapsed} onCollapse={toggle} >
         <div className="logo">
             <Link to="/">
                 <img src={logoUrl} alt="logo" />
@@ -54,4 +63,11 @@ const SidebarComponent: SiderSFC = ({ location: { pathname }}) =>
 
 SidebarComponent.__ANT_LAYOUT_SIDER = true;
 
-export const Sidebar: React.ComponentClass<{}> = withRouter(SidebarComponent);
+export const Sidebar: React.ComponentClass<{}> = connect(
+    (state: AppStore.All) => ({
+        collapsed: state.sidebar.collapsed
+    }),
+    dispatch => ({
+        toggle: () => dispatch(SidebarActions.toggle())
+    })
+)(withRouter<{}>(SidebarComponent));

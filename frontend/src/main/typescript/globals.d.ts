@@ -7,3 +7,7 @@ declare module '*.graphql' {
 
 declare module '*.css' {
 }
+
+interface Window {
+    __REDUX_DEVTOOLS_EXTENSION_COMPOSE__?: (a: object) => Function
+}

@@ -17,6 +17,7 @@ import { omit } from 'ramda'
 import { App } from './components/App';
 import { LoaderBarMiddleware } from './LoaderBarMiddleware';
 import {AppStore} from './AppStore';
+import {generateInitialState} from "./storage";
 
 const apolloClient: ApolloClient = (() => {
     const networkInterface: HTTPNetworkInterface = createNetworkInterface({
@@ -67,12 +68,16 @@ const render = (NextApp: React.SFC<{}>) => ReactDOM.render(
     root
 );
 
-// Initial render to page
-render(App);
+generateInitialState(reduxStore, apolloClient)
+    .then(() => {
+        // Initial render to page
+        render(App);
 
-// If we're hot reloading listen for changes on root App object and fire re-renders as required
-if (module.hot) {
-    module.hot.accept('./components/App', () => {
-        render(require('./components/App').App);
+        // If we're hot reloading listen for changes on root App object and fire re-renders as required
+        if (module.hot) {
+            module.hot.accept('./components/App', () => {
+                render(require('./components/App').App);
+            })
+        }
     })
-}
+    .catch(err => console.error(err));

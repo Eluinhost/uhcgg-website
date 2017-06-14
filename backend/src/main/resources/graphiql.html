@@ -1,36 +1,15 @@
 <!--
- * LICENSE AGREEMENT For GraphiQL software
+ *  Copyright (c) Facebook, Inc.
+ *  All rights reserved.
  *
- * Facebook, Inc. (“Facebook”) owns all right, title and interest, including all
- * intellectual property and other proprietary rights, in and to the GraphiQL
- * software. Subject to your compliance with these terms, you are hereby granted a
- * non-exclusive, worldwide, royalty-free copyright license to (1) use and copy the
- * GraphiQL software; and (2) reproduce and distribute the GraphiQL software as
- * part of your own software (“Your Software”). Facebook reserves all rights not
- * expressly granted to you in this license agreement.
- *
- * THE SOFTWARE AND DOCUMENTATION, IF ANY, ARE PROVIDED "AS IS" AND ANY EXPRESS OR
- * IMPLIED WARRANTIES (INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE) ARE DISCLAIMED. IN NO
- * EVENT SHALL FACEBOOK OR ITS AFFILIATES, OFFICES, DIRECTORS OR EMPLOYEES BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THE SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * You will include in Your Software (e.g., in the file(s), documentation or other
- * materials accompanying your software): (1) the disclaimer set forth above; (2)
- * this sentence; and (3) the following copyright notice:
- *
- * Copyright (c) 2015, Facebook, Inc. All rights reserved.
+ *  This source code is licensed under the license found in the
+ *  LICENSE file in the root directory of this source tree.
 -->
 <!DOCTYPE html>
 <html>
 <head>
     <style>
-        html, body {
+        body {
             height: 100%;
             margin: 0;
             width: 100%;
@@ -41,11 +20,21 @@
         }
     </style>
 
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/graphiql/0.7.8/graphiql.css" />
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/graphiql/0.10.2/graphiql.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.23.0/theme/monokai.css" />
+
+    <!--
+      This GraphiQL example depends on Promise and fetch, which are available in
+      modern browsers, but can be "polyfilled" for older browsers.
+      GraphiQL itself depends on React DOM.
+      If you do not want to rely on a CDN, you can host these files locally or
+      include them directly in your favored resource bunder.
+    -->
+    <script src="//cdn.jsdelivr.net/es6-promise/4.0.5/es6-promise.auto.min.js"></script>
     <script src="//cdn.jsdelivr.net/fetch/0.9.0/fetch.min.js"></script>
-    <script src="//cdn.jsdelivr.net/react/0.14.7/react.min.js"></script>
-    <script src="//cdn.jsdelivr.net/react/0.14.7/react-dom.min.js"></script>
-    <script src="//cdn.jsdelivr.net/graphiql/0.7.8/graphiql.min.js"></script>
+    <script src="//cdn.jsdelivr.net/react/15.4.2/react.min.js"></script>
+    <script src="//cdn.jsdelivr.net/react/15.4.2/react-dom.min.js"></script>
+    <script src="//cdn.jsdelivr.net/graphiql/0.10.2/graphiql.min.js"></script>
 </head>
 <body>
 <div id="graphiql">Loading...</div>
@@ -89,16 +78,26 @@
         parameters.variables = newVariables;
         updateURL();
     }
+    function onEditOperationName(newOperationName) {
+        parameters.operationName = newOperationName;
+        updateURL();
+    }
     function updateURL() {
-        var newSearch = '?' + Object.keys(parameters).map(function (key) {
-                return encodeURIComponent(key) + '=' +
-                    encodeURIComponent(parameters[key]);
-            }).join('&');
+        var newSearch = '?' + Object.keys(parameters).filter(function (key) {
+            return Boolean(parameters[key]);
+        }).map(function (key) {
+            return encodeURIComponent(key) + '=' +
+                encodeURIComponent(parameters[key]);
+        }).join('&');
         history.replaceState(null, null, newSearch);
     }
-    // Defines a GraphQL fetcher using the fetch API.
+    // Defines a GraphQL fetcher using the fetch API. You're not required to
+    // use fetch, and could instead implement graphQLFetcher however you like,
+    // as long as it returns a Promise or Observable.
     function graphQLFetcher(graphQLParams) {
-        return fetch(window.location.origin + '/api/graphql', {
+        // This example expects a GraphQL server at the path /graphql.
+        // Change this to point wherever you host your GraphQL server.
+        return fetch('/api/graphql', {
             method: 'post',
             headers: {
                 'Accept': 'application/json',
@@ -122,8 +121,11 @@
             fetcher: graphQLFetcher,
             query: parameters.query,
             variables: parameters.variables,
+            operationName: parameters.operationName,
             onEditQuery: onEditQuery,
-            onEditVariables: onEditVariables
+            onEditVariables: onEditVariables,
+            onEditOperationName: onEditOperationName,
+            editorTheme: 'monokai'
         }),
         document.getElementById('graphiql')
     );

@@ -2,14 +2,13 @@ package gg.uhc.website.schema.definitions
 
 import gg.uhc.website.model.Match
 import gg.uhc.website.schema.SchemaContext
-import gg.uhc.website.schema.SchemaIds._
 import sangria.schema._
 
 import scalaz.Scalaz._
 
 object MatchSchema extends SchemaDefinition[Match] with SchemaQueries with SchemaSupport {
-  private val idArg  = Argument(name = "id", argumentType = LongType, description = "ID to match")
-  private val idsArg = Argument(name = "ids", argumentType = ListInputType(LongType), description = "IDs to match")
+  private val idArg  = Argument(name = "id", argumentType = StringType, description = "ID to match")
+  private val idsArg = Argument(name = "ids", argumentType = ListInputType(StringType), description = "IDs to match")
 
   override val queries: List[Field[SchemaContext, Unit]] = fields(
     Field(
@@ -34,11 +33,13 @@ object MatchSchema extends SchemaDefinition[Match] with SchemaQueries with Schem
       description = "Fetches all matches".some
     )
   )
+
   override lazy val Type: ObjectType[Unit, Match] = ObjectType(
     name = "Match",
     description = "An individual match",
+    interfaces = interfaces[Unit, Match](RelaySchema.nodeInterface),
     fieldsFn = () ⇒
-      idFields[Match, Long] ++ modificationTimesFields ++ deletedFields ++ fields[Unit, Match](
+      idFields[Match] ++ modificationTimesFields ++ deletedFields ++ fields[Unit, Match](
         Field(
           name = "size",
           fieldType = OptionType(IntType),

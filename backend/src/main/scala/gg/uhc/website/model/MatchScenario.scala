@@ -1,3 +1,3 @@
 package gg.uhc.website.model
 
-case class MatchScenario(matchId: Long, scenarioId: Long)
+case class MatchScenario(matchId: String, scenarioId: String)

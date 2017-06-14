@@ -1,20 +1,17 @@
 package gg.uhc.website.schema.definitions
 
-import java.util.UUID
-
 import gg.uhc.website.model.User
 import sangria.schema._
 import gg.uhc.website.schema.SchemaContext
-import gg.uhc.website.schema.SchemaIds._
 
 import scalaz.Scalaz._
 
 object UserSchema extends SchemaDefinition[User] with SchemaQueries with SchemaSupport {
-  private val idArg       = Argument(name = "id", argumentType = UuidType, description = "ID to match")
+  private val idArg       = Argument(name = "id", argumentType = StringType, description = "ID to match")
   private val usernameArg = Argument(name = "username", argumentType = StringType, description = "Username to match")
 
   private val idsArg =
-    Argument(name = "ids", argumentType = ListInputType(UuidType), description = "List of IDs to match")
+    Argument(name = "ids", argumentType = ListInputType(StringType), description = "List of IDs to match")
   private val usernamesArg = Argument(
     name = "usernames",
     argumentType = ListInputType(StringType),
@@ -57,8 +54,9 @@ object UserSchema extends SchemaDefinition[User] with SchemaQueries with SchemaS
   override lazy val Type: ObjectType[Unit, User] = ObjectType(
     name = "User",
     description = "A website account",
+    interfaces = interfaces[Unit, User](RelaySchema.nodeInterface),
     fieldsFn = () ⇒
-      idFields[User, UUID] ++ modificationTimesFields ++ fields[Unit, User](
+      idFields[User] ++ modificationTimesFields ++ fields[Unit, User](
         // Ignore email + password fields, they should not be exposed in the API
         Field(
           name = "username",
@@ -73,13 +71,13 @@ object UserSchema extends SchemaDefinition[User] with SchemaQueries with SchemaS
           name = "bans", // TODO pagination
           fieldType = ListType(BanSchema.Type),
           description = "All current bans applied to the given user".some,
-          resolve = ctx ⇒ Fetchers.bans.deferRelSeq[UUID](Relations.banByBannedUserId, ctx.value.id)
+          resolve = ctx ⇒ Fetchers.bans.deferRelSeq(Relations.banByBannedUserId, ctx.value.id)
         ),
         Field(
           name = "roles", // TODO pagination
           fieldType = ListType(UserRoleSchema.Type),
           description = "A list of user roles the user has".some,
-          resolve = ctx ⇒ Fetchers.userRoles.deferRelSeq[UUID](Relations.userRoleByUserId, ctx.value.id)
+          resolve = ctx ⇒ Fetchers.userRoles.deferRelSeq(Relations.userRoleByUserId, ctx.value.id)
         ),
         Field(
           name = "networks", // TODO pagination

@@ -1,10 +1,10 @@
 package gg.uhc.website.schema.definitions
 
 import doobie.imports.ConnectionIO
-import gg.uhc.website.model.{DeleteableFields, IdentificationFields, ModificationTimesFields}
+import gg.uhc.website.model._
 import gg.uhc.website.schema.SchemaContext
-import gg.uhc.website.schema.scalars.{InetAddressScalarTypeSupport, InstantScalarTypeSupport, UuidScalarTypeSupport}
-import sangria.execution.deferred.HasId
+import gg.uhc.website.schema.scalars.{InetAddressScalarTypeSupport, InstantScalarTypeSupport}
+import sangria.relay._
 import sangria.schema._
 
 import scalaz.Scalaz._
@@ -17,7 +17,7 @@ trait SchemaQueries {
   val queries: List[Field[SchemaContext, Unit]]
 }
 
-trait SchemaSupport extends InetAddressScalarTypeSupport with InstantScalarTypeSupport with UuidScalarTypeSupport {
+trait SchemaSupport extends InetAddressScalarTypeSupport with InstantScalarTypeSupport {
   import scala.language.implicitConversions
 
   implicit def connectionIO2FutureAction[A](
@@ -42,18 +42,15 @@ trait SchemaSupport extends InetAddressScalarTypeSupport with InstantScalarTypeS
   /**
     * Generic ID field for all things with an ID
     */
-  def idFields[A <: IdentificationFields[ID], ID](
-      implicit id: HasId[A, ID],
-      out: OutputType[ID]
-    ): List[Field[Unit, A]] =
-    fields[Unit, A](
-      Field(
-        name = "id",
-        fieldType = out,
-        description = "The unique ID of this item".some,
-        resolve = ctx ⇒ id.id(ctx.value)
-      )
+  def idFields[T: Identifiable]: List[Field[Unit, T]] = fields[Unit, T](
+    Node.globalIdField[Unit, T],
+    Field(
+      name = "rawId",
+      fieldType = StringType,
+      resolve = ctx ⇒ implicitly[Identifiable[T]].id(ctx.value),
+      description = "The raw unique ID of this item".some
     )
+  )
 
   /**
     * Add created/modified fields

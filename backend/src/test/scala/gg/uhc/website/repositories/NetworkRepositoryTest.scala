@@ -15,16 +15,16 @@ class NetworkRepositoryTest extends FlatSpec with BaseRepositoryTest {
     check(repo.getAllQuery)
 
   it should "have valid getByIdQuery query" in
-    check(repo.getByIdQuery(1L))
+    check(repo.getByIdQuery("1"))
 
   it should "have valid getByIdsQuery query" in
-    check(repo.getByIdsQuery(NonEmptyList(1L, 2L)))
+    check(repo.getByIdsQuery(NonEmptyList("1", "2")))
 
   it should "have valid relationsQuery query" in
     check(
       repo.relationsQuery(
         Seq(
-          Relations.networkByUserId → Seq(UUID.randomUUID(), UUID.randomUUID())
+          Relations.networkByUserId → Seq(UUID.randomUUID().toString, UUID.randomUUID().toString)
         )
       )
     )

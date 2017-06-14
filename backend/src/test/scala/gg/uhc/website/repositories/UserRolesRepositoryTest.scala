@@ -13,8 +13,8 @@ class UserRolesRepositoryTest extends FlatSpec with BaseRepositoryTest {
     check(
       repo.relationsQuery(
         Seq(
-          Relations.userRoleByRoleId → Seq(1, 2),
-          Relations.userRoleByUserId → Seq(UUID.randomUUID(), UUID.randomUUID())
+          Relations.userRoleByRoleId → Seq("1", "2"),
+          Relations.userRoleByUserId → Seq(UUID.randomUUID().toString, UUID.randomUUID().toString)
         )
       )
     )

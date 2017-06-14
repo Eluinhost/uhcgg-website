@@ -11,8 +11,8 @@ class MatchScenariosRepositoryTest extends FlatSpec with BaseRepositoryTest {
     check(
       repo.relationsQuery(
         Seq(
-          Relations.matchScenarioByMatchId → Seq(1L, 2L),
-          Relations.matchScenarioByScenarioId → Seq(1L, 2L)
+          Relations.matchScenarioByMatchId → Seq("1", "2"),
+          Relations.matchScenarioByScenarioId → Seq("1", "2")
         )
       )
     )

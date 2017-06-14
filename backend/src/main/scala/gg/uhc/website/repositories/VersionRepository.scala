@@ -5,12 +5,12 @@ import gg.uhc.website.model.Version
 class VersionRepository
     extends Repository[Version]
     with CanQuery[Version]
-    with CanQueryByIds[Int, Version]
+    with CanQueryByIds[Version]
     with CanQueryAll[Version] {
   import doobie.imports._
 
   override val composite: Composite[Version] = implicitly
-  override val idParam: Param[Int]           = implicitly
+  override implicit val idType: String = "int"
 
   override private[repositories] val baseSelectQuery: Fragment =
     fr"SELECT id, name, live FROM versions".asInstanceOf[Fragment]

@@ -1,9 +1,8 @@
 package gg.uhc.website.schema.definitions
 
 import gg.uhc.website.model.Ban
-import sangria.schema._
 import gg.uhc.website.schema.SchemaContext
-import gg.uhc.website.schema.SchemaIds._
+import sangria.schema._
 
 import scalaz.Scalaz._
 
@@ -28,8 +27,9 @@ object BanSchema extends SchemaDefinition[Ban] with SchemaQueries with SchemaSup
   override lazy val Type: ObjectType[Unit, Ban] = ObjectType(
     name = "Ban",
     description = "A ban on a particular user",
+    interfaces = interfaces[Unit, Ban](RelaySchema.nodeInterface),
     fieldsFn = () ⇒
-      idFields[Ban, Long] ++ modificationTimesFields ++ fields[Unit, Ban](
+      idFields[Ban] ++ modificationTimesFields ++ fields[Unit, Ban](
         Field(
           name = "reason",
           fieldType = StringType,

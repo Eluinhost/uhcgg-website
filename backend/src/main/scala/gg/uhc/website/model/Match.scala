@@ -1,19 +1,20 @@
 package gg.uhc.website.model
 
 import java.time.Instant
-import java.util.UUID
+
+import sangria.relay.Node
 
 case class Match(
-    id: Long,
-    host: UUID,
-    serverId: Long,
-    versionId: Int,
-    styleId: Int,
+    id: String,
+    host: String,
+    serverId: String,
+    versionId: String,
+    styleId: String,
     size: Option[Int],
     created: Instant,
     modified: Instant,
     deleted: Boolean,
     starts: Instant)
-    extends IdentificationFields[Long]
+    extends Node
     with ModificationTimesFields
     with DeleteableFields

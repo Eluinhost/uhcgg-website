@@ -1,15 +1,16 @@
 package gg.uhc.website.model
 
 import java.time.Instant
-import java.util.UUID
+
+import sangria.relay.Node
 
 case class Ban(
-    id: Long,
+    id: String,
     reason: String,
     created: Instant,
     modified: Instant,
     expires: Instant,
-    userId: UUID,
-    author: UUID)
-    extends IdentificationFields[Long]
+    userId: String,
+    author: String)
+    extends Node
     with ModificationTimesFields

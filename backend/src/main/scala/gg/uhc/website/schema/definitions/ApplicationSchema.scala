@@ -19,6 +19,7 @@ object ApplicationSchema
           ::: UserSchema.queries
           ::: VersionSchema.queries
           ::: QueryMetadataSchema.queries
+          ::: RelaySchema.queries
       ),
       Mutations.mutations.some,
       none

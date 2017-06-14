@@ -1,9 +1,7 @@
 package gg.uhc.website.schema
 
-import java.util.UUID
-
 import doobie.imports.ConnectionIO
-import gg.uhc.website.model.{Role, User}
+import gg.uhc.website.model.Role
 import gg.uhc.website.model.User
 import gg.uhc.website.security.RegistrationSession
 
@@ -19,7 +17,7 @@ trait Mutation { this: SchemaContext ⇒
       user ← OptionT[ConnectionIO, User] {
         users.authenticate(username, password)
       }
-      roleIds ← OptionT[ConnectionIO, List[Int]] {
+      roleIds ← OptionT[ConnectionIO, List[String]] {
         userRoles
           .forUser(user.id)
           .map(_.map(_.roleId))
@@ -32,7 +30,7 @@ trait Mutation { this: SchemaContext ⇒
       }
     } yield apiSession.generateToken(user, roles)).run
 
-  def changePassword(id: UUID, password: String): ConnectionIO[Boolean] =
+  def changePassword(id: String, password: String): ConnectionIO[Boolean] =
     users.changePassword(id, password)
 
   /**

@@ -17,7 +17,7 @@ class MatchScenariosRepository
 
   override def relationsFragment(relationIds: RelationIds[MatchScenario]): Fragment =
     Fragments.whereOrOpt(
-      simpleRelationFragment(relationIds, Relations.matchScenarioByScenarioId, "scenarioid"),
-      simpleRelationFragment(relationIds, Relations.matchScenarioByMatchId, "matchid")
+      simpleRelationFragment(relationIds, Relations.matchScenarioByScenarioId, "scenarioid", "bigint"),
+      simpleRelationFragment(relationIds, Relations.matchScenarioByMatchId, "matchid", "bigint")
     )
 }

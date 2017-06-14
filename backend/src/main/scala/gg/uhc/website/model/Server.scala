@@ -2,21 +2,22 @@ package gg.uhc.website.model
 
 import java.net.InetAddress
 import java.time.Instant
-import java.util.UUID
+
+import sangria.relay.Node
 
 case class Server(
-    id: Long,
-    owner: UUID,
-    networkId: Long,
+    id: String,
+    owner: String,
+    networkId: String,
     name: String,
     address: Option[String],
     ip: InetAddress,
     port: Option[Int],
     location: String,
-    region: Int,
+    region: String,
     created: Instant,
     modified: Instant,
     deleted: Boolean)
-    extends IdentificationFields[Long]
+    extends Node
     with ModificationTimesFields
     with DeleteableFields

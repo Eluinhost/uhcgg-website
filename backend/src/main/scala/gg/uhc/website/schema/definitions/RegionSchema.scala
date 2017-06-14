@@ -2,14 +2,13 @@ package gg.uhc.website.schema.definitions
 
 import gg.uhc.website.model.Region
 import gg.uhc.website.schema.SchemaContext
-import gg.uhc.website.schema.SchemaIds._
 import sangria.schema._
 
 import scalaz.Scalaz._
 
 object RegionSchema extends SchemaDefinition[Region] with SchemaQueries with SchemaSupport {
-  private val idArg  = Argument(name = "id", argumentType = IntType, description = "ID to match")
-  private val idsArg = Argument(name = "ids", argumentType = ListInputType(IntType), description = "IDs to match")
+  private val idArg  = Argument(name = "id", argumentType = StringType, description = "ID to match")
+  private val idsArg = Argument(name = "ids", argumentType = ListInputType(StringType), description = "IDs to match")
 
   override val queries: List[Field[SchemaContext, Unit]] = fields(
     Field(
@@ -39,8 +38,9 @@ object RegionSchema extends SchemaDefinition[Region] with SchemaQueries with Sch
   override lazy val Type: ObjectType[Unit, Region] = ObjectType(
     name = "Region",
     description = "A choosable region for hosting in",
+    interfaces = interfaces[Unit, Region](RelaySchema.nodeInterface),
     fieldsFn = () ⇒
-      idFields[Region, Int] ++ fields[Unit, Region](
+      idFields[Region] ++ fields[Unit, Region](
         Field(
           name = "short",
           fieldType = StringType,

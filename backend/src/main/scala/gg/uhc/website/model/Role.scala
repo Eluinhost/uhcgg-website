@@ -1,3 +1,5 @@
 package gg.uhc.website.model
 
-case class Role(id: Int, name: String, permissions: List[String]) extends IdentificationFields[Int]
+import sangria.relay.Node
+
+case class Role(id: String, name: String, permissions: List[String]) extends Node

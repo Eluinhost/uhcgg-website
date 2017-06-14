@@ -1,7 +1,6 @@
 package gg.uhc.website.repositories
 
 import doobie.imports._
-import gg.uhc.website.model.IdentificationFields
 import sangria.execution.deferred.{Relation, RelationIds}
 
 import scalaz.Scalaz._
@@ -9,6 +8,17 @@ import scalaz._
 
 trait Repository[A] {
   implicit val logHandler: LogHandler = LogHandler.jdkLogHandler
+
+  private[repositories] def const(raw: String): Fragment = Fragment.const(raw)
+
+  private[repositories] def columnIn[T : Param](column: String, columnType: String, values: NonEmptyList[T]) =
+    values
+      .map(v ⇒ fr0"$v".asInstanceOf[Fragment] ++ const(s"::$columnType"))
+      .foldSmash1(
+        const(s"$column IN ("),
+        const(","),
+        const(")")
+      )
 }
 
 trait CanQuery[A] { self: Repository[A] ⇒
@@ -17,24 +27,31 @@ trait CanQuery[A] { self: Repository[A] ⇒
   implicit def composite: Composite[A]
 }
 
-trait CanQueryByIds[ID, A <: IdentificationFields[ID]] { self: CanQuery[A] ⇒
-  implicit def idParam: Param[ID]
-
+trait CanQueryByIds[A <: sangria.relay.Node] { self: CanQuery[A] with Repository[A] ⇒
   implicit val logHandler: LogHandler
+  implicit val idType: String
 
-  private[repositories] def getByIdQuery(id: ID): Query0[A] =
-    (baseSelectQuery ++ Fragments.whereAnd(fr"id = $id".asInstanceOf[Fragment])).query[A]
+  private[repositories] def getByIdQuery(id: String): Query0[A] =
+    (baseSelectQuery ++ Fragments.whereAnd(
+      fr0"id = $id".asInstanceOf[Fragment] ++ Fragment.const(s"::$idType ")
+    )).query[A]
 
-  private[repositories] def getByIdsQuery(ids: NonEmptyList[ID]): Query0[A] =
-    (baseSelectQuery ++ Fragments.whereAnd(Fragments.in(fr"id".asInstanceOf[Fragment], ids))).query[A]
+  private[repositories] def getByIdsQuery(ids: NonEmptyList[String]): Query0[A] =
+    (baseSelectQuery ++ Fragments.whereAnd(
+      columnIn(
+        "id",
+        idType,
+        ids
+      )
+    )).query[A]
 
-  def getById(id: ID): ConnectionIO[Option[A]] =
+  def getById(id: String): ConnectionIO[Option[A]] =
     getByIdQuery(id).option
 
-  def getByIds(ids: Seq[ID]): ConnectionIO[List[A]] =
+  def getByIds(ids: Seq[String]): ConnectionIO[List[A]] =
     ids match {
       case a +: as ⇒ getByIdsQuery(NonEmptyList(a, as: _*)).list
-      case _       ⇒ List.empty[A].η[ConnectionIO]
+      case _       ⇒ List.empty[A].point[ConnectionIO]
     }
 }
 
@@ -46,7 +63,7 @@ trait CanQueryAll[A] { self: CanQuery[A] ⇒
   def getAll: ConnectionIO[List[A]] = getAllQuery.list
 }
 
-trait CanQueryByRelations[A] { self: CanQuery[A] ⇒
+trait CanQueryByRelations[A] { self: CanQuery[A] with Repository[A] ⇒
   implicit val logHandler: LogHandler
 
   def relationsFragment(relationIds: RelationIds[A]): Fragment
@@ -61,12 +78,13 @@ trait CanQueryByRelations[A] { self: CanQuery[A] ⇒
   protected def simpleRelationFragment[RelId: Param](
       relIds: RelationIds[A],
       rel: Relation[A, _, RelId],
-      column: String
+      column: String,
+      columnType: String
     ): Option[Fragment] =
     for {
       ids ← relIds.get(rel)
       nel ← ids.toList.toNel
-    } yield Fragments.in(Fragment.const(column + " "), nel)
+    } yield columnIn(column, columnType, nel)
 
   private[repositories] def relationsQuery(relationIds: RelationIds[A]): Query0[A] =
     (baseSelectQuery ++ relationsFragment(relationIds)).query[A]

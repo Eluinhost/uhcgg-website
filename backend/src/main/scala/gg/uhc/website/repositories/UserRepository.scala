@@ -1,7 +1,5 @@
 package gg.uhc.website.repositories
 
-import java.util.UUID
-
 import com.github.t3hnar.bcrypt._
 import gg.uhc.website.CustomJsonCodec
 import gg.uhc.website.model.User
@@ -9,18 +7,17 @@ import gg.uhc.website.model.User
 import scalaz.NonEmptyList
 import scalaz.Scalaz._
 
-class UserRepository extends Repository[User] with CanQuery[User] with CanQueryByIds[UUID, User] with CustomJsonCodec {
+class UserRepository extends Repository[User] with CanQuery[User] with CanQueryByIds[User] with CustomJsonCodec {
   import doobie.imports._
-  import doobie.postgres.imports._
 
   override val composite: Composite[User] = implicitly
-  override val idParam: Param[UUID]       = implicitly
+  override val idType: String = "uuid"
 
   override private[repositories] val baseSelectQuery: Fragment =
     fr"SELECT id, username, email, password, created, modified FROM users".asInstanceOf[Fragment]
 
-  private[repositories] def changePasswordQuery(id: UUID, password: String): Update0 =
-    sql"UPDATE users SET password = ${password.bcrypt} WHERE id = $id"
+  private[repositories] def changePasswordQuery(id: String, password: String): Update0 =
+    sql"UPDATE users SET password = ${password.bcrypt} WHERE id = $id::uuid"
       .asInstanceOf[Fragment]
       .update
 
@@ -46,7 +43,7 @@ class UserRepository extends Repository[User] with CanQuery[User] with CanQueryB
       fr"email = $login".asInstanceOf[Fragment]
     )).query[User]
 
-  def changePassword(id: UUID, password: String): ConnectionIO[Boolean] =
+  def changePassword(id: String, password: String): ConnectionIO[Boolean] =
     changePasswordQuery(id, password).run
       .map(_ > 0)
 
@@ -60,7 +57,7 @@ class UserRepository extends Repository[User] with CanQuery[User] with CanQueryB
   def getByUsernames(usernames: Seq[String]): ConnectionIO[List[User]] =
     usernames match {
       case a :: as ⇒ getByUsernamesQuery(NonEmptyList(a, as: _*)).list
-      case _       ⇒ List.empty[User].η[ConnectionIO]
+      case _ ⇒ List.empty[User].η[ConnectionIO]
     }
 
   def getByUsername(username: String): ConnectionIO[Option[User]] =

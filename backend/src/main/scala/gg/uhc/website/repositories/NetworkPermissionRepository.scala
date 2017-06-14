@@ -9,7 +9,6 @@ class NetworkPermissionRepository
     with CanQuery[NetworkPermission]
     with CanQueryByRelations[NetworkPermission] {
   import doobie.imports._
-  import doobie.postgres.imports._
 
   override val composite: Composite[NetworkPermission] = implicitly
 
@@ -18,8 +17,8 @@ class NetworkPermissionRepository
 
   override def relationsFragment(relationIds: RelationIds[NetworkPermission]): Fragment =
     Fragments.whereOrOpt(
-      simpleRelationFragment(relationIds, Relations.networkPermissionByNetworkId, "networkid"),
-      simpleRelationFragment(relationIds, Relations.networkPermissionByUserId, "userid")
+      simpleRelationFragment(relationIds, Relations.networkPermissionByNetworkId, "networkid", "bigint"),
+      simpleRelationFragment(relationIds, Relations.networkPermissionByUserId, "userid", "uuid")
     )
 
 }

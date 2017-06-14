@@ -2,14 +2,13 @@ package gg.uhc.website.schema.definitions
 
 import gg.uhc.website.model.Network
 import gg.uhc.website.schema.SchemaContext
-import gg.uhc.website.schema.SchemaIds._
 import sangria.schema._
 
 import scalaz.Scalaz._
 
 object NetworkSchema extends SchemaDefinition[Network] with SchemaQueries with SchemaSupport {
-  private val idArg  = Argument(name = "id", argumentType = LongType, description = "ID to match")
-  private val idsArg = Argument(name = "ids", argumentType = ListInputType(LongType), description = "IDs to match")
+  private val idArg  = Argument(name = "id", argumentType = StringType, description = "ID to match")
+  private val idsArg = Argument(name = "ids", argumentType = ListInputType(StringType), description = "IDs to match")
 
   override val queries: List[Field[SchemaContext, Unit]] = fields(
     Field(
@@ -39,8 +38,9 @@ object NetworkSchema extends SchemaDefinition[Network] with SchemaQueries with S
   override lazy val Type: ObjectType[Unit, Network] = ObjectType(
     name = "Network",
     description = "A collection of servers",
+    interfaces[Unit, Network](RelaySchema.nodeInterface),
     fieldsFn = () ⇒
-      idFields[Network, Long] ++ modificationTimesFields ++ fields[Unit, Network](
+      idFields[Network] ++ modificationTimesFields ++ fields[Unit, Network](
         Field(
           name = "name",
           fieldType = StringType,

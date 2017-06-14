@@ -2,14 +2,13 @@ package gg.uhc.website.schema.definitions
 
 import gg.uhc.website.model.Role
 import gg.uhc.website.schema.SchemaContext
-import gg.uhc.website.schema.SchemaIds._
 import sangria.schema._
 
 import scalaz.Scalaz._
 
 object RoleSchema extends SchemaDefinition[Role] with SchemaQueries with SchemaSupport {
-  private val idArg  = Argument(name = "id", argumentType = IntType, description = "ID to match")
-  private val idsArg = Argument(name = "ids", argumentType = ListInputType(IntType), description = "IDs to match")
+  private val idArg  = Argument(name = "id", argumentType = StringType, description = "ID to match")
+  private val idsArg = Argument(name = "ids", argumentType = ListInputType(StringType), description = "IDs to match")
 
   override val queries: List[Field[SchemaContext, Unit]] = fields(
     Field(
@@ -39,8 +38,9 @@ object RoleSchema extends SchemaDefinition[Role] with SchemaQueries with SchemaS
   override lazy val Type: ObjectType[Unit, Role] = ObjectType(
     name = "Role",
     description = "A website role to grant permission to a user",
+    interfaces = interfaces[Unit, Role](RelaySchema.nodeInterface),
     fieldsFn = () ⇒
-      idFields[Role, Int] ++ fields[Unit, Role](
+      idFields[Role] ++ fields[Unit, Role](
         Field(
           name = "name",
           fieldType = StringType,

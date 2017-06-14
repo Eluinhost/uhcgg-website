@@ -12,5 +12,5 @@ class StyleRepositoryTest extends FlatSpec with BaseRepositoryTest {
     check(repo.getAllQuery)
 
   it should "have valid getByIdsQuery query" in
-    check(repo.getByIdsQuery(NonEmptyList(1, 2)))
+    check(repo.getByIdsQuery(NonEmptyList("1", "2")))
 }

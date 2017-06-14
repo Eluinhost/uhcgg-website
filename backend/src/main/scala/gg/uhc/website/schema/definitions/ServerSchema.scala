@@ -1,7 +1,6 @@
 package gg.uhc.website.schema.definitions
 
 import gg.uhc.website.model.Server
-import gg.uhc.website.schema.SchemaIds._
 import sangria.schema._
 
 import scalaz.Scalaz._
@@ -10,8 +9,9 @@ object ServerSchema extends SchemaDefinition[Server] with SchemaSupport {
   override lazy val Type: ObjectType[Unit, Server] = ObjectType(
     name = "Server",
     description = "A ban on a particular user",
+    interfaces = interfaces[Unit, Server](RelaySchema.nodeInterface),
     fieldsFn = () ⇒
-      idFields[Server, Long] ++ modificationTimesFields ++ fields[Unit, Server](
+      idFields[Server] ++ modificationTimesFields ++ fields[Unit, Server](
         Field(
           name = "address",
           fieldType = OptionType(StringType),

@@ -12,8 +12,8 @@ class RegionRepositoryTest extends FlatSpec with BaseRepositoryTest {
     check(repo.getAllQuery)
 
   it should "have valid getByIdQuery query" in
-    check(repo.getByIdQuery(1))
+    check(repo.getByIdQuery("1"))
 
   it should "have valid getByIdsQuery query" in
-    check(repo.getByIdsQuery(NonEmptyList(1, 2)))
+    check(repo.getByIdsQuery(NonEmptyList("1", "2")))
 }

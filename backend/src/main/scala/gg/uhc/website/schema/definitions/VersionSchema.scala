@@ -2,14 +2,13 @@ package gg.uhc.website.schema.definitions
 
 import gg.uhc.website.model.Version
 import gg.uhc.website.schema.SchemaContext
-import gg.uhc.website.schema.SchemaIds._
 import sangria.schema._
 
 import scalaz.Scalaz._
 
 object VersionSchema extends SchemaDefinition[Version] with SchemaQueries with SchemaSupport {
-  private val idArg  = Argument(name = "id", argumentType = IntType, description = "ID to match")
-  private val idsArg = Argument(name = "ids", argumentType = ListInputType(IntType), description = "IDs to match")
+  private val idArg  = Argument(name = "id", argumentType = StringType, description = "ID to match")
+  private val idsArg = Argument(name = "ids", argumentType = ListInputType(StringType), description = "IDs to match")
 
   override val queries: List[Field[SchemaContext, Unit]] = fields(
     Field(
@@ -39,8 +38,9 @@ object VersionSchema extends SchemaDefinition[Version] with SchemaQueries with S
   override lazy val Type: ObjectType[Unit, Version] = ObjectType(
     name = "Version",
     description = "A choosable version for hosting",
+    interfaces = interfaces[Unit, Version](RelaySchema.nodeInterface),
     fieldsFn = () ⇒
-      idFields[Version, Int] ++ fields[Unit, Version](
+      idFields[Version] ++ fields[Unit, Version](
         Field(
           name = "name",
           fieldType = StringType,

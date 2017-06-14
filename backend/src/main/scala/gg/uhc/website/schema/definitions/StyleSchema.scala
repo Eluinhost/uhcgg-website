@@ -2,14 +2,13 @@ package gg.uhc.website.schema.definitions
 
 import gg.uhc.website.model.Style
 import gg.uhc.website.schema.SchemaContext
-import gg.uhc.website.schema.SchemaIds._
 import sangria.schema._
 
 import scalaz.Scalaz._
 
 object StyleSchema extends SchemaDefinition[Style] with SchemaQueries with SchemaSupport {
-  private val idArg  = Argument(name = "id", argumentType = IntType, description = "ID to match")
-  private val idsArg = Argument(name = "ids", argumentType = ListInputType(IntType), description = "IDs to match")
+  private val idArg  = Argument(name = "id", argumentType = StringType, description = "ID to match")
+  private val idsArg = Argument(name = "ids", argumentType = ListInputType(StringType), description = "IDs to match")
 
   override val queries: List[Field[SchemaContext, Unit]] = fields(
     Field(
@@ -39,8 +38,9 @@ object StyleSchema extends SchemaDefinition[Style] with SchemaQueries with Schem
   override lazy val Type: ObjectType[Unit, Style] = ObjectType(
     name = "Style",
     description = "A team style for a match",
+    interfaces = interfaces[Unit, Style](RelaySchema.nodeInterface),
     fieldsFn = () ⇒
-      idFields[Style, Int] ++ fields[Unit, Style](
+      idFields[Style] ++ fields[Unit, Style](
         Field(
           name = "shortName",
           fieldType = StringType,

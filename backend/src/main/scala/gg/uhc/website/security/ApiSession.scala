@@ -1,7 +1,6 @@
 package gg.uhc.website.security
 
 import java.time.{Duration, Instant}
-import java.util.UUID
 
 import com.softwaremill.tagging.@@
 import gg.uhc.website.CustomJsonCodec
@@ -15,7 +14,7 @@ import io.circe.syntax._
 import scalaz.Scalaz._
 
 object ApiSession {
-  case class Data(userId: UUID, username: String, email: String, permissions: Seq[String], roles: Seq[String])
+  case class Data(userId: String, username: String, email: String, permissions: Seq[String], roles: Seq[String])
 
   object Data {
     def apply(user: User, roles: Seq[Role]): Data = new Data(

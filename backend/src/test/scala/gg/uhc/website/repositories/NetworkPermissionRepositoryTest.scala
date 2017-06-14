@@ -13,8 +13,8 @@ class NetworkPermissionRepositoryTest extends FlatSpec with BaseRepositoryTest {
     check(
       repo.relationsQuery(
         Seq(
-          Relations.networkPermissionByUserId → Seq(UUID.randomUUID(), UUID.randomUUID()),
-          Relations.networkPermissionByNetworkId → Seq(1L, 2L)
+          Relations.networkPermissionByUserId → Seq(UUID.randomUUID().toString, UUID.randomUUID().toString),
+          Relations.networkPermissionByNetworkId → Seq("1", "2")
         )
       )
     )

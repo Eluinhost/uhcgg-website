@@ -12,10 +12,10 @@ class BanRepositoryTest extends FlatSpec with BaseRepositoryTest {
   val repo = new BanRepository
 
   "BanRepository" should "have valid getByIdsQuery query" in
-    check(repo.getByIdsQuery(NonEmptyList(1, 2)))
+    check(repo.getByIdsQuery(NonEmptyList("1", "2")))
 
   it should "have valid getByIdQuery query" in
-    check(repo.getByIdQuery(1L))
+    check(repo.getByIdQuery("1"))
 
   it should "have valid getAllQuery query" in
     check(repo.getAllQuery)

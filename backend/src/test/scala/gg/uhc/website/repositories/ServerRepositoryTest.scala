@@ -13,15 +13,15 @@ class ServerRepositoryTest extends FlatSpec with BaseRepositoryTest {
     check(
       repo.relationsQuery(
         Seq(
-          Relations.serverByNetworkId → Seq(1L, 2L),
-          Relations.serverByRegionId → Seq(1, 2)
+          Relations.serverByNetworkId → Seq("1", "2"),
+          Relations.serverByRegionId → Seq("1", "2")
         )
       )
     )
 
   it should "have valid getByIdQuery query" in
-    check(repo.getByIdQuery(1L))
+    check(repo.getByIdQuery("1"))
 
   it should "have valid getByIdsQuery query" in
-    check(repo.getByIdsQuery(NonEmptyList(1L, 2L)))
+    check(repo.getByIdsQuery(NonEmptyList("1", "2")))
 }

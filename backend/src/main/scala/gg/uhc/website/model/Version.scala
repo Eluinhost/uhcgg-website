@@ -1,3 +1,5 @@
 package gg.uhc.website.model
 
-case class Version(id: Int, name: String, live: Boolean) extends IdentificationFields[Int]
+import sangria.relay.Node
+
+case class Version(id: String, name: String, live: Boolean) extends Node

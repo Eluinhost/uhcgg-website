@@ -7,14 +7,13 @@ import sangria.execution.deferred.RelationIds
 class ScenarioRepository
     extends Repository[Scenario]
     with CanQuery[Scenario]
-    with CanQueryByIds[Long, Scenario]
+    with CanQueryByIds[Scenario]
     with CanQueryAll[Scenario]
     with CanQueryByRelations[Scenario] {
   import doobie.imports._
-  import doobie.postgres.imports._
 
   override val composite: Composite[Scenario] = implicitly
-  override val idParam: Param[Long]           = implicitly
+  override implicit val idType: String = "bigint"
 
   override private[repositories] val baseSelectQuery: Fragment =
     fr"SELECT id, name, description, created, modified, deleted, owner FROM scenarios"
@@ -22,6 +21,6 @@ class ScenarioRepository
 
   override def relationsFragment(relationIds: RelationIds[Scenario]): Fragment =
     Fragments.whereOrOpt(
-      simpleRelationFragment(relationIds, Relations.scenarioByOwnerId, "owner")
+      simpleRelationFragment(relationIds, Relations.scenarioByOwnerId, "owner", "uuid")
     )
 }

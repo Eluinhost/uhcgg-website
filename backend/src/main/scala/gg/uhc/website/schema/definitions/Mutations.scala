@@ -1,14 +1,13 @@
 package gg.uhc.website.schema.definitions
 
 import gg.uhc.website.schema.SchemaContext
-import gg.uhc.website.schema.scalars.UuidScalarTypeSupport
 import sangria.schema._
 import scalaz.Scalaz._
 
-object Mutations extends UuidScalarTypeSupport with SchemaSupport {
+object Mutations extends SchemaSupport {
   val usernameArg =
     Argument(name = "username", argumentType = StringType, description = "Username or email to login with")
-  val userIdArg   = Argument(name = "id", argumentType = UuidType, description = "Username or email to login with")
+  val userIdArg   = Argument(name = "id", argumentType = StringType, description = "Username or email to login with")
   val passwordArg = Argument(name = "password", argumentType = StringType, description = "Password for the account")
 
   val registerEmailArg =

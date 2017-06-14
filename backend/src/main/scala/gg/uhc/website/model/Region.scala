@@ -1,3 +1,5 @@
 package gg.uhc.website.model
 
-case class Region(id: Int, short: String, long: String) extends IdentificationFields[Int]
+import sangria.relay.Node
+
+case class Region(id: String, short: String, long: String) extends Node

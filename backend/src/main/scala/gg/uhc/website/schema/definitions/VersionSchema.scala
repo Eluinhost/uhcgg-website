@@ -7,9 +7,6 @@ import sangria.schema._
 import scalaz.Scalaz._
 
 object VersionSchema extends SchemaDefinition[Version] with SchemaQueries with SchemaSupport {
-  private val idArg  = Argument(name = "id", argumentType = StringType, description = "ID to match")
-  private val idsArg = Argument(name = "ids", argumentType = ListInputType(StringType), description = "IDs to match")
-
   override val queries: List[Field[SchemaContext, Unit]] = fields(
     Field(
       name = "versionById",
@@ -60,7 +57,7 @@ object VersionSchema extends SchemaDefinition[Version] with SchemaQueries with S
           name = "matches",
           fieldType = ListType(MatchSchema.Type), // TODO pagination + a way to filter out old ones
           description = "A list of games using this version".some,
-          resolve = ctx ⇒ Fetchers.matches.deferRelSeq(Relations.matchByVersionId, ctx.value.id)
+          resolve = ctx ⇒ Fetchers.matches.deferRelSeq(Relations.matchByVersionId, ctx.value.uuid)
         )
     )
   )

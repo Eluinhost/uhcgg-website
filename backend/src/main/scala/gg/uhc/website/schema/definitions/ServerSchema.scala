@@ -49,7 +49,7 @@ object ServerSchema extends SchemaDefinition[Server] with SchemaSupport {
           name = "owner",
           fieldType = UserSchema.Type,
           description = "The owner of this server, has control over this server".some,
-          resolve = ctx ⇒ Fetchers.users.defer(ctx.value.owner)
+          resolve = ctx ⇒ Fetchers.users.defer(ctx.value.ownerUserId)
         ),
         Field(
           name = "network",
@@ -61,13 +61,13 @@ object ServerSchema extends SchemaDefinition[Server] with SchemaSupport {
           name = "region",
           fieldType = RegionSchema.Type,
           description = "The region the server is hosted in".some,
-          resolve = ctx ⇒ Fetchers.regions.defer(ctx.value.region)
+          resolve = ctx ⇒ Fetchers.regions.defer(ctx.value.regionId)
         ),
         Field(
           name = "matches",
           fieldType = ListType(MatchSchema.Type), // TODO pagination + a way to filter out old ones
           description = "A list of games hosted on this server".some,
-          resolve = ctx ⇒ Fetchers.matches.deferRelSeq(Relations.matchByServerId, ctx.value.id)
+          resolve = ctx ⇒ Fetchers.matches.deferRelSeq(Relations.matchByServerId, ctx.value.uuid)
         )
     )
   )

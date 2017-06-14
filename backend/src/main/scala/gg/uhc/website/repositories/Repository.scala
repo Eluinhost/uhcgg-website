@@ -1,6 +1,10 @@
 package gg.uhc.website.repositories
 
+import java.util.UUID
+
 import doobie.imports._
+import doobie.postgres.imports._
+import gg.uhc.website.model.BaseNode
 import sangria.execution.deferred.{Relation, RelationIds}
 
 import scalaz.Scalaz._
@@ -27,28 +31,19 @@ trait CanQuery[A] { self: Repository[A] ⇒
   implicit def composite: Composite[A]
 }
 
-trait CanQueryByIds[A <: sangria.relay.Node] { self: CanQuery[A] with Repository[A] ⇒
+trait CanQueryByIds[A <: BaseNode] { self: CanQuery[A] with Repository[A] ⇒
   implicit val logHandler: LogHandler
-  implicit val idType: String
 
-  private[repositories] def getByIdQuery(id: String): Query0[A] =
-    (baseSelectQuery ++ Fragments.whereAnd(
-      fr0"id = $id".asInstanceOf[Fragment] ++ Fragment.const(s"::$idType ")
-    )).query[A]
+  private[repositories] def getByIdQuery(id: UUID): Query0[A] =
+    (baseSelectQuery ++ Fragments.whereAnd(fr0"uuid = $id".asInstanceOf[Fragment])).query[A]
 
-  private[repositories] def getByIdsQuery(ids: NonEmptyList[String]): Query0[A] =
-    (baseSelectQuery ++ Fragments.whereAnd(
-      columnIn(
-        "id",
-        idType,
-        ids
-      )
-    )).query[A]
+  private[repositories] def getByIdsQuery(ids: NonEmptyList[UUID]): Query0[A] =
+    (baseSelectQuery ++ Fragments.whereAnd(Fragments.in(fr"uuid".asInstanceOf[Fragment], ids))).query[A]
 
-  def getById(id: String): ConnectionIO[Option[A]] =
+  def getById(id: UUID): ConnectionIO[Option[A]] =
     getByIdQuery(id).option
 
-  def getByIds(ids: Seq[String]): ConnectionIO[List[A]] =
+  def getByIds(ids: Seq[UUID]): ConnectionIO[List[A]] =
     ids match {
       case a +: as ⇒ getByIdsQuery(NonEmptyList(a, as: _*)).list
       case _       ⇒ List.empty[A].point[ConnectionIO]

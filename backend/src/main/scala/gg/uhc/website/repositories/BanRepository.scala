@@ -13,16 +13,16 @@ class BanRepository
     with CanQueryAll[Ban]
     with CanQueryByRelations[Ban] {
   import doobie.imports._
+  import doobie.postgres.imports._
 
   override val composite: Composite[Ban] = implicitly
-  override implicit val idType: String = "bigint"
 
   override private[repositories] val baseSelectQuery: Fragment =
-    fr"SELECT id, reason, created, modified, expires, userid, author FROM bans".asInstanceOf[Fragment]
+    fr"SELECT uuid, reason, created, modified, expires, bannedUserId, authorUserId FROM bans".asInstanceOf[Fragment]
 
   override def relationsFragment(relationIds: RelationIds[Ban]): Fragment =
     Fragments.whereOrOpt(
-      simpleRelationFragment(relationIds, Relations.banByBannedUserId, "userid", "uuid")
+      simpleRelationFragment(relationIds, Relations.banByBannedUserId, "bannedUserId", "uuid")
     )
 
   private[repositories] def getByExpiredStatusQuery(showExpired: Boolean): Query0[Ban] =

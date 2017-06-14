@@ -8,10 +8,10 @@ class VersionRepository
     with CanQueryByIds[Version]
     with CanQueryAll[Version] {
   import doobie.imports._
+  import doobie.postgres.imports._
 
   override val composite: Composite[Version] = implicitly
-  override implicit val idType: String = "int"
 
   override private[repositories] val baseSelectQuery: Fragment =
-    fr"SELECT id, name, live FROM versions".asInstanceOf[Fragment]
+    fr"SELECT uuid, name, live FROM versions".asInstanceOf[Fragment]
 }

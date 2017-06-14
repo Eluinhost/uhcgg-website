@@ -7,9 +7,6 @@ import sangria.schema._
 import scalaz.Scalaz._
 
 object RegionSchema extends SchemaDefinition[Region] with SchemaQueries with SchemaSupport {
-  private val idArg  = Argument(name = "id", argumentType = StringType, description = "ID to match")
-  private val idsArg = Argument(name = "ids", argumentType = ListInputType(StringType), description = "IDs to match")
-
   override val queries: List[Field[SchemaContext, Unit]] = fields(
     Field(
       name = "regionById",
@@ -60,7 +57,7 @@ object RegionSchema extends SchemaDefinition[Region] with SchemaQueries with Sch
           name = "servers",
           fieldType = ListType(ServerSchema.Type),
           description = "List of servers in this region".some,
-          resolve = ctx ⇒ Fetchers.servers.deferRelSeq(Relations.serverByRegionId, ctx.value.id)
+          resolve = ctx ⇒ Fetchers.servers.deferRelSeq(Relations.serverByRegionId, ctx.value.uuid)
         )
     )
   )

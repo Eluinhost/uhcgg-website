@@ -1,26 +1,27 @@
 package gg.uhc.website.schema.definitions
 
+import java.util.UUID
+
 import gg.uhc.website.model._
 import gg.uhc.website.repositories._
 import gg.uhc.website.schema.SchemaContext
 import sangria.execution.deferred._
-import sangria.relay.Node
 
 object Fetchers {
-  private def simpleFetcher[A <: Node, R <: CanQueryByIds[A]](
+  private def simpleFetcher[A <: BaseNode, R <: CanQueryByIds[A]](
       repo: SchemaContext ⇒ R
-    ): Fetcher[SchemaContext, A, A, String] =
+    ): Fetcher[SchemaContext, A, A, UUID] =
     Fetcher.caching(
-      fetch = (ctx: SchemaContext, ids: Seq[String]) ⇒ ctx run repo(ctx).getByIds(ids)
-    )(HasId(_.id))
+      fetch = (ctx: SchemaContext, ids: Seq[UUID]) ⇒ ctx run repo(ctx).getByIds(ids)
+    )(HasId(_.uuid))
 
-  private def relFetcher[A <: Node, R <: CanQueryByIds[A] with CanQueryByRelations[A]](
+  private def relFetcher[A <: BaseNode, R <: CanQueryByIds[A] with CanQueryByRelations[A]](
       repo: SchemaContext ⇒ R
-    ): Fetcher[SchemaContext, A, A, String] =
+    ): Fetcher[SchemaContext, A, A, UUID] =
     Fetcher.relCaching(
-      fetch = (ctx: SchemaContext, ids: Seq[String]) ⇒ ctx run repo(ctx).getByIds(ids),
+      fetch = (ctx: SchemaContext, ids: Seq[UUID]) ⇒ ctx run repo(ctx).getByIds(ids),
       fetchRel = (ctx: SchemaContext, ids: RelationIds[A]) ⇒ ctx run repo(ctx).getByRelations(ids)
-    )(HasId(_.id))
+    )(HasId(_.uuid))
 
   private def relOnlyFetcher[A, R <: CanQueryByRelations[A]](
       repo: SchemaContext ⇒ R

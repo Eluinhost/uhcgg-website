@@ -7,9 +7,6 @@ import sangria.schema._
 import scalaz.Scalaz._
 
 object StyleSchema extends SchemaDefinition[Style] with SchemaQueries with SchemaSupport {
-  private val idArg  = Argument(name = "id", argumentType = StringType, description = "ID to match")
-  private val idsArg = Argument(name = "ids", argumentType = ListInputType(StringType), description = "IDs to match")
-
   override val queries: List[Field[SchemaContext, Unit]] = fields(
     Field(
       name = "styleById",
@@ -70,7 +67,7 @@ object StyleSchema extends SchemaDefinition[Style] with SchemaQueries with Schem
           name = "matches",
           fieldType = ListType(MatchSchema.Type), // TODO pagination + a way to filter out old ones
           description = "A list of games using this style".some,
-          resolve = ctx ⇒ Fetchers.matches.deferRelSeq(Relations.matchByStyleId, ctx.value.id)
+          resolve = ctx ⇒ Fetchers.matches.deferRelSeq(Relations.matchByStyleId, ctx.value.uuid)
         )
     )
   )

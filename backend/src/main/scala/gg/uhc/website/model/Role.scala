@@ -1,5 +1,5 @@
 package gg.uhc.website.model
 
-import sangria.relay.Node
+import java.util.UUID
 
-case class Role(id: String, name: String, permissions: List[String]) extends Node
+case class Role(uuid: UUID, name: String, permissions: List[String]) extends BaseNode

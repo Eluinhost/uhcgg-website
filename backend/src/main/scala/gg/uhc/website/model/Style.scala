@@ -1,6 +1,6 @@
 package gg.uhc.website.model
 
-import sangria.relay.Node
+import java.util.UUID
 
-case class Style(id: String, shortName: String, fullName: String, description: String, requiresSize: Boolean)
-    extends Node
+case class Style(uuid: UUID, shortName: String, fullName: String, description: String, requiresSize: Boolean)
+    extends BaseNode

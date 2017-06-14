@@ -11,15 +11,15 @@ class NetworkRepository
     with CanQueryAll[Network]
     with CanQueryByRelations[Network] {
   import doobie.imports._
+  import doobie.postgres.imports._
 
   override val composite: Composite[Network] = implicitly
-  override implicit val idType: String = "bigint"
 
   override private[repositories] val baseSelectQuery: Fragment =
-    fr"SELECT id, name, tag, description, created, modified, deleted, owner FROM networks".asInstanceOf[Fragment]
+    fr"SELECT uuid, name, tag, description, created, modified, deleted, ownerUserId FROM networks".asInstanceOf[Fragment]
 
   override def relationsFragment(relationIds: RelationIds[Network]): Fragment =
     Fragments.whereOrOpt(
-      simpleRelationFragment(relationIds, Relations.networkByUserId, "owner", "uuid")
+      simpleRelationFragment(relationIds, Relations.networkByUserId, "ownerUserId", "uuid")
     )
 }

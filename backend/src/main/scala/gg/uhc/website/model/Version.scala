@@ -1,5 +1,5 @@
 package gg.uhc.website.model
 
-import sangria.relay.Node
+import java.util.UUID
 
-case class Version(id: String, name: String, live: Boolean) extends Node
+case class Version(uuid: UUID, name: String, live: Boolean) extends BaseNode

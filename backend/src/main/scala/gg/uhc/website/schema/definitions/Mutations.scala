@@ -7,7 +7,7 @@ import scalaz.Scalaz._
 object Mutations extends SchemaSupport {
   val usernameArg =
     Argument(name = "username", argumentType = StringType, description = "Username or email to login with")
-  val userIdArg   = Argument(name = "id", argumentType = StringType, description = "Username or email to login with")
+  val userIdArg   = Argument(name = "id", argumentType = UuidType, description = "Username or email to login with") // TODO don't require ID
   val passwordArg = Argument(name = "password", argumentType = StringType, description = "Password for the account")
 
   val registerEmailArg =

@@ -1,5 +1,5 @@
 package gg.uhc.website.model
 
-import sangria.relay.Node
+import java.util.UUID
 
-case class Region(id: String, short: String, long: String) extends Node
+case class Region(uuid: UUID, short: String, long: String) extends BaseNode

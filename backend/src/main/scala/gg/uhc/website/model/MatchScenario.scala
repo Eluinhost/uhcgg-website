@@ -1,3 +1,5 @@
 package gg.uhc.website.model
 
-case class MatchScenario(matchId: String, scenarioId: String)
+import java.util.UUID
+
+case class MatchScenario(matchId: UUID, scenarioId: UUID)

@@ -1,3 +1,5 @@
 package gg.uhc.website.model
 
-case class UserRole(userId: String, roleId: String)
+import java.util.UUID
+
+case class UserRole(userId: UUID, roleId: UUID)

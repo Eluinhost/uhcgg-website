@@ -1,11 +1,7 @@
 package gg.uhc.website.repositories
 
-import java.util.UUID
-
 import gg.uhc.website.schema.definitions.Relations
 import org.scalatest._
-
-import scalaz.NonEmptyList
 
 @DoNotDiscover
 class NetworkRepositoryTest extends FlatSpec with BaseRepositoryTest {
@@ -15,16 +11,16 @@ class NetworkRepositoryTest extends FlatSpec with BaseRepositoryTest {
     check(repo.getAllQuery)
 
   it should "have valid getByIdQuery query" in
-    check(repo.getByIdQuery("1"))
+    check(repo.getByIdQuery(randId))
 
   it should "have valid getByIdsQuery query" in
-    check(repo.getByIdsQuery(NonEmptyList("1", "2")))
+    check(repo.getByIdsQuery(randIds))
 
   it should "have valid relationsQuery query" in
     check(
       repo.relationsQuery(
         Seq(
-          Relations.networkByUserId → Seq(UUID.randomUUID().toString, UUID.randomUUID().toString)
+          Relations.networkByUserId → randIdsSeq
         )
       )
     )

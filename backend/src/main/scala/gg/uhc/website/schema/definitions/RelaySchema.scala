@@ -1,6 +1,8 @@
 package gg.uhc.website.schema.definitions
+import java.util.UUID
+
 import gg.uhc.website.schema.SchemaContext
-import sangria.relay.{GlobalId, Node, NodeDefinition, PossibleNodeObject}
+import sangria.relay.{GlobalId, Node, NodeDefinition}
 import sangria.schema._
 
 object RelaySchema extends SchemaQueries {
@@ -8,7 +10,7 @@ object RelaySchema extends SchemaQueries {
     (globalId, _) ⇒
       globalId.typeName match {
         case "Network" ⇒
-          Fetchers.networks.deferOpt(globalId.id)
+          Fetchers.networks.deferOpt(UUID.fromString(globalId.id))
         case _ ⇒
           Value(None)
     }

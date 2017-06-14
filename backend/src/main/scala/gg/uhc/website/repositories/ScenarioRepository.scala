@@ -11,16 +11,16 @@ class ScenarioRepository
     with CanQueryAll[Scenario]
     with CanQueryByRelations[Scenario] {
   import doobie.imports._
+  import doobie.postgres.imports._
 
   override val composite: Composite[Scenario] = implicitly
-  override implicit val idType: String = "bigint"
 
   override private[repositories] val baseSelectQuery: Fragment =
-    fr"SELECT id, name, description, created, modified, deleted, owner FROM scenarios"
+    fr"SELECT uuid, name, description, created, modified, deleted, ownerUserId FROM scenarios"
       .asInstanceOf[Fragment]
 
   override def relationsFragment(relationIds: RelationIds[Scenario]): Fragment =
     Fragments.whereOrOpt(
-      simpleRelationFragment(relationIds, Relations.scenarioByOwnerId, "owner", "uuid")
+      simpleRelationFragment(relationIds, Relations.scenarioByOwnerId, "ownerUserId", "uuid")
     )
 }

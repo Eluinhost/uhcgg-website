@@ -1,5 +1,7 @@
 package gg.uhc.website.repositories
 
+import java.util.UUID
+
 import com.github.t3hnar.bcrypt._
 import gg.uhc.website.CustomJsonCodec
 import gg.uhc.website.model.User
@@ -9,15 +11,15 @@ import scalaz.Scalaz._
 
 class UserRepository extends Repository[User] with CanQuery[User] with CanQueryByIds[User] with CustomJsonCodec {
   import doobie.imports._
+  import doobie.postgres.imports._
 
   override val composite: Composite[User] = implicitly
-  override val idType: String = "uuid"
 
   override private[repositories] val baseSelectQuery: Fragment =
-    fr"SELECT id, username, email, password, created, modified FROM users".asInstanceOf[Fragment]
+    fr"SELECT uuid, username, email, password, created, modified FROM users".asInstanceOf[Fragment]
 
-  private[repositories] def changePasswordQuery(id: String, password: String): Update0 =
-    sql"UPDATE users SET password = ${password.bcrypt} WHERE id = $id::uuid"
+  private[repositories] def changePasswordQuery(id: UUID, password: String): Update0 =
+    sql"UPDATE users SET password = ${password.bcrypt} WHERE uuid = $id"
       .asInstanceOf[Fragment]
       .update
 
@@ -43,13 +45,13 @@ class UserRepository extends Repository[User] with CanQuery[User] with CanQueryB
       fr"email = $login".asInstanceOf[Fragment]
     )).query[User]
 
-  def changePassword(id: String, password: String): ConnectionIO[Boolean] =
+  def changePassword(id: UUID, password: String): ConnectionIO[Boolean] =
     changePasswordQuery(id, password).run
       .map(_ > 0)
 
   def createUser(username: String, email: String, password: String): ConnectionIO[User] =
     createUserQuery(username, email, password)
-      .withUniqueGeneratedKeys[User]("id", "username", "email", "password", "created", "modified")
+      .withUniqueGeneratedKeys[User]("uuid", "username", "email", "password", "created", "modified")
 
   def isUsernameInUse(username: String): ConnectionIO[Boolean] =
     checkUsernameInUseQuery(username).unique.map(_ > 0)

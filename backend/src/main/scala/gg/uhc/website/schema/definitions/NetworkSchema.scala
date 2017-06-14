@@ -7,9 +7,6 @@ import sangria.schema._
 import scalaz.Scalaz._
 
 object NetworkSchema extends SchemaDefinition[Network] with SchemaQueries with SchemaSupport {
-  private val idArg  = Argument(name = "id", argumentType = StringType, description = "ID to match")
-  private val idsArg = Argument(name = "ids", argumentType = ListInputType(StringType), description = "IDs to match")
-
   override val queries: List[Field[SchemaContext, Unit]] = fields(
     Field(
       name = "networkById",
@@ -70,19 +67,19 @@ object NetworkSchema extends SchemaDefinition[Network] with SchemaQueries with S
           name = "owner",
           fieldType = UserSchema.Type,
           description = "The owner of the network, has full control".some,
-          resolve = ctx ⇒ Fetchers.users.defer(ctx.value.owner)
+          resolve = ctx ⇒ Fetchers.users.defer(ctx.value.ownerUserId)
         ),
         Field(
           name = "servers", // TODO pagination
           fieldType = ListType(ServerSchema.Type),
           description = "All of the servers belonging to this network".some,
-          resolve = ctx ⇒ Fetchers.servers.deferRelSeq(Relations.serverByNetworkId, ctx.value.id)
+          resolve = ctx ⇒ Fetchers.servers.deferRelSeq(Relations.serverByNetworkId, ctx.value.uuid)
         ),
         Field(
           name = "permissions", // TODO pagination
           fieldType = ListType(NetworkPermissionSchema.Type),
           description = "A list of all users with permissions".some,
-          resolve = ctx ⇒ Fetchers.networkPermissions.deferRelSeq(Relations.networkPermissionByNetworkId, ctx.value.id)
+          resolve = ctx ⇒ Fetchers.networkPermissions.deferRelSeq(Relations.networkPermissionByNetworkId, ctx.value.uuid)
         )
     )
   )

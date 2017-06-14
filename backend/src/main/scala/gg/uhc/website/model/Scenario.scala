@@ -1,17 +1,16 @@
 package gg.uhc.website.model
 
 import java.time.Instant
-
-import sangria.relay.Node
+import java.util.UUID
 
 case class Scenario(
-    id: String,
+    uuid: UUID,
     name: String,
     description: String,
     created: Instant,
     modified: Instant,
     deleted: Boolean,
-    owner: String)
-    extends Node
+    ownerUserId: UUID)
+    extends BaseNode
     with ModificationTimesFields
     with DeleteableFields

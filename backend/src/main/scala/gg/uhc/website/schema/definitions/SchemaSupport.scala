@@ -3,7 +3,7 @@ package gg.uhc.website.schema.definitions
 import doobie.imports.ConnectionIO
 import gg.uhc.website.model._
 import gg.uhc.website.schema.SchemaContext
-import gg.uhc.website.schema.scalars.{InetAddressScalarTypeSupport, InstantScalarTypeSupport}
+import gg.uhc.website.schema.scalars.{InetAddressScalarTypeSupport, InstantScalarTypeSupport, UuidScalarTypeSupport}
 import sangria.relay._
 import sangria.schema._
 
@@ -17,8 +17,11 @@ trait SchemaQueries {
   val queries: List[Field[SchemaContext, Unit]]
 }
 
-trait SchemaSupport extends InetAddressScalarTypeSupport with InstantScalarTypeSupport {
+trait SchemaSupport extends InetAddressScalarTypeSupport with InstantScalarTypeSupport with UuidScalarTypeSupport {
   import scala.language.implicitConversions
+
+  val idArg  = Argument(name = "id", argumentType = UuidType, description = "ID to match")
+  val idsArg = Argument(name = "ids", argumentType = ListInputType(UuidType), description = "IDs to match")
 
   implicit def connectionIO2FutureAction[A](
       value: ConnectionIO[A]
@@ -42,12 +45,12 @@ trait SchemaSupport extends InetAddressScalarTypeSupport with InstantScalarTypeS
   /**
     * Generic ID field for all things with an ID
     */
-  def idFields[T: Identifiable]: List[Field[Unit, T]] = fields[Unit, T](
+  def idFields[T <: BaseNode]: List[Field[Unit, T]] = fields[Unit, T](
     Node.globalIdField[Unit, T],
     Field(
       name = "rawId",
-      fieldType = StringType,
-      resolve = ctx ⇒ implicitly[Identifiable[T]].id(ctx.value),
+      fieldType = UuidType,
+      resolve = ctx ⇒ ctx.value.uuid,
       description = "The raw unique ID of this item".some
     )
   )

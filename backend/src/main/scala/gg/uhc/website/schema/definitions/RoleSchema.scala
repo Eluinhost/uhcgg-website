@@ -7,9 +7,6 @@ import sangria.schema._
 import scalaz.Scalaz._
 
 object RoleSchema extends SchemaDefinition[Role] with SchemaQueries with SchemaSupport {
-  private val idArg  = Argument(name = "id", argumentType = StringType, description = "ID to match")
-  private val idsArg = Argument(name = "ids", argumentType = ListInputType(StringType), description = "IDs to match")
-
   override val queries: List[Field[SchemaContext, Unit]] = fields(
     Field(
       name = "roleById",
@@ -60,7 +57,7 @@ object RoleSchema extends SchemaDefinition[Role] with SchemaQueries with SchemaS
           name = "users",
           fieldType = ListType(UserRoleSchema.Type),
           description = "List of UserRole objects to get users with this role".some,
-          resolve = ctx ⇒ Fetchers.userRoles.deferRelSeq(Relations.userRoleByRoleId, ctx.value.id)
+          resolve = ctx ⇒ Fetchers.userRoles.deferRelSeq(Relations.userRoleByRoleId, ctx.value.uuid)
         )
     )
   )

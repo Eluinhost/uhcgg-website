@@ -49,13 +49,13 @@ object BanSchema extends SchemaDefinition[Ban] with SchemaQueries with SchemaSup
           name = "user",
           fieldType = UserSchema.Type,
           description = "The user that this ban applies to".some,
-          resolve = ctx ⇒ Fetchers.users.defer(ctx.value.userId)
+          resolve = ctx ⇒ Fetchers.users.defer(ctx.value.bannedUserId)
         ),
         Field(
           name = "author",
           fieldType = UserSchema.Type,
           description = "The user that created this ban".some,
-          resolve = ctx ⇒ Fetchers.users.defer(ctx.value.author)
+          resolve = ctx ⇒ Fetchers.users.defer(ctx.value.authorUserId)
         )
     )
   )

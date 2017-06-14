@@ -1,7 +1,5 @@
 package gg.uhc.website.repositories
 
-import java.util.UUID
-
 import org.scalatest._
 
 import scalaz.NonEmptyList
@@ -11,7 +9,7 @@ class UserRepositoryTest extends FlatSpec with BaseRepositoryTest {
   val repo = new UserRepository
 
   "UserRepository" should "have valid changePasswordQuery query" in
-    check(repo.changePasswordQuery(UUID.randomUUID().toString, "test"))
+    check(repo.changePasswordQuery(randId, "test"))
 
   it should "have valid createUserQuery query" in
     check(repo.createUserQuery("name", "email", "password"))
@@ -20,10 +18,10 @@ class UserRepositoryTest extends FlatSpec with BaseRepositoryTest {
     check(repo.checkUsernameInUseQuery("test"))
 
   it should "have valid getByIdQuery query" in
-    check(repo.getByIdQuery(UUID.randomUUID().toString))
+    check(repo.getByIdQuery(randId))
 
   it should "have valid getByIdsQuery query" in
-    check(repo.getByIdsQuery(NonEmptyList(UUID.randomUUID().toString, UUID.randomUUID().toString)))
+    check(repo.getByIdsQuery(randIds))
 
   it should "have valid getByUsernameQuery query" in
     check(repo.getByUsernameQuery("test"))

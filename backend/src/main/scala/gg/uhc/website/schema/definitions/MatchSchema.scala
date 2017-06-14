@@ -7,9 +7,6 @@ import sangria.schema._
 import scalaz.Scalaz._
 
 object MatchSchema extends SchemaDefinition[Match] with SchemaQueries with SchemaSupport {
-  private val idArg  = Argument(name = "id", argumentType = StringType, description = "ID to match")
-  private val idsArg = Argument(name = "ids", argumentType = ListInputType(StringType), description = "IDs to match")
-
   override val queries: List[Field[SchemaContext, Unit]] = fields(
     Field(
       name = "matchById",
@@ -57,7 +54,7 @@ object MatchSchema extends SchemaDefinition[Match] with SchemaQueries with Schem
           name = "host",
           fieldType = UserSchema.Type,
           description = "The host for this match".some,
-          resolve = ctx ⇒ Fetchers.users.defer(ctx.value.host)
+          resolve = ctx ⇒ Fetchers.users.defer(ctx.value.hostUserId)
         ),
         Field(
           name = "server",
@@ -81,7 +78,7 @@ object MatchSchema extends SchemaDefinition[Match] with SchemaQueries with Schem
           name = "scenarios",
           fieldType = ListType(MatchScenarioSchema.Type), // TODO pagination
           description = "Scenarios for this match".some,
-          resolve = ctx ⇒ Fetchers.matchScenarios.deferRelSeq(Relations.matchScenarioByMatchId, ctx.value.id)
+          resolve = ctx ⇒ Fetchers.matchScenarios.deferRelSeq(Relations.matchScenarioByMatchId, ctx.value.uuid)
         )
     )
   )

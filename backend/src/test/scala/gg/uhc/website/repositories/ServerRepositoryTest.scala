@@ -3,8 +3,6 @@ package gg.uhc.website.repositories
 import gg.uhc.website.schema.definitions.Relations
 import org.scalatest._
 
-import scalaz.NonEmptyList
-
 @DoNotDiscover
 class ServerRepositoryTest extends FlatSpec with BaseRepositoryTest {
   val repo = new ServerRepository
@@ -13,15 +11,15 @@ class ServerRepositoryTest extends FlatSpec with BaseRepositoryTest {
     check(
       repo.relationsQuery(
         Seq(
-          Relations.serverByNetworkId → Seq("1", "2"),
-          Relations.serverByRegionId → Seq("1", "2")
+          Relations.serverByNetworkId → randIdsSeq,
+          Relations.serverByRegionId → randIdsSeq
         )
       )
     )
 
   it should "have valid getByIdQuery query" in
-    check(repo.getByIdQuery("1"))
+    check(repo.getByIdQuery(randId))
 
   it should "have valid getByIdsQuery query" in
-    check(repo.getByIdsQuery(NonEmptyList("1", "2")))
+    check(repo.getByIdsQuery(randIds))
 }

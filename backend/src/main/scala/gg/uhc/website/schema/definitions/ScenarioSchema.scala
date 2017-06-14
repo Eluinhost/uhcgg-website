@@ -7,9 +7,6 @@ import sangria.schema._
 import scalaz.Scalaz._
 
 object ScenarioSchema extends SchemaDefinition[Scenario] with SchemaQueries with SchemaSupport {
-  private val idArg  = Argument(name = "id", argumentType = StringType, description = "ID to match")
-  private val idsArg = Argument(name = "ids", argumentType = ListInputType(StringType), description = "IDs to match")
-
   override val queries: List[Field[SchemaContext, Unit]] = fields(
     Field(
       name = "scenarioById",
@@ -58,13 +55,13 @@ object ScenarioSchema extends SchemaDefinition[Scenario] with SchemaQueries with
           name = "owner",
           fieldType = UserSchema.Type,
           description = "The owner of this scenario".some,
-          resolve = ctx ⇒ Fetchers.users.defer(ctx.value.owner)
+          resolve = ctx ⇒ Fetchers.users.defer(ctx.value.ownerUserId)
         ),
         Field(
           name = "matches",
           fieldType = ListType(MatchScenarioSchema.Type),
           description = "Matches with this scenario".some, // TODO pagination + filtering
-          resolve = ctx ⇒ Fetchers.matchScenarios.deferRelSeq(Relations.matchScenarioByScenarioId, ctx.value.id)
+          resolve = ctx ⇒ Fetchers.matchScenarios.deferRelSeq(Relations.matchScenarioByScenarioId, ctx.value.uuid)
         )
     )
   )

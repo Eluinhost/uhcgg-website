@@ -11,8 +11,7 @@ class RoleRepository
   import doobie.postgres.imports._
 
   override val composite: Composite[Role] = implicitly
-  override implicit val idType: String = "int"
 
   override private[repositories] val baseSelectQuery: Fragment =
-    fr"SELECT id, name, permissions FROM roles".asInstanceOf[Fragment]
+    fr"SELECT uuid, name, permissions FROM roles".asInstanceOf[Fragment]
 }

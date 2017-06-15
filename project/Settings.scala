@@ -66,6 +66,7 @@ object Settings {
       "com.softwaremill.macwire"           %% "macros"           % versions.macwire % Provided,
       "com.softwaremill.macwire"           %% "util"             % versions.macwire,
       "org.sangria-graphql"                %% "sangria"          % versions.sangria,
+      "org.sangria-graphql"                %% "sangria-relay"    % versions.sangria,
       "org.sangria-graphql"                %% "sangria-circe"    % versions.sangriaCirce,
       "com.pauldijou"                      %% "jwt-circe"        % versions.jwtCirce,
       "org.scalatest"                      %% "scalatest"        % versions.scalatest % "test"

@@ -5,7 +5,7 @@
   "scripts": {
     "build": "webpack -p --env.production",
     "dev": "webpack-dev-server --env.development --watch",
-    "schema": "apollo-codegen introspect-schema http://localhost:9000/api/graphql --output src/main/graphql/schema.json",
+    "schema": "apollo-codegen introspect-schema http://localhost:10000/api/graphql --output src/main/graphql/schema.json",
     "graphql": "apollo-codegen generate src/main/graphql/**/*.graphql --schema src/main/graphql/schema.json --target typescript --output src/main/typescript/graphql.tsx"
   },
   "license": "MIT",

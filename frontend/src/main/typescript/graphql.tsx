@@ -5,7 +5,7 @@ export interface NetworksQuery {
   // Fetches all versions
   networks: Array< {
     __typename: string,
-    // The unique ID of this item
+    // The ID of an object
     id: string,
     // The unique name of this network
     name: string,
@@ -20,7 +20,7 @@ export interface NetworksQuery {
     // All of the servers belonging to this network
     servers: Array< {
       __typename: string,
-      // The unique ID of this item
+      // The ID of an object
       id: string,
       // The unique name (per-network) of this server
       name: string,
@@ -51,7 +51,7 @@ export interface RegisterMutationVariables {
 export interface RegisterMutation {
   register: {
     __typename: string,
-    // The unique ID of this item
+    // The ID of an object
     id: string,
     // The unique username of this user
     username: string,

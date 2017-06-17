@@ -47,6 +47,7 @@
     <bean id="uniqueServerNounValidator" class="UniqueValidator"/>
     <bean id="uniqueNetworkNounValidator" class="UniqueValidator"/>
     <bean id="uniqueNetworkTagValidator" class="UniqueValidator"/>
+    <bean id="uniqueUsernameValidator" class="UniqueValidator"/>
 
     <memstore id="store"/>
 
@@ -61,7 +62,7 @@
         <variable name="userNoun" generator="NounGenerator"/>
 
         <id name="uuid" generator="uuidGen" unique="true"/>
-        <attribute name="username" unique="true" source="usernames.csv"/>
+        <attribute name="username" source="usernames.wgt.csv" validator="uniqueUsernameValidator"/>
         <attribute name="email" source="person.email" unique="true"/>
         <attribute name="password" source="userNoun.singular" converter="passwordConverter"/>
         <attribute name="created" generator="dtGen"/>
@@ -99,8 +100,8 @@
                 <reference name="ownerUserId" targetType="users" script="user.uuid"/>
 
                 <id name="uuid" generator="uuidGen" unique="true"/>
-                <attribute name="name" source="networkNames.csv" validator="uniqueNetworkNounValidator" />
-                <attribute name="tag" source="networkTags.csv" validator="uniqueNetworkTagValidator" />
+                <attribute name="name" source="networkNames.wgt.csv" validator="uniqueNetworkNounValidator" />
+                <attribute name="tag" source="networkTags.wgt.csv" validator="uniqueNetworkTagValidator" />
                 <attribute name="description" generator="NounGenerator"/>
                 <attribute name="created" generator="dtGen"/>
                 <attribute name="modified" generator="dtGen"/> <!-- TODO validate after created -->
@@ -133,7 +134,7 @@
                     <attribute name="ip" generator="ipGenerator"/>
                     <attribute name="port" type="int" min="1" max="65565"/>
                     <attribute name="location" generator="NounGenerator"/>
-                    <attribute name="regionId" type="string" source="regions.csv" distribution="random"/>
+                    <attribute name="regionId" type="string" source="regions.wgt.csv" distribution="random"/>
                     <attribute name="created" generator="dtGen"/>
                     <attribute name="modified" generator="dtGen"/> <!-- TODO validate after created -->
                     <attribute name="deleted" type="boolean" trueQuota="0.05"/>
@@ -170,7 +171,7 @@
         <variable name="name" generator="NounGenerator" validator="UniqueValidator"/>
 
         <id name="uuid" generator="uuidGen" unique="true"/>
-        <attribute name="name" source="scenarioNames.csv" unique="true"/>
+        <attribute name="name" source="scenarioNames.wgt.csv" validator="uniqueUsernameValidator"/>
         <attribute name="description" script="name.singular"/>
         <attribute name="created" generator="dtGen"/>
         <attribute name="modified" generator="dtGen"/>
@@ -215,7 +216,7 @@
             <attribute name="ip" generator="ipGenerator"/>
             <attribute name="port" type="int" min="1" max="65565"/>
             <attribute name="location" generator="NounGenerator"/>
-            <attribute name="regionId" type="string" source="regions.csv" distribution="random"/>
+            <attribute name="regionId" type="string" source="regions.wgt.csv" distribution="random"/>
             <attribute name="created" generator="dtGen"/>
             <attribute name="modified" generator="dtGen"/> <!-- TODO validate after created -->
             <attribute name="deleted" type="boolean" trueQuota="0.05"/>

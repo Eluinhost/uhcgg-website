@@ -9,6 +9,7 @@ import { NetworksQuery } from '../graphql';
 
 interface IServer {
     id: string,
+    rawId: string,
     name: string,
     ip: string,
     port: number | null,
@@ -17,13 +18,22 @@ interface IServer {
     region: {
         short: string
     }
+    owner: {
+        id: string,
+        rawId: string,
+        username: string
+    }
 }
 
 interface INetwork {
     id: string,
+    rawId: string,
+    description: string
     name: string,
     tag: string,
     owner: {
+        id: string,
+        rawId: string,
         username: string
     },
     servers: Array<IServer>
@@ -33,24 +43,25 @@ const networkColumns: TableColumnConfig<INetwork>[] = [
     {
         title: 'Tag',
         dataIndex: 'tag',
-        width: 150,
         render: text => <span style={{ fontWeight: 'bold' }}>{ text }</span>
     },
     {
         title: 'Name',
         dataIndex: 'name',
-        width: 150
     },
     {
         title: 'Server Count',
         dataIndex: 'servers.length',
-        width: 100
     },
     {
         title: 'Owner',
         dataIndex: 'owner.username',
-        render: text => <Link to="/">{ text }</Link> // TODO point to userpage?
+        render: text => <Link to={`/users/${text}`}>/u/{ text}</Link>
     },
+    {
+        title: 'Id',
+        dataIndex: 'rawId'
+    }
 ];
 
 const serverColumns: TableColumnConfig<IServer>[] = [
@@ -71,8 +82,17 @@ const serverColumns: TableColumnConfig<IServer>[] = [
         dataIndex: 'region.short'
     },
     {
-        title: 'location',
+        title: 'Location',
         dataIndex: 'location'
+    },
+    {
+        title: 'Owner',
+        dataIndex: 'owner.username',
+        render: text => <Link to={`/users/${text}`}>/u/{ text}</Link>
+    },
+    {
+        title: 'Id',
+        dataIndex: 'rawId'
     }
 ];
 
@@ -112,14 +132,19 @@ export const NetworkListComponent = graphql<NetworksQuery>(queryNetworks)(({ dat
             pagination={false}
             bordered={true}
             expandedRowRender={(record: INetwork) =>
-                <ServerTable
-                    dataSource={record.servers}
-                    columns={serverColumns}
-                    rowKey={_ => _.id}
-                    pagination={false}
-                    bordered={false}
-                    size="small"
-                />
+                <div>
+                    <h2>Servers</h2>
+                    <ServerTable
+                        dataSource={record.servers}
+                        columns={serverColumns}
+                        rowKey={_ => _.id}
+                        pagination={false}
+                        bordered={false}
+                        size="small"
+                    />
+                    <h2>Description</h2>
+                    { record.description }
+                </div>
             }
         />
     </div>;

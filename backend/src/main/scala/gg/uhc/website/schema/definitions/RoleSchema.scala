@@ -1,43 +1,34 @@
 package gg.uhc.website.schema.definitions
 
-import gg.uhc.website.model.Role
+import gg.uhc.website.model.{Role, UserRole}
 import gg.uhc.website.schema.SchemaContext
+import gg.uhc.website.schema.helpers.ConnectionHelpers._
+import gg.uhc.website.schema.helpers.ConnectionIOConverters._
+import gg.uhc.website.schema.helpers.FieldHelpers._
+
 import sangria.schema._
 
 import scalaz.Scalaz._
 
-object RoleSchema extends SchemaDefinition[Role] with SchemaQueries with SchemaSupport {
+object RoleSchema extends HasSchemaType[Role] with HasSchemaQueries {
   override val queries: List[Field[SchemaContext, Unit]] = fields(
     Field(
-      name = "roleById",
-      fieldType = OptionType(Type),
-      arguments = idArg :: Nil,
-      resolve = implicit ctx ⇒ Fetchers.roles.deferOpt(idArg.resolve),
-      description = "Looks up a role with the given id".some
-    ),
-    Field(
-      name = "rolesByIds",
-      fieldType = ListType(Type),
-      arguments = idsArg :: Nil,
-      complexity = Some((_, args, childScore) ⇒ 20 + (args.arg(idsArg).length * childScore)),
-      resolve = implicit ctx ⇒ Fetchers.roles.deferSeqOpt(idsArg.resolve),
-      description = "Looks up roles with the given ids".some
-    ),
-    Field(
       "roles",
-      ListType(Type), // TODO pagination
+      ListType(Type), // TODO replace with a connection for pagination purposes
       arguments = Nil,
       resolve = implicit ctx ⇒ ctx.ctx.roles.getAll,
       description = "Fetches all roles".some
     )
   )
 
-  override lazy val Type: ObjectType[Unit, Role] = ObjectType(
+  override lazy val Type: ObjectType[SchemaContext, Role] = ObjectType[SchemaContext, Role](
     name = "Role",
     description = "A website role to grant permission to a user",
-    interfaces = interfaces[Unit, Role](RelaySchema.nodeInterface),
+    interfaces = interfaces[SchemaContext, Role](RelaySchema.nodeInterface),
     fieldsFn = () ⇒
-      idFields[Role] ++ fields[Unit, Role](
+      fields[SchemaContext, Role](
+        globalIdField,
+        rawIdField,
         Field(
           name = "name",
           fieldType = StringType,
@@ -50,14 +41,13 @@ object RoleSchema extends SchemaDefinition[Role] with SchemaQueries with SchemaS
           description = "The granted permissions for users with this role".some,
           resolve = _.value.permissions
         ),
-        //////////////////////////
-        // Relations below here //
-        //////////////////////////
-        Field(
+        // Connections below here
+        simpleConnectionField[Role, UserRole](
           name = "users",
-          fieldType = ListType(UserRoleSchema.Type),
-          description = "List of UserRole objects to get users with this role".some,
-          resolve = ctx ⇒ Fetchers.userRoles.deferRelSeq(Relations.userRoleByRoleId, ctx.value.uuid)
+          target = UserRoleSchema.Type,
+          description = "List of UserRole objects to get users with this role",
+          action = _.userRoles.getByUserId,
+          cursorFn = _.roleId.toString
         )
     )
   )

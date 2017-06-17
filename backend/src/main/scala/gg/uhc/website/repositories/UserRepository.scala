@@ -9,13 +9,13 @@ import gg.uhc.website.model.User
 import scalaz.NonEmptyList
 import scalaz.Scalaz._
 
-class UserRepository extends Repository[User] with CanQuery[User] with CanQueryByIds[User] with CustomJsonCodec {
+class UserRepository extends Repository[User] with CanQueryByIds[User] with CustomJsonCodec {
   import doobie.imports._
   import doobie.postgres.imports._
 
-  override val composite: Composite[User] = implicitly
+  override private[repositories] val composite: Composite[User] = implicitly
 
-  override private[repositories] val baseSelectQuery: Fragment =
+  override private[repositories] val select: Fragment =
     fr"SELECT uuid, username, email, password, created, modified FROM users".asInstanceOf[Fragment]
 
   private[repositories] def changePasswordQuery(id: UUID, password: String): Update0 =
@@ -34,13 +34,13 @@ class UserRepository extends Repository[User] with CanQuery[User] with CanQueryB
       .query[Long]
 
   private[repositories] def getByUsernamesQuery(usernames: NonEmptyList[String]): Query0[User] =
-    (baseSelectQuery ++ Fragments.whereAnd(Fragments.in(fr"username".asInstanceOf[Fragment], usernames))).query[User]
+    (select ++ Fragments.whereAnd(Fragments.in(fr"username".asInstanceOf[Fragment], usernames))).query[User]
 
   private[repositories] def getByUsernameQuery(username: String): Query0[User] =
-    (baseSelectQuery ++ Fragments.whereAnd(fr"username = $username".asInstanceOf[Fragment])).query[User]
+    (select ++ Fragments.whereAnd(fr"username = $username".asInstanceOf[Fragment])).query[User]
 
   private[repositories] def getByUsernameOrEmailQuery(login: String): Query0[User] =
-    (baseSelectQuery ++ Fragments.whereOr(
+    (select ++ Fragments.whereOr(
       fr"username = $login".asInstanceOf[Fragment],
       fr"email = $login".asInstanceOf[Fragment]
     )).query[User]

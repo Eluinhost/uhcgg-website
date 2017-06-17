@@ -1,25 +1,25 @@
 package gg.uhc.website.repositories
 
 import gg.uhc.website.model.NetworkPermission
-import gg.uhc.website.schema.definitions.Relations
-import sangria.execution.deferred.RelationIds
 
-class NetworkPermissionRepository
-    extends Repository[NetworkPermission]
-    with CanQuery[NetworkPermission]
-    with CanQueryByRelations[NetworkPermission] {
+class NetworkPermissionRepository extends Repository[NetworkPermission] {
   import doobie.imports._
   import doobie.postgres.imports._
 
-  override val composite: Composite[NetworkPermission] = implicitly
+  override private[repositories] val composite: Composite[NetworkPermission] = implicitly
 
-  override private[repositories] val baseSelectQuery: Fragment =
+  override private[repositories] val select: Fragment =
     fr"SELECT networkId, userId, isadmin FROM network_permissions".asInstanceOf[Fragment]
 
-  override def relationsFragment(relationIds: RelationIds[NetworkPermission]): Fragment =
-    Fragments.whereOrOpt(
-      simpleRelationFragment(relationIds, Relations.networkPermissionByNetworkId, "networkId", "uuid"),
-      simpleRelationFragment(relationIds, Relations.networkPermissionByUserId, "userId", "uuid")
-    )
+  private[repositories] val getByNetworkIdQuery = generateConnectionQuery(
+    relColumn = "networkId",
+    sortColumn = "userId"
+  )
+  private[repositories] val getByUserIdQuery = generateConnectionQuery(
+    relColumn = "userId",
+    sortColumn = "networkId"
+  )
 
+  val getByNetworkId: ListConnection = genericConnectionList(getByNetworkIdQuery)
+  val getByUserId: ListConnection    = genericConnectionList(getByUserIdQuery)
 }

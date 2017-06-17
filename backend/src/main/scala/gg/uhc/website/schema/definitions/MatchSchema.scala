@@ -1,42 +1,38 @@
 package gg.uhc.website.schema.definitions
 
-import gg.uhc.website.model.Match
+import gg.uhc.website.model.{Match, MatchScenario}
 import gg.uhc.website.schema.SchemaContext
+import gg.uhc.website.schema.helpers.ConnectionHelpers._
+import gg.uhc.website.schema.helpers.ConnectionIOConverters._
+import gg.uhc.website.schema.helpers.FieldHelpers._
+import gg.uhc.website.schema.scalars.InstantScalarTypeSupport._
+
 import sangria.schema._
 
 import scalaz.Scalaz._
 
-object MatchSchema extends SchemaDefinition[Match] with SchemaQueries with SchemaSupport {
+object MatchSchema extends HasSchemaType[Match] with HasSchemaQueries {
   override val queries: List[Field[SchemaContext, Unit]] = fields(
-    Field(
-      name = "matchById",
-      fieldType = OptionType(Type),
-      arguments = idArg :: Nil,
-      resolve = implicit ctx ⇒ Fetchers.matches.deferOpt(idArg.resolve),
-      description = "Looks up a match with the given id".some
-    ),
-    Field(
-      name = "matchesByIds",
-      fieldType = ListType(Type),
-      arguments = idsArg :: Nil,
-      resolve = implicit ctx ⇒ Fetchers.matches.deferSeqOpt(idsArg.resolve),
-      description = "Looks up matches with the given ids".some
-    ),
     Field(
       "matches",
       ListType(Type),
-      arguments = Nil, // TODO pagination + filters
+      arguments = Nil, // TODO replace with a connection for pagination purposes
       resolve = implicit ctx ⇒ ctx.ctx.matches.getAll,
       description = "Fetches all matches".some
     )
   )
 
-  override lazy val Type: ObjectType[Unit, Match] = ObjectType(
+  override lazy val Type: ObjectType[SchemaContext, Match] = ObjectType[SchemaContext, Match](
     name = "Match",
     description = "An individual match",
-    interfaces = interfaces[Unit, Match](RelaySchema.nodeInterface),
+    interfaces = interfaces[SchemaContext, Match](RelaySchema.nodeInterface),
     fieldsFn = () ⇒
-      idFields[Match] ++ modificationTimesFields ++ deletedFields ++ fields[Unit, Match](
+      fields[SchemaContext, Match](
+        globalIdField,
+        rawIdField,
+        modifiedField,
+        deletedField,
+        createdField,
         Field(
           name = "size",
           fieldType = OptionType(IntType),
@@ -45,7 +41,7 @@ object MatchSchema extends SchemaDefinition[Match] with SchemaQueries with Schem
         ),
         Field(
           name = "starts",
-          fieldType = DateType,
+          fieldType = InstantType,
           description = "When the match starts".some,
           resolve = _.value.starts
         ),
@@ -74,11 +70,13 @@ object MatchSchema extends SchemaDefinition[Match] with SchemaQueries with Schem
           description = "The team style being hosted".some,
           resolve = ctx ⇒ Fetchers.styles.defer(ctx.value.styleId)
         ),
-        Field(
+        // Connections below here
+        simpleConnectionField[Match, MatchScenario](
           name = "scenarios",
-          fieldType = ListType(MatchScenarioSchema.Type), // TODO pagination
-          description = "Scenarios for this match".some,
-          resolve = ctx ⇒ Fetchers.matchScenarios.deferRelSeq(Relations.matchScenarioByMatchId, ctx.value.uuid)
+          target = MatchScenarioSchema.Type,
+          description = "Scenarios for this match",
+          action = _.matchScenarios.getByMatchId,
+          cursorFn = _.scenarioId.toString
         )
     )
   )

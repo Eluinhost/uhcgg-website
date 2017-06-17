@@ -1,6 +1,5 @@
 package gg.uhc.website.repositories
 
-import gg.uhc.website.schema.definitions.Relations
 import org.scalatest._
 
 @DoNotDiscover
@@ -18,7 +17,4 @@ class BanRepositoryTest extends FlatSpec with BaseRepositoryTest {
 
   it should "have a valid getByExpiredStatusQuery query" in
     check(repo.getByExpiredStatusQuery(true))
-
-  it should "have valid relationQuery query" in
-    check(repo.relationsQuery(Relations.banByBannedUserId → randIdsSeq))
 }

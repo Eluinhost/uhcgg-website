@@ -1,43 +1,35 @@
 package gg.uhc.website.schema.definitions
 
-import gg.uhc.website.model.Region
+import gg.uhc.website.model.{Region, Server}
 import gg.uhc.website.schema.SchemaContext
+import gg.uhc.website.schema.helpers.ConnectionHelpers._
+import gg.uhc.website.schema.helpers.ConnectionIOConverters._
+
 import sangria.schema._
+
+import gg.uhc.website.schema.helpers.FieldHelpers._
 
 import scalaz.Scalaz._
 
-object RegionSchema extends SchemaDefinition[Region] with SchemaQueries with SchemaSupport {
+object RegionSchema extends HasSchemaType[Region] with HasSchemaQueries {
   override val queries: List[Field[SchemaContext, Unit]] = fields(
-    Field(
-      name = "regionById",
-      fieldType = OptionType(Type),
-      arguments = idArg :: Nil,
-      resolve = implicit ctx ⇒ Fetchers.regions.deferOpt(idArg.resolve),
-      description = "Looks up a region with the given id".some
-    ),
-    Field(
-      name = "regionsByIds",
-      fieldType = ListType(Type),
-      arguments = idsArg :: Nil,
-      complexity = Some((_, args, childScore) ⇒ 20 + (args.arg(idsArg).length * childScore)),
-      resolve = implicit ctx ⇒ Fetchers.regions.deferSeqOpt(idsArg.resolve),
-      description = "Looks up regions with the given ids".some
-    ),
     Field(
       "regions",
       ListType(Type),
-      arguments = Nil, // TODO pagination
+      arguments = Nil, // TODO replace with a connection for pagination purposes
       resolve = implicit ctx ⇒ ctx.ctx.regions.getAll,
       description = "Fetches all regions".some
     )
   )
 
-  override lazy val Type: ObjectType[Unit, Region] = ObjectType(
+  override lazy val Type: ObjectType[SchemaContext, Region] = ObjectType[SchemaContext, Region](
     name = "Region",
     description = "A choosable region for hosting in",
-    interfaces = interfaces[Unit, Region](RelaySchema.nodeInterface),
+    interfaces = interfaces[SchemaContext, Region](RelaySchema.nodeInterface),
     fieldsFn = () ⇒
-      idFields[Region] ++ fields[Unit, Region](
+      fields[SchemaContext, Region](
+        globalIdField,
+        rawIdField,
         Field(
           name = "short",
           fieldType = StringType,
@@ -50,14 +42,13 @@ object RegionSchema extends SchemaDefinition[Region] with SchemaQueries with Sch
           description = "The 'full' version of the name".some,
           resolve = _.value.long
         ),
-        //////////////////////////
-        // Relations below here //
-        //////////////////////////
-        Field(
+        // Connections below here
+        simpleConnectionField[Region, Server](
           name = "servers",
-          fieldType = ListType(ServerSchema.Type),
-          description = "List of servers in this region".some,
-          resolve = ctx ⇒ Fetchers.servers.deferRelSeq(Relations.serverByRegionId, ctx.value.uuid)
+          target = ServerSchema.Type,
+          description = "List of servers in this region",
+          action = _.servers.getByRegionId,
+          cursorFn = _.uuid.toString
         )
     )
   )

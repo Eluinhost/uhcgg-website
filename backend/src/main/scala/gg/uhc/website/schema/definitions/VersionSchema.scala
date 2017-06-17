@@ -1,43 +1,34 @@
 package gg.uhc.website.schema.definitions
 
-import gg.uhc.website.model.Version
+import gg.uhc.website.model.{Match, Version}
 import gg.uhc.website.schema.SchemaContext
+import gg.uhc.website.schema.helpers.ConnectionHelpers._
+import gg.uhc.website.schema.helpers.ConnectionIOConverters._
+
 import sangria.schema._
 
 import scalaz.Scalaz._
+import gg.uhc.website.schema.helpers.FieldHelpers._
 
-object VersionSchema extends SchemaDefinition[Version] with SchemaQueries with SchemaSupport {
+object VersionSchema extends HasSchemaType[Version] with HasSchemaQueries {
   override val queries: List[Field[SchemaContext, Unit]] = fields(
-    Field(
-      name = "versionById",
-      fieldType = OptionType(Type),
-      arguments = idArg :: Nil,
-      resolve = implicit ctx ⇒ Fetchers.versions.deferOpt(idArg.resolve),
-      description = "Looks up a version with the given id".some
-    ),
-    Field(
-      name = "versionsByIds",
-      fieldType = ListType(Type),
-      arguments = idsArg :: Nil,
-      complexity = Some((_, args, childScore) ⇒ 20 + (args.arg(idsArg).length * childScore)),
-      resolve = implicit ctx ⇒ Fetchers.versions.deferSeqOpt(idsArg.resolve),
-      description = "Looks up versions with the given ids".some
-    ),
     Field(
       "versions",
       ListType(Type),
-      arguments = Nil, // TODO pagination
+      arguments = Nil, // TODO replace with a connection for pagination purposes
       resolve = implicit ctx ⇒ ctx.ctx.versions.getAll,
       description = "Fetches all versions".some
     )
   )
 
-  override lazy val Type: ObjectType[Unit, Version] = ObjectType(
+  override lazy val Type: ObjectType[SchemaContext, Version] = ObjectType[SchemaContext, Version](
     name = "Version",
     description = "A choosable version for hosting",
-    interfaces = interfaces[Unit, Version](RelaySchema.nodeInterface),
+    interfaces = interfaces[SchemaContext, Version](RelaySchema.nodeInterface),
     fieldsFn = () ⇒
-      idFields[Version] ++ fields[Unit, Version](
+      fields[SchemaContext, Version](
+        globalIdField,
+        rawIdField,
         Field(
           name = "name",
           fieldType = StringType,
@@ -50,14 +41,13 @@ object VersionSchema extends SchemaDefinition[Version] with SchemaQueries with S
           description = "Whether the item is 'live' or not. Only live versions can be picked for new matches".some,
           resolve = _.value.live
         ),
-        //////////////////////////
-        // Relations below here //
-        //////////////////////////
-        Field(
+        // Connections below here
+        simpleConnectionField[Version, Match](
           name = "matches",
-          fieldType = ListType(MatchSchema.Type), // TODO pagination + a way to filter out old ones
-          description = "A list of games using this version".some,
-          resolve = ctx ⇒ Fetchers.matches.deferRelSeq(Relations.matchByVersionId, ctx.value.uuid)
+          target = MatchSchema.Type,
+          description = "A list of games using this version",
+          action = _.matches.getByVersionId,
+          cursorFn = _.created.toString
         )
     )
   )

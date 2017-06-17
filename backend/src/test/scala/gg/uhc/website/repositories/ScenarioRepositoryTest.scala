@@ -1,6 +1,5 @@
 package gg.uhc.website.repositories
 
-import gg.uhc.website.schema.definitions.Relations
 import org.scalatest._
 
 @DoNotDiscover
@@ -15,13 +14,4 @@ class ScenarioRepositoryTest extends FlatSpec with BaseRepositoryTest {
 
   it should "have valid getAllQuery query" in
     check(repo.getAllQuery)
-
-  it should "have valid relationsQuery query" in
-    check(
-      repo.relationsQuery(
-        Seq(
-          Relations.scenarioByOwnerId → randIdsSeq
-        )
-      )
-    )
 }

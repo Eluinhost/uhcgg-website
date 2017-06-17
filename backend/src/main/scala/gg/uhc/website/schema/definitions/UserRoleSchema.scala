@@ -1,16 +1,17 @@
 package gg.uhc.website.schema.definitions
 
 import gg.uhc.website.model.UserRole
+import gg.uhc.website.schema.SchemaContext
 import sangria.schema._
 
 import scalaz.Scalaz._
 
-object UserRoleSchema extends SchemaDefinition[UserRole] with SchemaSupport {
-  override lazy val Type: ObjectType[Unit, UserRole] = ObjectType(
+object UserRoleSchema extends HasSchemaType[UserRole] {
+  override lazy val Type: ObjectType[SchemaContext, UserRole] = ObjectType[SchemaContext, UserRole](
     name = "UserRole",
     description = "Connects roles ↔ users",
     fieldsFn = () ⇒
-      fields[Unit, UserRole](
+      fields[SchemaContext, UserRole](
         Field(
           name = "user",
           fieldType = UserSchema.Type,

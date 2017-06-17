@@ -1,0 +1,57 @@
+fragment NetworkList_ServerConnection on ServerConnection {
+    pageInfo {
+        startCursor
+        endCursor
+    }
+    edges {
+        cursor
+        node {
+            ...NetworkList_Server
+        }
+    }
+}
+
+fragment NetworkList_Server on Server {
+    id
+    rawId
+    name
+    ip
+    address
+    location
+    port
+    owner {
+        ...NetworkList_Owner
+    }
+    region {
+        ...NetworkList_Region
+    }
+}
+fragment NetworkList_Region on Region {
+    id
+    rawId
+    short
+}
+fragment NetworkList_Owner on User {
+    id
+    rawId
+    username
+}
+fragment NetworkList_Network on Network {
+    id
+    rawId
+    name
+    tag
+    description
+    owner {
+        ...NetworkList_Owner
+    }
+    servers(first: 3) {
+        ...NetworkList_ServerConnection
+    }
+}
+
+query NetworkList {
+    networks {
+        ...NetworkList_Network
+    }
+}

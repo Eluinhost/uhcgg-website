@@ -15,6 +15,7 @@ object ApplicationSchema
           ::: RegionSchema.queries
           ::: RoleSchema.queries
           ::: ScenarioSchema.queries
+          ::: ServerSchema.queries
           ::: StyleSchema.queries
           ::: UserSchema.queries
           ::: VersionSchema.queries

@@ -2,16 +2,12 @@ package gg.uhc.website.repositories
 
 import gg.uhc.website.model.Role
 
-class RoleRepository
-    extends Repository[Role]
-    with CanQuery[Role]
-    with CanQueryByIds[Role]
-    with CanQueryAll[Role] {
+class RoleRepository extends Repository[Role] with CanQueryByIds[Role] {
   import doobie.imports._
   import doobie.postgres.imports._
 
-  override val composite: Composite[Role] = implicitly
+  override private[repositories] val composite: Composite[Role] = implicitly
 
-  override private[repositories] val baseSelectQuery: Fragment =
+  override private[repositories] val select: Fragment =
     fr"SELECT uuid, name, permissions FROM roles".asInstanceOf[Fragment]
 }

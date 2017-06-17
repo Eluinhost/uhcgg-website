@@ -5,40 +5,108 @@ import java.util.UUID
 import doobie.imports._
 import doobie.postgres.imports._
 import gg.uhc.website.model.BaseNode
-import sangria.execution.deferred.{Relation, RelationIds}
+import gg.uhc.website.schema.ForwardOnlyConnection
 
 import scalaz.Scalaz._
 import scalaz._
 
 trait Repository[A] {
-  implicit val logHandler: LogHandler = LogHandler.jdkLogHandler
+  sealed trait SortDirection {
+    val sql: String
+  }
+  case object ASC extends SortDirection {
+    override val sql: String = "ASC"
+  }
+  case object DESC extends SortDirection {
+    override val sql: String = "DESC"
+  }
 
+  type ConnectionQuery = (UUID, ForwardOnlyConnection) ⇒ Query0[A]
+  type ListConnection = (UUID, ForwardOnlyConnection) ⇒ ConnectionIO[List[A]]
+
+  private[repositories] implicit val logHandler: LogHandler = LogHandler.jdkLogHandler
+
+  // Used to query for the data
+  private[repositories] def select: Fragment
+
+  // Required to convert queries into actual objects
+  private[repositories] implicit def composite: Composite[A]
+
+  // Simple alaias for Fragment.const
   private[repositories] def const(raw: String): Fragment = Fragment.const(raw)
 
-  private[repositories] def columnIn[T : Param](column: String, columnType: String, values: NonEmptyList[T]) =
-    values
-      .map(v ⇒ fr0"$v".asInstanceOf[Fragment] ++ const(s"::$columnType"))
-      .foldSmash1(
-        const(s"$column IN ("),
-        const(","),
-        const(")")
-      )
+  /**
+    * Generates a query for querying relations.
+    *
+    * ALL PARAMETERS TO THIS *MUST* BE SAFE TO USE IN A QUERY, NO ESCAPING OCCURS.
+    *
+    * @return a query that takes a rel id and some connection args, these can be unsafe paramters
+    */
+  private[repositories] def generateConnectionQuery(
+      relColumn: String,
+      sortColumn: String = "uuid",
+      sortColumnType: String = "uuid",
+      sortDirection: SortDirection = ASC
+    ): ConnectionQuery = {
+
+    // relColumn = uuid
+    val relColumnFilter: UUID ⇒ Fragment =
+      id ⇒ const(s"$relColumn = ") ++ fr"$id".asInstanceOf[Fragment]
+
+    // sortColumn > 'after'::sortColumnType
+    val sortColumnFilter: String ⇒ Fragment =
+      after ⇒
+        const(s"$sortColumn > ") ++
+          fr0"$after::".asInstanceOf[Fragment] ++
+          const(s"$sortColumnType ")
+
+    // LIMIT args.first
+    val limit: ForwardOnlyConnection ⇒ Fragment =
+      args ⇒ fr"LIMIT ${args.first}".asInstanceOf[Fragment]
+
+    // ORDER BY sortColumn ASC
+    val orderBy = const(s"ORDER BY $sortColumn ${sortDirection.sql} ")
+
+    (relId: UUID, args: ForwardOnlyConnection) ⇒
+      (
+        select ++
+          Fragments.whereAndOpt(
+            relColumnFilter(relId).some, // always filter by the rel column
+            args.after.map(sortColumnFilter) // optionally add the filter for the 'after' arg
+          ) ++
+          // Add an order by to make after cursors work + always add a limit
+          orderBy ++ limit(args)
+      ).query[A]
+  }
+
+  private[repositories] val genericConnectionList: (ConnectionQuery ⇒ ListConnection) =
+    (query: ConnectionQuery) ⇒
+      (uuid: UUID, args: ForwardOnlyConnection) ⇒
+        query(uuid, args).list
+
+  private[repositories] def getAllQuery: Query0[A] =
+    select.query[A]
+
+  def getAll: ConnectionIO[List[A]] = getAllQuery.list
 }
 
-trait CanQuery[A] { self: Repository[A] ⇒
-  private[repositories] def baseSelectQuery: Fragment
+trait CanQueryByIds[A <: BaseNode] { self: Repository[A] ⇒
+  private[repositories] implicit val logHandler: LogHandler
 
-  implicit def composite: Composite[A]
-}
+  // Column to use as the 'id' column
+  private[repositories] val idColumn: String = "uuid"
 
-trait CanQueryByIds[A <: BaseNode] { self: CanQuery[A] with Repository[A] ⇒
-  implicit val logHandler: LogHandler
+  private[repositories] val idColumnFragment: Fragment = self.const(s"$idColumn ")
+
+  // idColumn = 'id'::uuid
+  private[repositories] val idFilterFragment: UUID ⇒ Fragment =
+    uuid ⇒ idColumnFragment ++ self.const(s"= ") ++ fr"$uuid::uuid".asInstanceOf[Fragment]
 
   private[repositories] def getByIdQuery(id: UUID): Query0[A] =
-    (baseSelectQuery ++ Fragments.whereAnd(fr0"uuid = $id".asInstanceOf[Fragment])).query[A]
+    (select ++ Fragments.whereAnd(idFilterFragment(id))).query[A]
 
   private[repositories] def getByIdsQuery(ids: NonEmptyList[UUID]): Query0[A] =
-    (baseSelectQuery ++ Fragments.whereAnd(Fragments.in(fr"uuid".asInstanceOf[Fragment], ids))).query[A]
+    (select ++ Fragments.whereAnd(Fragments.in(idColumnFragment, ids))).query[A]
 
   def getById(id: UUID): ConnectionIO[Option[A]] =
     getByIdQuery(id).option
@@ -48,42 +116,4 @@ trait CanQueryByIds[A <: BaseNode] { self: CanQuery[A] with Repository[A] ⇒
       case a +: as ⇒ getByIdsQuery(NonEmptyList(a, as: _*)).list
       case _       ⇒ List.empty[A].point[ConnectionIO]
     }
-}
-
-trait CanQueryAll[A] { self: CanQuery[A] ⇒
-  private[repositories] def getAllQuery: Query0[A] = baseSelectQuery.query[A]
-
-  implicit val logHandler: LogHandler
-
-  def getAll: ConnectionIO[List[A]] = getAllQuery.list
-}
-
-trait CanQueryByRelations[A] { self: CanQuery[A] with Repository[A] ⇒
-  implicit val logHandler: LogHandler
-
-  def relationsFragment(relationIds: RelationIds[A]): Fragment
-
-  protected def buildRelationIds(map: Map[Relation[A, _, _], Option[Seq[_]]]): RelationIds[A] =
-    RelationIds(
-      map
-        .filter(_._2.isDefined)
-        .mapValues(_.get)
-    )
-
-  protected def simpleRelationFragment[RelId: Param](
-      relIds: RelationIds[A],
-      rel: Relation[A, _, RelId],
-      column: String,
-      columnType: String
-    ): Option[Fragment] =
-    for {
-      ids ← relIds.get(rel)
-      nel ← ids.toList.toNel
-    } yield columnIn(column, columnType, nel)
-
-  private[repositories] def relationsQuery(relationIds: RelationIds[A]): Query0[A] =
-    (baseSelectQuery ++ relationsFragment(relationIds)).query[A]
-
-  def getByRelations(rel: RelationIds[A]): ConnectionIO[List[A]] =
-    relationsQuery(rel).list
 }

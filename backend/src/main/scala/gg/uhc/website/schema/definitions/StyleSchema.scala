@@ -1,43 +1,34 @@
 package gg.uhc.website.schema.definitions
 
-import gg.uhc.website.model.Style
+import gg.uhc.website.model.{Match, Style}
 import gg.uhc.website.schema.SchemaContext
+import gg.uhc.website.schema.helpers.ConnectionHelpers._
+import gg.uhc.website.schema.helpers.ConnectionIOConverters._
+import gg.uhc.website.schema.helpers.FieldHelpers._
+
 import sangria.schema._
 
 import scalaz.Scalaz._
 
-object StyleSchema extends SchemaDefinition[Style] with SchemaQueries with SchemaSupport {
+object StyleSchema extends HasSchemaType[Style] with HasSchemaQueries {
   override val queries: List[Field[SchemaContext, Unit]] = fields(
     Field(
-      name = "styleById",
-      fieldType = OptionType(Type),
-      arguments = idArg :: Nil,
-      resolve = implicit ctx ⇒ Fetchers.styles.deferOpt(idArg.resolve),
-      description = "Looks up a style with the given id".some
-    ),
-    Field(
-      name = "stylesByIds",
-      fieldType = ListType(Type),
-      arguments = idsArg :: Nil,
-      complexity = Some((_, args, childScore) ⇒ 20 + (args.arg(idsArg).length * childScore)),
-      resolve = implicit ctx ⇒ Fetchers.styles.deferSeqOpt(idsArg.resolve),
-      description = "Looks up styles with the given ids".some
-    ),
-    Field(
       "styles",
-      ListType(Type), // TODO pagination
+      ListType(Type), // TODO replace with a connection for pagination purposes
       arguments = Nil,
       resolve = implicit ctx ⇒ ctx.ctx.styles.getAll,
       description = "Fetches all styles".some
     )
   )
 
-  override lazy val Type: ObjectType[Unit, Style] = ObjectType(
+  override lazy val Type: ObjectType[SchemaContext, Style] = ObjectType[SchemaContext, Style](
     name = "Style",
     description = "A team style for a match",
-    interfaces = interfaces[Unit, Style](RelaySchema.nodeInterface),
+    interfaces = interfaces[SchemaContext, Style](RelaySchema.nodeInterface),
     fieldsFn = () ⇒
-      idFields[Style] ++ fields[Unit, Style](
+      fields[SchemaContext, Style](
+        globalIdField,
+        rawIdField,
         Field(
           name = "shortName",
           fieldType = StringType,
@@ -62,12 +53,13 @@ object StyleSchema extends SchemaDefinition[Style] with SchemaQueries with Schem
           description = "Whether the style requires a team size to also be provided or not".some,
           resolve = _.value.requiresSize
         ),
-        // relations below here
-        Field(
+        // Connections below here
+        simpleConnectionField[Style, Match](
           name = "matches",
-          fieldType = ListType(MatchSchema.Type), // TODO pagination + a way to filter out old ones
-          description = "A list of games using this style".some,
-          resolve = ctx ⇒ Fetchers.matches.deferRelSeq(Relations.matchByStyleId, ctx.value.uuid)
+          target = MatchSchema.Type,
+          description = "A list of games using this style",
+          action = _.matches.getByStyleId,
+          cursorFn = _.created.toString
         )
     )
   )

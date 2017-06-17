@@ -1,43 +1,37 @@
 package gg.uhc.website.schema.definitions
 
-import gg.uhc.website.model.Network
+import gg.uhc.website.model.{Network, NetworkPermission, Server}
 import gg.uhc.website.schema.SchemaContext
+import gg.uhc.website.schema.helpers.ConnectionHelpers._
+import gg.uhc.website.schema.helpers.ConnectionIOConverters._
+import gg.uhc.website.schema.helpers.FieldHelpers._
+
 import sangria.schema._
 
 import scalaz.Scalaz._
 
-object NetworkSchema extends SchemaDefinition[Network] with SchemaQueries with SchemaSupport {
+object NetworkSchema extends HasSchemaType[Network] with HasSchemaQueries {
   override val queries: List[Field[SchemaContext, Unit]] = fields(
-    Field(
-      name = "networkById",
-      fieldType = OptionType(Type),
-      arguments = idArg :: Nil,
-      resolve = implicit ctx ⇒ Fetchers.networks.deferOpt(idArg.resolve),
-      description = "Looks up a version with the given id".some
-    ),
-    Field(
-      name = "networksByIds",
-      fieldType = ListType(Type),
-      arguments = idsArg :: Nil,
-      complexity = Some((_, args, childScore) ⇒ 20 + (args.arg(idsArg).length * childScore)),
-      resolve = implicit ctx ⇒ Fetchers.networks.deferSeqOpt(idsArg.resolve),
-      description = "Looks up versions with the given ids".some
-    ),
     Field(
       "networks",
       ListType(Type),
-      arguments = Nil, // TODO pagination
+      arguments = Nil, // TODO replace with a connection for pagination purposes
       resolve = implicit ctx ⇒ ctx.ctx.networks.getAll,
       description = "Fetches all versions".some
     )
   )
 
-  override lazy val Type: ObjectType[Unit, Network] = ObjectType(
+  override lazy val Type: ObjectType[SchemaContext, Network] = ObjectType[SchemaContext, Network](
     name = "Network",
     description = "A collection of servers",
-    interfaces[Unit, Network](RelaySchema.nodeInterface),
+    interfaces = interfaces[SchemaContext, Network](RelaySchema.nodeInterface),
     fieldsFn = () ⇒
-      idFields[Network] ++ modificationTimesFields ++ fields[Unit, Network](
+      fields[SchemaContext, Network](
+        globalIdField,
+        rawIdField,
+        modifiedField,
+        createdField,
+        deletedField,
         Field(
           name = "name",
           fieldType = StringType,
@@ -56,12 +50,6 @@ object NetworkSchema extends SchemaDefinition[Network] with SchemaQueries with S
           description = "A markdown formatted description of this network".some,
           resolve = _.value.description
         ),
-        Field(
-          name = "deleted",
-          fieldType = BooleanType,
-          description = "Whether this item has been deleted or not".some,
-          resolve = _.value.deleted
-        ),
         // relations below here
         Field(
           name = "owner",
@@ -69,17 +57,20 @@ object NetworkSchema extends SchemaDefinition[Network] with SchemaQueries with S
           description = "The owner of the network, has full control".some,
           resolve = ctx ⇒ Fetchers.users.defer(ctx.value.ownerUserId)
         ),
-        Field(
-          name = "servers", // TODO pagination
-          fieldType = ListType(ServerSchema.Type),
-          description = "All of the servers belonging to this network".some,
-          resolve = ctx ⇒ Fetchers.servers.deferRelSeq(Relations.serverByNetworkId, ctx.value.uuid)
+        // connections below here
+        simpleConnectionField[Network, Server](
+          name = "servers",
+          target = ServerSchema.Type,
+          description = "A list of all servers belonging to this network",
+          action = _.servers.getByNetworkId,
+          cursorFn = _.uuid.toString
         ),
-        Field(
-          name = "permissions", // TODO pagination
-          fieldType = ListType(NetworkPermissionSchema.Type),
-          description = "A list of all users with permissions".some,
-          resolve = ctx ⇒ Fetchers.networkPermissions.deferRelSeq(Relations.networkPermissionByNetworkId, ctx.value.uuid)
+        simpleConnectionField[Network, NetworkPermission](
+          name = "permissions",
+          target = NetworkPermissionSchema.Type,
+          description = "A list of all users with permissions",
+          action = _.networkPermissions.getByNetworkId,
+          cursorFn = _.userId.toString
         )
     )
   )

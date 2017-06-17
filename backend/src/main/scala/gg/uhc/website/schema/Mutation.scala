@@ -21,7 +21,7 @@ trait Mutation { this: SchemaContext ⇒
       }
       roleIds ← OptionT[ConnectionIO, List[UUID]] {
         userRoles
-          .forUser(user.id)
+          .getAllByUserId(user.uuid)
           .map(_.map(_.roleId))
           .map(some)
       }

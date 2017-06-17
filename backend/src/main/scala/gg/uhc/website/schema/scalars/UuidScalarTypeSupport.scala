@@ -29,3 +29,5 @@ trait UuidScalarTypeSupport {
     }
   )
 }
+
+object UuidScalarTypeSupport extends UuidScalarTypeSupport

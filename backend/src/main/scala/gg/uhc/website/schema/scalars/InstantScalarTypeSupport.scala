@@ -15,8 +15,8 @@ trait InstantScalarTypeSupport {
 
   case object DateCoercionViolation extends ValueCoercionViolation("Timestamp expected")
 
-  implicit val DateType: ScalarType[Instant] = ScalarType[Instant](
-    "Date",
+  implicit val InstantType: ScalarType[Instant] = ScalarType[Instant](
+    "Instant",
     description = "A timestamp".some,
     coerceOutput = (i, _) ⇒ i.toEpochMilli,
     coerceInput = {
@@ -32,3 +32,5 @@ trait InstantScalarTypeSupport {
     }
   )
 }
+
+object InstantScalarTypeSupport extends InstantScalarTypeSupport

@@ -1,16 +1,17 @@
 package gg.uhc.website.schema.definitions
 
 import gg.uhc.website.model.NetworkPermission
+import gg.uhc.website.schema.SchemaContext
 import sangria.schema._
 
 import scalaz.Scalaz._
 
-object NetworkPermissionSchema extends SchemaDefinition[NetworkPermission] with SchemaSupport {
-  override lazy val Type: ObjectType[Unit, NetworkPermission] = ObjectType(
+object NetworkPermissionSchema extends HasSchemaType[NetworkPermission] {
+  override lazy val Type: ObjectType[SchemaContext, NetworkPermission] = ObjectType[SchemaContext, NetworkPermission](
     name = "NetworkPermission",
     description = "Determine who has access to a network (owner always has all permissions",
     fieldsFn = () ⇒
-      fields[Unit, NetworkPermission](
+      fields[SchemaContext, NetworkPermission](
         Field(
           name = "isAdmin",
           fieldType = BooleanType,

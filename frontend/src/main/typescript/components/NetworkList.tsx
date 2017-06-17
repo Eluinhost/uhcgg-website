@@ -4,42 +4,10 @@ import { Table, Icon } from 'antd';
 import { TableColumnConfig } from 'antd/lib/table/Table';
 import { Link } from 'react-router-dom';
 
-import queryNetworks = require('../../graphql/queryNetworks.graphql');
-import { NetworksQuery } from '../graphql';
+import queryNetworks = require('../../graphql/NetworkList.graphql');
+import {NetworkListNetworkFragment, NetworkListQuery, NetworkListServerFragment} from '../graphql';
 
-interface IServer {
-    id: string,
-    rawId: string,
-    name: string,
-    ip: string,
-    port: number | null,
-    address: string | null,
-    location: string,
-    region: {
-        short: string
-    }
-    owner: {
-        id: string,
-        rawId: string,
-        username: string
-    }
-}
-
-interface INetwork {
-    id: string,
-    rawId: string,
-    description: string
-    name: string,
-    tag: string,
-    owner: {
-        id: string,
-        rawId: string,
-        username: string
-    },
-    servers: Array<IServer>
-}
-
-const networkColumns: TableColumnConfig<INetwork>[] = [
+const networkColumns: TableColumnConfig<NetworkListNetworkFragment>[] = [
     {
         title: 'Tag',
         dataIndex: 'tag',
@@ -64,7 +32,7 @@ const networkColumns: TableColumnConfig<INetwork>[] = [
     }
 ];
 
-const serverColumns: TableColumnConfig<IServer>[] = [
+const serverColumns: TableColumnConfig<NetworkListServerFragment>[] = [
     {
         title: 'Name',
         dataIndex: 'name'
@@ -96,8 +64,8 @@ const serverColumns: TableColumnConfig<IServer>[] = [
     }
 ];
 
-class NetworkTable extends Table<INetwork> {}
-class ServerTable extends Table<IServer> {}
+class NetworkTable extends Table<NetworkListNetworkFragment> {}
+class ServerTable extends Table<NetworkListServerFragment> {}
 
 const RefreshIcon: React.SFC<QueryProps> = ({ refetch, loading, networkStatus }) => {
     console.log(networkStatus, loading);
@@ -110,7 +78,7 @@ const RefreshIcon: React.SFC<QueryProps> = ({ refetch, loading, networkStatus })
     }}/>;
 };
 
-export const NetworkListComponent = graphql<NetworksQuery>(queryNetworks)(({ data }) => {
+export const NetworkListComponent = graphql<NetworkListQuery>(queryNetworks)(({ data }) => {
     if (!data)
         return <h4>No data found</h4>;
 
@@ -131,11 +99,11 @@ export const NetworkListComponent = graphql<NetworksQuery>(queryNetworks)(({ dat
             rowKey={_ => _.id}
             pagination={false}
             bordered={true}
-            expandedRowRender={(record: INetwork) =>
+            expandedRowRender={(record: NetworkListNetworkFragment) =>
                 <div>
                     <h2>Servers</h2>
                     <ServerTable
-                        dataSource={record.servers}
+                        dataSource={record.servers.edges!.map(_ => _.node)}
                         columns={serverColumns}
                         rowKey={_ => _.id}
                         pagination={false}

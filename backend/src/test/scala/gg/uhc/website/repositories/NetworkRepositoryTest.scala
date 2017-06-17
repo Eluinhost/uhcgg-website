@@ -1,6 +1,5 @@
 package gg.uhc.website.repositories
 
-import gg.uhc.website.schema.definitions.Relations
 import org.scalatest._
 
 @DoNotDiscover
@@ -15,13 +14,4 @@ class NetworkRepositoryTest extends FlatSpec with BaseRepositoryTest {
 
   it should "have valid getByIdsQuery query" in
     check(repo.getByIdsQuery(randIds))
-
-  it should "have valid relationsQuery query" in
-    check(
-      repo.relationsQuery(
-        Seq(
-          Relations.networkByUserId → randIdsSeq
-        )
-      )
-    )
 }

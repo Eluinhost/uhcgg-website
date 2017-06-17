@@ -1,17 +1,38 @@
 package gg.uhc.website.schema.definitions
 
-import gg.uhc.website.model.Server
+import gg.uhc.website.model.{Match, Server}
+import gg.uhc.website.schema.SchemaContext
+import gg.uhc.website.schema.helpers.ConnectionHelpers._
+import gg.uhc.website.schema.helpers.ConnectionIOConverters._
+import gg.uhc.website.schema.scalars.InetAddressScalarTypeSupport._
+
 import sangria.schema._
 
 import scalaz.Scalaz._
+import gg.uhc.website.schema.helpers.FieldHelpers._
 
-object ServerSchema extends SchemaDefinition[Server] with SchemaSupport {
-  override lazy val Type: ObjectType[Unit, Server] = ObjectType(
+object ServerSchema extends HasSchemaType[Server] with HasSchemaQueries {
+  override val queries: List[Field[SchemaContext, Unit]] = fields(
+    Field(
+      "servers",
+      ListType(Type),
+      arguments = Nil,// TODO replace with a connection for pagination purposes
+      resolve = implicit ctx ⇒ ctx.ctx.servers.getAll,
+      description = "Fetches all servers".some
+    )
+  )
+
+  override lazy val Type: ObjectType[SchemaContext, Server] = ObjectType[SchemaContext, Server](
     name = "Server",
-    description = "A ban on a particular user",
-    interfaces = interfaces[Unit, Server](RelaySchema.nodeInterface),
+    description = "A server that can be hosted on, must belong to a network",
+    interfaces = interfaces[SchemaContext, Server](RelaySchema.nodeInterface),
     fieldsFn = () ⇒
-      idFields[Server] ++ modificationTimesFields ++ fields[Unit, Server](
+      fields[SchemaContext, Server](
+        globalIdField,
+        rawIdField,
+        createdField,
+        modifiedField,
+        deletedField,
         Field(
           name = "address",
           fieldType = OptionType(StringType),
@@ -63,11 +84,13 @@ object ServerSchema extends SchemaDefinition[Server] with SchemaSupport {
           description = "The region the server is hosted in".some,
           resolve = ctx ⇒ Fetchers.regions.defer(ctx.value.regionId)
         ),
-        Field(
+        // Connections below here
+        simpleConnectionField[Server, Match](
           name = "matches",
-          fieldType = ListType(MatchSchema.Type), // TODO pagination + a way to filter out old ones
-          description = "A list of games hosted on this server".some,
-          resolve = ctx ⇒ Fetchers.matches.deferRelSeq(Relations.matchByServerId, ctx.value.uuid)
+          target = MatchSchema.Type,
+          description = "A list of games hosted on this server",
+          action = _.matches.getByServerId,
+          cursorFn = _.created.toString
         )
     )
   )

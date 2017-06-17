@@ -1,10 +1,14 @@
 package gg.uhc.website.schema.definitions
 
 import gg.uhc.website.schema.SchemaContext
+import gg.uhc.website.schema.helpers.ConnectionIOConverters._
+import gg.uhc.website.schema.scalars.UuidScalarTypeSupport._
+import gg.uhc.website.schema.helpers.ArgumentConverters._
+
 import sangria.schema._
 import scalaz.Scalaz._
 
-object Mutations extends SchemaSupport {
+object Mutations {
   val usernameArg =
     Argument(name = "username", argumentType = StringType, description = "Username or email to login with")
   val userIdArg   = Argument(name = "id", argumentType = UuidType, description = "Username or email to login with") // TODO don't require ID
@@ -24,7 +28,7 @@ object Mutations extends SchemaSupport {
         description = "Get a token for the supplied username/email and password combination".some,
         fieldType = OptionType(StringType),
         arguments = usernameArg :: passwordArg :: Nil,
-        complexity = Some((_, _, _) ⇒ 100),
+        complexity = Some((_, _, _) ⇒ 100D),
         resolve = implicit ctx ⇒ ctx.ctx.token(username = usernameArg.resolve, password = passwordArg.resolve)
       ),
       Field(

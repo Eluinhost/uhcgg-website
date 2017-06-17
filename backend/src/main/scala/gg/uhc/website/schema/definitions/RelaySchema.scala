@@ -7,7 +7,7 @@ import sangria.schema._
 
 import scala.util.Try
 
-object RelaySchema extends SchemaQueries {
+object RelaySchema extends HasSchemaQueries {
   val resolveGlobalId: (GlobalId, Context[SchemaContext, Unit]) ⇒ LeafAction[SchemaContext, Option[Node]] =
     (globalId, _) ⇒
       Try {

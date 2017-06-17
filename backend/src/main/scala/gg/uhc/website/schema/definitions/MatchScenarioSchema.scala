@@ -1,16 +1,18 @@
 package gg.uhc.website.schema.definitions
 
 import gg.uhc.website.model.MatchScenario
+import gg.uhc.website.schema.SchemaContext
 import sangria.schema.{Field, ObjectType, fields}
 
 import scalaz.Scalaz._
 
-object MatchScenarioSchema extends SchemaDefinition[MatchScenario] with SchemaSupport {
-  override lazy val Type: ObjectType[Unit, MatchScenario] = ObjectType(
+object MatchScenarioSchema extends HasSchemaType[MatchScenario] {
+  // TODO should be an edge type, not realy needed?
+  override lazy val Type: ObjectType[SchemaContext, MatchScenario] = ObjectType[SchemaContext, MatchScenario](
     name = "MatchScenario",
     description = "Connects matches ↔ scenarios",
     fieldsFn = () ⇒
-      fields[Unit, MatchScenario](
+      fields[SchemaContext, MatchScenario](
         Field(
           name = "match",
           fieldType = MatchSchema.Type,

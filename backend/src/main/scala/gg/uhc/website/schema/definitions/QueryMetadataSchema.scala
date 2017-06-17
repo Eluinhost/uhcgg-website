@@ -4,7 +4,7 @@ import gg.uhc.website.schema.SchemaContext
 import sangria.schema._
 import scalaz.Scalaz._
 
-object QueryMetadataSchema extends SchemaQueries with SchemaSupport {
+object QueryMetadataSchema extends HasSchemaQueries {
   override val queries: List[Field[SchemaContext, Unit]] = fields(
     Field(
       name = "complexity",

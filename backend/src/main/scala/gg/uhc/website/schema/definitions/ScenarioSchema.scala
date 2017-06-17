@@ -1,43 +1,37 @@
 package gg.uhc.website.schema.definitions
 
-import gg.uhc.website.model.Scenario
+import gg.uhc.website.model.{MatchScenario, Scenario}
 import gg.uhc.website.schema.SchemaContext
+import gg.uhc.website.schema.helpers.ConnectionHelpers._
+import gg.uhc.website.schema.helpers.ConnectionIOConverters._
+import gg.uhc.website.schema.helpers.FieldHelpers._
+
 import sangria.schema._
 
 import scalaz.Scalaz._
 
-object ScenarioSchema extends SchemaDefinition[Scenario] with SchemaQueries with SchemaSupport {
+object ScenarioSchema extends HasSchemaType[Scenario] with HasSchemaQueries {
   override val queries: List[Field[SchemaContext, Unit]] = fields(
-    Field(
-      name = "scenarioById",
-      fieldType = OptionType(Type),
-      arguments = idArg :: Nil,
-      resolve = implicit ctx ⇒ Fetchers.scenarios.deferOpt(idArg.resolve),
-      description = "Looks up a scenario with the given id".some
-    ),
-    Field(
-      name = "scenariosByIds",
-      fieldType = ListType(Type),
-      arguments = idsArg :: Nil,
-      complexity = Some((_, args, childScore) ⇒ 20 + (args.arg(idsArg).length * childScore)),
-      resolve = implicit ctx ⇒ Fetchers.scenarios.deferSeqOpt(idsArg.resolve),
-      description = "Looks up scenarios with the given ids".some
-    ),
     Field(
       "scenarios",
       ListType(Type),
-      arguments = Nil, // TODO pagination + filters
+      arguments = Nil,// TODO replace with a connection for pagination purposes
       resolve = implicit ctx ⇒ ctx.ctx.scenarios.getAll,
       description = "Fetches all scenarios".some
     )
   )
 
-  override lazy val Type: ObjectType[Unit, Scenario] = ObjectType(
+  override lazy val Type: ObjectType[SchemaContext, Scenario] = ObjectType[SchemaContext, Scenario](
     name = "Scenario",
     description = "Information about a specific scenario",
-    interfaces = interfaces[Unit, Scenario](RelaySchema.nodeInterface),
+    interfaces = interfaces[SchemaContext, Scenario](RelaySchema.nodeInterface),
     fieldsFn = () ⇒
-      idFields[Scenario] ++ modificationTimesFields ++ deletedFields ++ fields[Unit, Scenario](
+      fields[SchemaContext, Scenario](
+        globalIdField,
+        rawIdField,
+        modifiedField,
+        createdField,
+        deletedField,
         Field(
           name = "name",
           fieldType = StringType,
@@ -57,11 +51,13 @@ object ScenarioSchema extends SchemaDefinition[Scenario] with SchemaQueries with
           description = "The owner of this scenario".some,
           resolve = ctx ⇒ Fetchers.users.defer(ctx.value.ownerUserId)
         ),
-        Field(
+        // Connections below here
+        simpleConnectionField[Scenario, MatchScenario](
           name = "matches",
-          fieldType = ListType(MatchScenarioSchema.Type),
-          description = "Matches with this scenario".some, // TODO pagination + filtering
-          resolve = ctx ⇒ Fetchers.matchScenarios.deferRelSeq(Relations.matchScenarioByScenarioId, ctx.value.uuid)
+          target = MatchScenarioSchema.Type,
+          description = "Matches with this scenario",
+          action = _.matchScenarios.getByScenarioId,
+          cursorFn = _.matchId.toString
         )
     )
   )

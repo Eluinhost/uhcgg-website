@@ -1,24 +1,27 @@
 package gg.uhc.website.repositories
 
 import gg.uhc.website.model.MatchScenario
-import gg.uhc.website.schema.definitions.Relations
-import sangria.execution.deferred.RelationIds
 
-class MatchScenariosRepository
-    extends Repository[MatchScenario]
-    with CanQuery[MatchScenario]
-    with CanQueryByRelations[MatchScenario] {
+class MatchScenariosRepository extends Repository[MatchScenario] {
   import doobie.imports._
   import doobie.postgres.imports._
 
-  override val composite: Composite[MatchScenario] = implicitly
+  override private[repositories] val composite: Composite[MatchScenario] = implicitly
 
-  override private[repositories] val baseSelectQuery: Fragment =
+  override private[repositories] val select: Fragment =
     fr"SELECT matchId, scenarioId FROM match_scenarios".asInstanceOf[Fragment]
 
-  override def relationsFragment(relationIds: RelationIds[MatchScenario]): Fragment =
-    Fragments.whereOrOpt(
-      simpleRelationFragment(relationIds, Relations.matchScenarioByScenarioId, "scenarioId", "uuid"),
-      simpleRelationFragment(relationIds, Relations.matchScenarioByMatchId, "matchId", "uuid")
-    )
+  // TODO should this be absorbed into match/scenario repos with joins?
+
+  private[repositories] val getByScenarioIdQuery = generateConnectionQuery(
+    relColumn = "scenarioId",
+    sortColumn = "matchId"
+  )
+  private[repositories] val getByMatchIdQuery = generateConnectionQuery(
+    relColumn = "matchId",
+    sortColumn = "scenarioId"
+  )
+
+  val getByScenarioId: ListConnection = genericConnectionList(getByScenarioIdQuery)
+  val getByMatchId: ListConnection    = genericConnectionList(getByMatchIdQuery)
 }

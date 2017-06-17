@@ -29,3 +29,5 @@ trait InetAddressScalarTypeSupport {
     }
   )
 }
+
+object InetAddressScalarTypeSupport extends InetAddressScalarTypeSupport

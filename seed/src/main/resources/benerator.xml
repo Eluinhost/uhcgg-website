@@ -45,6 +45,8 @@
         <property name="initial" value="10000"/>
     </bean>
     <bean id="uniqueServerNounValidator" class="UniqueValidator"/>
+    <bean id="uniqueNetworkNounValidator" class="UniqueValidator"/>
+    <bean id="uniqueNetworkTagValidator" class="UniqueValidator"/>
 
     <memstore id="store"/>
 
@@ -96,11 +98,10 @@
                     count="{network_count_dummy.count}"
                     consumer="ConsoleExporter,store,output">
                 <reference name="ownerUserId" targetType="users" script="user.uuid"/>
-                <variable name="networkNoun" generator="NounGenerator" validator="UniqueValidator"/>
 
                 <id name="uuid" generator="uuidGen" unique="true"/>
-                <attribute name="name" source="networkNoun.singular"/>
-                <attribute name="tag" source="networkNoun.singular"/>
+                <attribute name="name" source="networkNames.csv" validator="uniqueNetworkNounValidator" />
+                <attribute name="tag" source="networkTags.csv" validator="uniqueNetworkTagValidator" />
                 <attribute name="description" generator="NounGenerator"/>
                 <attribute name="created" generator="dtGen"/>
                 <attribute name="modified" generator="dtGen"/> <!-- TODO validate after created -->
@@ -170,7 +171,7 @@
         <variable name="name" generator="NounGenerator" validator="UniqueValidator"/>
 
         <id name="uuid" generator="uuidGen" unique="true"/>
-        <attribute name="name" script="name.singular"/>
+        <attribute name="name" source="scenarioNames.csv" unique="true"/>
         <attribute name="description" script="name.singular"/>
         <attribute name="created" generator="dtGen"/>
         <attribute name="modified" generator="dtGen"/>

@@ -9,7 +9,7 @@
     <import domains="person, lang" platforms="db"/>
     <import class="org.databene.commons.TimeUtil"/>
 
-    <setting name="user_count" value="250"/>
+    <setting name="user_count" value="150"/>
     <setting name="bans_count" value="35"/>
     <setting name="default_role_id" value="00000000-0000-0000-0000-000000000000"/>
     <setting name="scenario_count" value="100"/>
@@ -61,8 +61,7 @@
         <variable name="userNoun" generator="NounGenerator"/>
 
         <id name="uuid" generator="uuidGen" unique="true"/>
-        <attribute name="username" unique="true"
-                   script="{person.givenName + person.familyName + RandomIntegerGenerator.generate(1000, 20000, 1)}"/>
+        <attribute name="username" unique="true" source="usernames.csv"/>
         <attribute name="email" source="person.email" unique="true"/>
         <attribute name="password" source="userNoun.singular" converter="passwordConverter"/>
         <attribute name="created" generator="dtGen"/>

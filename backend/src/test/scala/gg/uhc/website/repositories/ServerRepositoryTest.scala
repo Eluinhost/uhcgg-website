@@ -14,4 +14,7 @@ class ServerRepositoryTest extends FlatSpec with BaseRepositoryTest {
 
   it should "have valid getByNetworkId query" in
     check(repo.getByNetworkIdQuery(randId, Some(randId), 10))
+
+  it should "have valid listingQuery query" in
+    check(repo.listingQuery(after = Some(randId), limit = 50))
 }

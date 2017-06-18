@@ -151,14 +151,14 @@ trait HasIdColumn[A, Id] { self: Repository[A] ⇒
     * @param limit limit to x amount of items
     * @param after only show items after this ID
     */
-  private[repositories] def listingQuery(after: Option[Id], limit: Long) =
+  private[repositories] def listingQuery(after: Option[Id], limit: Int) =
     (
       select ++
         Fragments.whereAndOpt(
           after.map(cursorFilter(idColumn, _))
         ) ++
-        limitTo(limit) ++
-        orderBy(column = "uuid", SortDirection.ASC)
+        orderBy(column = "uuid", SortDirection.ASC) ++
+        limitTo(limit)
     ).query[A]
 
   /**
@@ -167,7 +167,7 @@ trait HasIdColumn[A, Id] { self: Repository[A] ⇒
     * @param limit limit to x number of items
     * @param after only show items after this ID
     */
-  def listing(after: Option[Id], limit: Long): ConnectionIO[List[A]] = listingQuery(after, limit).list
+  def listing(after: Option[Id], limit: Int): ConnectionIO[List[A]] = listingQuery(after, limit).list
 
   /**
     * Lookup an item by it's ID
@@ -194,8 +194,8 @@ trait HasIdColumn[A, Id] { self: Repository[A] ⇒
 }
 
 object HasRelationColumns {
-  type RelationshipQuery[Row, RelId, Cursor]  = (RelId, Option[Cursor], Long) ⇒ Query0[Row]
-  type RelationshipLookup[Row, RelId, Cursor] = (RelId, Option[Cursor], Long) ⇒ ConnectionIO[List[Row]]
+  type RelationshipQuery[Row, RelId, Cursor]  = (RelId, Option[Cursor], Int) ⇒ Query0[Row]
+  type RelationshipLookup[Row, RelId, Cursor] = (RelId, Option[Cursor], Int) ⇒ ConnectionIO[List[Row]]
 }
 
 trait HasRelationColumns[A] { self: Repository[A] ⇒
@@ -210,7 +210,7 @@ trait HasRelationColumns[A] { self: Repository[A] ⇒
   private[repositories] implicit def queryToLookup[RelId, Cursor](
       query: QueryA[RelId, Cursor]
     ): LookupA[RelId, Cursor] =
-    (relId: RelId, cursor: Option[Cursor], limit: Long) ⇒ query(relId, cursor, limit).list
+    (relId: RelId, cursor: Option[Cursor], limit: Int) ⇒ query(relId, cursor, limit).list
 
   /**
     * Creates a Query that will look up items in this table that match the given relation.
@@ -237,7 +237,7 @@ trait HasRelationColumns[A] { self: Repository[A] ⇒
     def relColumnFilter(relId: RelId): Fragment =
       const(s"$relColumn = ") ++ fr"$relId".asInstanceOf[Fragment]
 
-    def createQuery(relId: RelId, cursor: Option[Cursor], limit: Long): Query0[A] = {
+    def createQuery(relId: RelId, cursor: Option[Cursor], limit: Int): Query0[A] = {
       (
         select ++
           Fragments.whereAndOpt(

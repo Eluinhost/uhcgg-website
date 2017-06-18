@@ -9,7 +9,7 @@ import sangria.schema._
   * @param after only show items after the given cursor
   * @tparam C the cursor type
   */
-case class ConnectionArguments[C](first: Long = 50, after: Option[C])
+case class ConnectionArguments[C](first: Int = 50, after: Option[C])
 
 object ConnectionArguments {
   val First = Argument(name = "first", argumentType = OptionInputType(IntType), defaultValue = 50)

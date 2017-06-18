@@ -15,7 +15,7 @@ trait ConnectionHelpers {
       name: String,
       targetType: ObjectType[SchemaContext, Target],
       description: String,
-      action: SchemaContext ⇒ (Option[Cursor], Long) ⇒ ConnectionIO[List[Target]],
+      action: SchemaContext ⇒ (Option[Cursor], Int) ⇒ ConnectionIO[List[Target]],
       cursorFn: (Target ⇒ Cursor)
     ): Field[SchemaContext, Unit] =
     Field(
@@ -32,7 +32,7 @@ trait ConnectionHelpers {
     )
 
   def resolveListing[Target, Cursor: ScalarType](
-      action: SchemaContext ⇒ (Option[Cursor], Long) ⇒ ConnectionIO[List[Target]],
+      action: SchemaContext ⇒ (Option[Cursor], Int) ⇒ ConnectionIO[List[Target]],
       cursorFn: Target ⇒ Cursor
     )(ctx: Context[SchemaContext, Unit]
     ): Future[Connection[Target]] = {
@@ -41,11 +41,12 @@ trait ConnectionHelpers {
 
     val ConnectionArguments(limit, cursor) = ConnectionArguments[Cursor](ctx)
 
-    val toRun: ConnectionIO[List[Target]] = action(ctx.ctx)(cursor, limit)
+    // We request 1 extra item to check if there is a next page
+    val toRun: ConnectionIO[List[Target]] = action(ctx.ctx)(cursor, limit + 1)
 
     ctx.ctx
       .run(toRun)
-      .map(generateConnection(_, cursorFn))
+      .map(data ⇒ generateConnection(data = data.take(limit), cursorFn = cursorFn, hasMore = data.size > limit))
   }
 
   def relationshipField[A, Target, RelId, Cursor: ScalarType](
@@ -81,21 +82,25 @@ trait ConnectionHelpers {
     val id: RelId                          = idFn(ctx.value)
     val ConnectionArguments(limit, cursor) = ConnectionArguments[Cursor](ctx)
 
-    val toRun: ConnectionIO[List[Target]] = action(ctx.ctx)(id, cursor, limit)
+    // We request 1 extra item to check if there is a next page
+    val toRun: ConnectionIO[List[Target]] = action(ctx.ctx)(id, cursor, limit + 1)
 
     ctx.ctx
       .run(toRun)
-      .map(generateConnection(_, cursorFn))
+      .map(data ⇒ generateConnection(data = data.take(limit), cursorFn = cursorFn, hasMore = data.size > limit))
   }
 
-  private def generateConnection[Target, Cursor](data: List[Target], cursorFn: Target ⇒ Cursor): Connection[Target] =
+  private def generateConnection[Target, Cursor](
+      data: List[Target],
+      cursorFn: Target ⇒ Cursor,
+      hasMore: Boolean
+    ): Connection[Target] =
     DefaultConnection(
       PageInfo(
         startCursor = data.headOption.map(cursorFn).map(_.toString),
         endCursor = data.lastOption.map(cursorFn).map(_.toString),
         hasPreviousPage = false,
-        hasNextPage = false
-        // TODO we need to request n + 1 items from the DB to detect if there is a next page and cut the last item from the response
+        hasNextPage = hasMore
       ),
       data.map { row ⇒
         Edge(row, cursorFn(row).toString)

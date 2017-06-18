@@ -2,7 +2,7 @@ package gg.uhc.website.repositories
 
 import gg.uhc.website.model.Style
 
-class StyleRepository extends Repository[Style] with CanQueryByIds[Style] {
+class StyleRepository extends Repository[Style] with HasUuidIdColumn[Style] {
   import doobie.imports._
   import doobie.postgres.imports._
 

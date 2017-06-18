@@ -7,7 +7,7 @@ import gg.uhc.website.model.Ban
 
 import scalaz.Scalaz._
 
-class BanRepository extends Repository[Ban] with CanQueryByIds[Ban] with CanQueryRelations[Ban] {
+class BanRepository extends Repository[Ban] with HasUuidIdColumn[Ban] with HasRelationColumns[Ban] {
   import doobie.imports._
   import doobie.postgres.imports._
 
@@ -20,10 +20,10 @@ class BanRepository extends Repository[Ban] with CanQueryByIds[Ban] with CanQuer
     (select ++ Fragments.whereAndOpt(showExpired.option(fr"expires > NOW()".asInstanceOf[Fragment])))
       .query[Ban]
 
-  private[repositories] val getByBannedUserIdQuery = connectionQuery[UUID, Instant](
+  private[repositories] val getByBannedUserIdQuery = relationListingQuery[UUID, Instant](
     relColumn = "bannedUserId",
     cursorColumn = "created",
-    cursorDirection = DESC
+    cursorDirection = SortDirection.DESC
   )
 
   def getBansByExpiredStatus(showExpired: Boolean): ConnectionIO[List[Ban]] =

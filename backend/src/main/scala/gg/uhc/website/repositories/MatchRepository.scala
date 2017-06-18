@@ -5,7 +5,7 @@ import java.util.UUID
 
 import gg.uhc.website.model.Match
 
-class MatchRepository extends Repository[Match] with CanQueryByIds[Match] with CanQueryRelations[Match] {
+class MatchRepository extends Repository[Match] with HasUuidIdColumn[Match] with HasRelationColumns[Match] {
   import doobie.imports._
   import doobie.postgres.imports._
 
@@ -15,17 +15,17 @@ class MatchRepository extends Repository[Match] with CanQueryByIds[Match] with C
     fr"SELECT uuid, hostUserId, serverId, versionId, styleId, size, created, modified, deleted, starts FROM matches"
       .asInstanceOf[Fragment]
 
-  private[this] val genericConnectionQuery = (column: String) ⇒
-    connectionQuery[UUID, Instant](
+  private[this] val genericRelationListing = (column: String) ⇒
+    relationListingQuery[UUID, Instant](
       relColumn = column,
       cursorColumn = "created",
-      cursorDirection = DESC
+      cursorDirection = SortDirection.DESC
   )
 
-  private[repositories] val getByServerIdQuery   = genericConnectionQuery("serverId")
-  private[repositories] val getByHostUserIdQuery = genericConnectionQuery("hostUserId")
-  private[repositories] val getByStyleIdQuery    = genericConnectionQuery("styleId")
-  private[repositories] val getByVersionIdQuery  = genericConnectionQuery("versionId")
+  private[repositories] val getByServerIdQuery   = genericRelationListing("serverId")
+  private[repositories] val getByHostUserIdQuery = genericRelationListing("hostUserId")
+  private[repositories] val getByStyleIdQuery    = genericRelationListing("styleId")
+  private[repositories] val getByVersionIdQuery  = genericRelationListing("versionId")
 
   val getByServerId: LookupA[UUID, Instant]   = getByServerIdQuery
   val getByHostUserId: LookupA[UUID, Instant] = getByHostUserIdQuery

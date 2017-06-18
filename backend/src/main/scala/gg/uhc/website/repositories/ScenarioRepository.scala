@@ -5,7 +5,7 @@ import java.util.UUID
 
 import gg.uhc.website.model.Scenario
 
-class ScenarioRepository extends Repository[Scenario] with CanQueryByIds[Scenario] with CanQueryRelations[Scenario] {
+class ScenarioRepository extends Repository[Scenario] with HasUuidIdColumn[Scenario] with HasRelationColumns[Scenario] {
   import doobie.imports._
   import doobie.postgres.imports._
 
@@ -15,10 +15,10 @@ class ScenarioRepository extends Repository[Scenario] with CanQueryByIds[Scenari
     fr"SELECT uuid, name, description, created, modified, deleted, ownerUserId FROM scenarios"
       .asInstanceOf[Fragment]
 
-  private[repositories] val getByOwnerUserIdQuery = connectionQuery[UUID, Instant](
+  private[repositories] val getByOwnerUserIdQuery = relationListingQuery[UUID, Instant](
     relColumn = "ownerUserId",
     cursorColumn = "created",
-    cursorDirection = DESC
+    cursorDirection = SortDirection.DESC
   )
 
   val getByOwnerUserId: LookupA[UUID, Instant] = getByOwnerUserIdQuery

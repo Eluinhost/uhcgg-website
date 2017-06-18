@@ -9,7 +9,7 @@ import gg.uhc.website.model.User
 import scalaz.NonEmptyList
 import scalaz.Scalaz._
 
-class UserRepository extends Repository[User] with CanQueryByIds[User] with CustomJsonCodec {
+class UserRepository extends Repository[User] with HasUuidIdColumn[User] with CustomJsonCodec {
   import doobie.imports._
   import doobie.postgres.imports._
 

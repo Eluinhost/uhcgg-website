@@ -1,7 +1,7 @@
 package gg.uhc.website.schema.helpers
 
 import doobie.imports.ConnectionIO
-import gg.uhc.website.repositories.CanQueryRelations.RelationshipLookup
+import gg.uhc.website.repositories.HasRelationColumns.RelationshipLookup
 import gg.uhc.website.schema.{ConnectionArguments, SchemaContext}
 import sangria.relay.{Connection, DefaultConnection, Edge, PageInfo}
 import sangria.schema.{Args, Context, Field, ObjectType, ScalarType}

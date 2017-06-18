@@ -2,7 +2,7 @@ package gg.uhc.website.repositories
 
 import gg.uhc.website.model.Version
 
-class VersionRepository extends Repository[Version] with CanQueryByIds[Version] {
+class VersionRepository extends Repository[Version] with HasUuidIdColumn[Version] {
   import doobie.imports._
   import doobie.postgres.imports._
 

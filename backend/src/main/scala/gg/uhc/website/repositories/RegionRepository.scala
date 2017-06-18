@@ -2,7 +2,7 @@ package gg.uhc.website.repositories
 
 import gg.uhc.website.model.Region
 
-class RegionRepository extends Repository[Region] with CanQueryByIds[Region] {
+class RegionRepository extends Repository[Region] with HasUuidIdColumn[Region] {
   import doobie.imports._
   import doobie.postgres.imports._
 

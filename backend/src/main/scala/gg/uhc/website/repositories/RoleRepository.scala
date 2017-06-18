@@ -2,7 +2,7 @@ package gg.uhc.website.repositories
 
 import gg.uhc.website.model.Role
 
-class RoleRepository extends Repository[Role] with CanQueryByIds[Role] {
+class RoleRepository extends Repository[Role] with HasUuidIdColumn[Role] {
   import doobie.imports._
   import doobie.postgres.imports._
 

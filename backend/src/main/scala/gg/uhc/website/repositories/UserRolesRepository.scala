@@ -4,7 +4,7 @@ import java.util.UUID
 
 import gg.uhc.website.model.UserRole
 
-class UserRolesRepository extends Repository[UserRole] with CanQueryRelations[UserRole] {
+class UserRolesRepository extends Repository[UserRole] with HasRelationColumns[UserRole] {
   import doobie.imports._
   import doobie.postgres.imports._
 
@@ -13,11 +13,11 @@ class UserRolesRepository extends Repository[UserRole] with CanQueryRelations[Us
   private[repositories] val select: Fragment =
     fr"SELECT userId, roleId FROM user_roles".asInstanceOf[Fragment]
 
-  private[repositories] val getByUserIdQuery = connectionQuery[UUID, UUID](
+  private[repositories] val getByUserIdQuery = relationListingQuery[UUID, UUID](
     relColumn = "userId",
     cursorColumn = "roleId"
   )
-  private[repositories] val getByRoleIdQuery = connectionQuery[UUID, UUID](
+  private[repositories] val getByRoleIdQuery = relationListingQuery[UUID, UUID](
     relColumn = "roleId",
     cursorColumn = "userId"
   )

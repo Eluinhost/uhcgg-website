@@ -8,7 +8,7 @@ import gg.uhc.website.schema.SchemaContext
 import sangria.execution.deferred._
 
 object Fetchers {
-  private def simpleFetcher[A <: BaseNode, R <: CanQueryByIds[A]](
+  private def simpleFetcher[A <: BaseNode, R <: HasUuidIdColumn[A]](
       repo: SchemaContext ⇒ R
     ): Fetcher[SchemaContext, A, A, UUID] =
     Fetcher.caching(

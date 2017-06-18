@@ -1,11 +1,13 @@
 package gg.uhc.website.schema.definitions
 
+import java.util.UUID
+
 import gg.uhc.website.model.{Network, NetworkPermission, Server}
 import gg.uhc.website.schema.SchemaContext
 import gg.uhc.website.schema.helpers.ConnectionHelpers._
 import gg.uhc.website.schema.helpers.ConnectionIOConverters._
 import gg.uhc.website.schema.helpers.FieldHelpers._
-
+import gg.uhc.website.schema.scalars.UuidScalarTypeSupport._
 import sangria.schema._
 
 import scalaz.Scalaz._
@@ -58,19 +60,21 @@ object NetworkSchema extends HasSchemaType[Network] with HasSchemaQueries {
           resolve = ctx ⇒ Fetchers.users.defer(ctx.value.ownerUserId)
         ),
         // connections below here
-        simpleConnectionField[Network, Server](
+        relationshipField[Network, Server, UUID, UUID](
           name = "servers",
-          target = ServerSchema.Type,
+          targetType = ServerSchema.Type,
           description = "A list of all servers belonging to this network",
           action = _.servers.getByNetworkId,
-          cursorFn = _.uuid.toString
+          cursorFn = (server: Server) ⇒ server.uuid,
+          idFn = (network: Network) ⇒ network.uuid
         ),
-        simpleConnectionField[Network, NetworkPermission](
+        relationshipField[Network, NetworkPermission, UUID, UUID](
           name = "permissions",
-          target = NetworkPermissionSchema.Type,
-          description = "A list of all users with permissions",
+          targetType = NetworkPermissionSchema.Type,
+          description = "A list of all users with permissions to this network",
           action = _.networkPermissions.getByNetworkId,
-          cursorFn = _.userId.toString
+          cursorFn = (np: NetworkPermission) ⇒ np.userId,
+          idFn = (n: Network) ⇒ n.uuid
         )
     )
   )

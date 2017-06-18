@@ -1,8 +1,10 @@
 package gg.uhc.website.repositories
 
+import java.util.UUID
+
 import gg.uhc.website.model.MatchScenario
 
-class MatchScenariosRepository extends Repository[MatchScenario] {
+class MatchScenariosRepository extends Repository[MatchScenario] with CanQueryRelations[MatchScenario] {
   import doobie.imports._
   import doobie.postgres.imports._
 
@@ -13,15 +15,15 @@ class MatchScenariosRepository extends Repository[MatchScenario] {
 
   // TODO should this be absorbed into match/scenario repos with joins?
 
-  private[repositories] val getByScenarioIdQuery = generateConnectionQuery(
+  private[repositories] val getByScenarioIdQuery = connectionQuery[UUID, UUID](
     relColumn = "scenarioId",
-    sortColumn = "matchId"
+    cursorColumn = "matchId"
   )
-  private[repositories] val getByMatchIdQuery = generateConnectionQuery(
+  private[repositories] val getByMatchIdQuery = connectionQuery[UUID, UUID](
     relColumn = "matchId",
-    sortColumn = "scenarioId"
+    cursorColumn = "scenarioId"
   )
 
-  val getByScenarioId: ListConnection = genericConnectionList(getByScenarioIdQuery)
-  val getByMatchId: ListConnection    = genericConnectionList(getByMatchIdQuery)
+  val getByScenarioId: LookupA[UUID, UUID] = getByScenarioIdQuery
+  val getByMatchId: LookupA[UUID, UUID]    = getByMatchIdQuery
 }

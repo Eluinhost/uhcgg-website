@@ -1,11 +1,14 @@
 package gg.uhc.website.schema.definitions
 
+import java.time.Instant
+import java.util.UUID
+
 import gg.uhc.website.model.{Match, Style}
 import gg.uhc.website.schema.SchemaContext
 import gg.uhc.website.schema.helpers.ConnectionHelpers._
 import gg.uhc.website.schema.helpers.ConnectionIOConverters._
 import gg.uhc.website.schema.helpers.FieldHelpers._
-
+import gg.uhc.website.schema.scalars.InstantScalarTypeSupport._
 import sangria.schema._
 
 import scalaz.Scalaz._
@@ -54,12 +57,13 @@ object StyleSchema extends HasSchemaType[Style] with HasSchemaQueries {
           resolve = _.value.requiresSize
         ),
         // Connections below here
-        simpleConnectionField[Style, Match](
+        relationshipField[Style, Match, UUID, Instant](
           name = "matches",
-          target = MatchSchema.Type,
+          targetType = MatchSchema.Type,
           description = "A list of games using this style",
           action = _.matches.getByStyleId,
-          cursorFn = _.created.toString
+          cursorFn = (m: Match) ⇒ m.created,
+          idFn = (s: Style) ⇒ s.uuid
         )
     )
   )

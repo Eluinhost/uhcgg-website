@@ -29,10 +29,4 @@ trait BaseRepositoryTest extends Matchers with QueryChecker with Assertions with
   }
 
   override val transactor: Transactor[IOLite] = DataSourceTransactor[IOLite](dataSource)
-
-  protected implicit def buildRelationIds[A](rel:(Relation[A, _, _], Seq[_])): RelationIds[A] =
-    buildRelationIds(Seq(rel))
-
-  protected implicit def buildRelationIds[A](rels: Seq[(Relation[A, _, _], Seq[_])]): RelationIds[A] =
-    RelationIds(rels.toMap)
 }

@@ -5,7 +5,7 @@ import java.util.UUID
 import doobie.imports._
 import doobie.postgres.imports._
 import gg.uhc.website.model.BaseNode
-import gg.uhc.website.schema.ForwardOnlyConnection
+import gg.uhc.website.repositories.CanQueryRelations.{RelationshipLookup, RelationshipQuery}
 
 import scalaz.Scalaz._
 import scalaz._
@@ -21,9 +21,6 @@ trait Repository[A] {
     override val sql: String = "DESC"
   }
 
-  type ConnectionQuery = (UUID, ForwardOnlyConnection) ⇒ Query0[A]
-  type ListConnection = (UUID, ForwardOnlyConnection) ⇒ ConnectionIO[List[A]]
-
   private[repositories] implicit val logHandler: LogHandler = LogHandler.jdkLogHandler
 
   // Used to query for the data
@@ -34,55 +31,6 @@ trait Repository[A] {
 
   // Simple alaias for Fragment.const
   private[repositories] def const(raw: String): Fragment = Fragment.const(raw)
-
-  /**
-    * Generates a query for querying relations.
-    *
-    * ALL PARAMETERS TO THIS *MUST* BE SAFE TO USE IN A QUERY, NO ESCAPING OCCURS.
-    *
-    * @return a query that takes a rel id and some connection args, these can be unsafe paramters
-    */
-  private[repositories] def generateConnectionQuery(
-      relColumn: String,
-      sortColumn: String = "uuid",
-      sortColumnType: String = "uuid",
-      sortDirection: SortDirection = ASC
-    ): ConnectionQuery = {
-
-    // relColumn = uuid
-    val relColumnFilter: UUID ⇒ Fragment =
-      id ⇒ const(s"$relColumn = ") ++ fr"$id".asInstanceOf[Fragment]
-
-    // sortColumn > 'after'::sortColumnType
-    val sortColumnFilter: String ⇒ Fragment =
-      after ⇒
-        const(s"$sortColumn > ") ++
-          fr0"$after::".asInstanceOf[Fragment] ++
-          const(s"$sortColumnType ")
-
-    // LIMIT args.first
-    val limit: ForwardOnlyConnection ⇒ Fragment =
-      args ⇒ fr"LIMIT ${args.first}".asInstanceOf[Fragment]
-
-    // ORDER BY sortColumn ASC
-    val orderBy = const(s"ORDER BY $sortColumn ${sortDirection.sql} ")
-
-    (relId: UUID, args: ForwardOnlyConnection) ⇒
-      (
-        select ++
-          Fragments.whereAndOpt(
-            relColumnFilter(relId).some, // always filter by the rel column
-            args.after.map(sortColumnFilter) // optionally add the filter for the 'after' arg
-          ) ++
-          // Add an order by to make after cursors work + always add a limit
-          orderBy ++ limit(args)
-      ).query[A]
-  }
-
-  private[repositories] val genericConnectionList: (ConnectionQuery ⇒ ListConnection) =
-    (query: ConnectionQuery) ⇒
-      (uuid: UUID, args: ForwardOnlyConnection) ⇒
-        query(uuid, args).list
 
   private[repositories] def getAllQuery: Query0[A] =
     select.query[A]
@@ -116,4 +64,59 @@ trait CanQueryByIds[A <: BaseNode] { self: Repository[A] ⇒
       case a +: as ⇒ getByIdsQuery(NonEmptyList(a, as: _*)).list
       case _       ⇒ List.empty[A].point[ConnectionIO]
     }
+}
+
+object CanQueryRelations {
+  type RelationshipQuery[Row, RelId, Cursor]  = (RelId, Option[Cursor], Long) ⇒ Query0[Row]
+  type RelationshipLookup[Row, RelId, Cursor] = (RelId, Option[Cursor], Long) ⇒ ConnectionIO[List[Row]]
+}
+
+trait CanQueryRelations[A] { self: Repository[A] ⇒
+  type QueryA[RelId, Cursor] = RelationshipQuery[A, RelId, Cursor]
+  type LookupA[RelId, Cursor] = RelationshipLookup[A, RelId, Cursor]
+
+  private[repositories] implicit val logHandler: LogHandler
+
+  private[repositories] implicit def queryToLookup[RelId, Cursor](
+      query: QueryA[RelId, Cursor]
+    ): LookupA[RelId, Cursor] =
+    (relId: RelId, cursor: Option[Cursor], limit: Long) ⇒ query(relId, cursor, limit).list
+
+  private[repositories] def connectionQuery[RelId, Cursor](
+      relColumn: String,
+      cursorColumn: String,
+      cursorDirection: SortDirection = ASC
+    )(implicit relParam: Param[RelId],
+      cursorParam: Param[Cursor]
+    ): QueryA[RelId, Cursor] = {
+
+    // Filters the result set to only things matching the relationship key
+    def relColumnFilter(relId: RelId): Fragment =
+      const(s"$relColumn = ") ++ fr"$relId".asInstanceOf[Fragment]
+
+    // Adds a filter to only show items after the supplied cursor value
+    def sortColumnFilter(cursor: Cursor): Fragment =
+      const(s"$cursorColumn > ") ++ fr"$cursor".asInstanceOf[Fragment]
+
+    // Adds a limit to the size specified
+    def limitFragment(limit: Long): Fragment =
+      fr"LIMIT $limit".asInstanceOf[Fragment]
+
+    // Adds an order by for the given cursor column + direction
+    val orderBy = const(s"ORDER BY $cursorColumn ${cursorDirection.sql} ")
+
+    def createQuery(relId: RelId, cursor: Option[Cursor], limit: Long): Query0[A] = {
+      (
+        select ++
+          Fragments.whereAndOpt(
+            relColumnFilter(relId).some, // always filter by the rel column
+            cursor.map(sortColumnFilter) // optionally add the filter for the 'after' arg
+          ) ++
+          // Add an order by to make after cursors work + always add a limit
+          orderBy ++ limitFragment(limit)
+      ).query[A]
+    }
+
+    createQuery
+  }
 }

@@ -1,11 +1,13 @@
 package gg.uhc.website.schema.definitions
 
+import java.util.UUID
+
 import gg.uhc.website.model.{MatchScenario, Scenario}
 import gg.uhc.website.schema.SchemaContext
 import gg.uhc.website.schema.helpers.ConnectionHelpers._
 import gg.uhc.website.schema.helpers.ConnectionIOConverters._
 import gg.uhc.website.schema.helpers.FieldHelpers._
-
+import gg.uhc.website.schema.scalars.UuidScalarTypeSupport._
 import sangria.schema._
 
 import scalaz.Scalaz._
@@ -15,7 +17,7 @@ object ScenarioSchema extends HasSchemaType[Scenario] with HasSchemaQueries {
     Field(
       "scenarios",
       ListType(Type),
-      arguments = Nil,// TODO replace with a connection for pagination purposes
+      arguments = Nil, // TODO replace with a connection for pagination purposes
       resolve = implicit ctx ⇒ ctx.ctx.scenarios.getAll,
       description = "Fetches all scenarios".some
     )
@@ -51,13 +53,13 @@ object ScenarioSchema extends HasSchemaType[Scenario] with HasSchemaQueries {
           description = "The owner of this scenario".some,
           resolve = ctx ⇒ Fetchers.users.defer(ctx.value.ownerUserId)
         ),
-        // Connections below here
-        simpleConnectionField[Scenario, MatchScenario](
+        relationshipField[Scenario, MatchScenario, UUID, UUID](
           name = "matches",
-          target = MatchScenarioSchema.Type,
+          targetType = MatchScenarioSchema.Type,
           description = "Matches with this scenario",
           action = _.matchScenarios.getByScenarioId,
-          cursorFn = _.matchId.toString
+          cursorFn = (ms: MatchScenario) ⇒ ms.matchId,
+          idFn = (s: Scenario) ⇒ s.uuid
         )
     )
   )

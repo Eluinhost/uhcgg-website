@@ -1,12 +1,14 @@
 package gg.uhc.website.schema.definitions
 
+import java.util.UUID
+
 import gg.uhc.website.model.{Match, MatchScenario}
 import gg.uhc.website.schema.SchemaContext
 import gg.uhc.website.schema.helpers.ConnectionHelpers._
 import gg.uhc.website.schema.helpers.ConnectionIOConverters._
 import gg.uhc.website.schema.helpers.FieldHelpers._
 import gg.uhc.website.schema.scalars.InstantScalarTypeSupport._
-
+import gg.uhc.website.schema.scalars.UuidScalarTypeSupport._
 import sangria.schema._
 
 import scalaz.Scalaz._
@@ -71,12 +73,13 @@ object MatchSchema extends HasSchemaType[Match] with HasSchemaQueries {
           resolve = ctx ⇒ Fetchers.styles.defer(ctx.value.styleId)
         ),
         // Connections below here
-        simpleConnectionField[Match, MatchScenario](
+        relationshipField[Match, MatchScenario, UUID, UUID](
           name = "scenarios",
-          target = MatchScenarioSchema.Type,
+          targetType = MatchScenarioSchema.Type,
           description = "Scenarios for this match",
           action = _.matchScenarios.getByMatchId,
-          cursorFn = _.scenarioId.toString
+          cursorFn = (ms: MatchScenario) => ms.scenarioId,
+          idFn = (m: Match) ⇒ m.uuid
         )
     )
   )

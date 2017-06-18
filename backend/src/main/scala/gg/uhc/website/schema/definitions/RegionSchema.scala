@@ -1,14 +1,15 @@
 package gg.uhc.website.schema.definitions
 
+import java.util.UUID
+
 import gg.uhc.website.model.{Region, Server}
 import gg.uhc.website.schema.SchemaContext
 import gg.uhc.website.schema.helpers.ConnectionHelpers._
 import gg.uhc.website.schema.helpers.ConnectionIOConverters._
+import gg.uhc.website.schema.helpers.FieldHelpers._
+import gg.uhc.website.schema.scalars.UuidScalarTypeSupport._
 
 import sangria.schema._
-
-import gg.uhc.website.schema.helpers.FieldHelpers._
-
 import scalaz.Scalaz._
 
 object RegionSchema extends HasSchemaType[Region] with HasSchemaQueries {
@@ -43,12 +44,13 @@ object RegionSchema extends HasSchemaType[Region] with HasSchemaQueries {
           resolve = _.value.long
         ),
         // Connections below here
-        simpleConnectionField[Region, Server](
+        relationshipField[Region, Server, UUID, UUID](
           name = "servers",
-          target = ServerSchema.Type,
-          description = "List of servers in this region",
+          targetType = ServerSchema.Type,
+          description = "A list of servers in this region",
           action = _.servers.getByRegionId,
-          cursorFn = _.uuid.toString
+          cursorFn = (s: Server) ⇒ s.uuid,
+          idFn = (r: Region) ⇒ r.uuid
         )
     )
   )

@@ -1,11 +1,13 @@
 package gg.uhc.website.schema.definitions
 
+import java.util.UUID
+
 import gg.uhc.website.model.{Role, UserRole}
 import gg.uhc.website.schema.SchemaContext
 import gg.uhc.website.schema.helpers.ConnectionHelpers._
 import gg.uhc.website.schema.helpers.ConnectionIOConverters._
 import gg.uhc.website.schema.helpers.FieldHelpers._
-
+import gg.uhc.website.schema.scalars.UuidScalarTypeSupport._
 import sangria.schema._
 
 import scalaz.Scalaz._
@@ -42,12 +44,13 @@ object RoleSchema extends HasSchemaType[Role] with HasSchemaQueries {
           resolve = _.value.permissions
         ),
         // Connections below here
-        simpleConnectionField[Role, UserRole](
+        relationshipField[Role, UserRole, UUID, UUID](
           name = "users",
-          target = UserRoleSchema.Type,
+          targetType = UserRoleSchema.Type,
           description = "List of UserRole objects to get users with this role",
           action = _.userRoles.getByUserId,
-          cursorFn = _.roleId.toString
+          cursorFn = (ur: UserRole) ⇒ ur.roleId,
+          idFn = (r: Role) ⇒ r.uuid
         )
     )
   )

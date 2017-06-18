@@ -1,11 +1,14 @@
 package gg.uhc.website.schema.definitions
 
+import java.time.Instant
+import java.util.UUID
+
 import gg.uhc.website.model.{Match, Server}
 import gg.uhc.website.schema.SchemaContext
 import gg.uhc.website.schema.helpers.ConnectionHelpers._
 import gg.uhc.website.schema.helpers.ConnectionIOConverters._
 import gg.uhc.website.schema.scalars.InetAddressScalarTypeSupport._
-
+import gg.uhc.website.schema.scalars.InstantScalarTypeSupport._
 import sangria.schema._
 
 import scalaz.Scalaz._
@@ -16,7 +19,7 @@ object ServerSchema extends HasSchemaType[Server] with HasSchemaQueries {
     Field(
       "servers",
       ListType(Type),
-      arguments = Nil,// TODO replace with a connection for pagination purposes
+      arguments = Nil, // TODO replace with a connection for pagination purposes
       resolve = implicit ctx ⇒ ctx.ctx.servers.getAll,
       description = "Fetches all servers".some
     )
@@ -85,12 +88,13 @@ object ServerSchema extends HasSchemaType[Server] with HasSchemaQueries {
           resolve = ctx ⇒ Fetchers.regions.defer(ctx.value.regionId)
         ),
         // Connections below here
-        simpleConnectionField[Server, Match](
+        relationshipField[Server, Match, UUID, Instant](
           name = "matches",
-          target = MatchSchema.Type,
+          targetType = MatchSchema.Type,
           description = "A list of games hosted on this server",
           action = _.matches.getByServerId,
-          cursorFn = _.created.toString
+          cursorFn = (m: Match) ⇒ m.created,
+          idFn = (s: Server) ⇒ s.uuid
         )
     )
   )

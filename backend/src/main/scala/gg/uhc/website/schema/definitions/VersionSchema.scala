@@ -1,10 +1,13 @@
 package gg.uhc.website.schema.definitions
 
+import java.time.Instant
+import java.util.UUID
+
 import gg.uhc.website.model.{Match, Version}
 import gg.uhc.website.schema.SchemaContext
 import gg.uhc.website.schema.helpers.ConnectionHelpers._
 import gg.uhc.website.schema.helpers.ConnectionIOConverters._
-
+import gg.uhc.website.schema.scalars.InstantScalarTypeSupport._
 import sangria.schema._
 
 import scalaz.Scalaz._
@@ -42,12 +45,13 @@ object VersionSchema extends HasSchemaType[Version] with HasSchemaQueries {
           resolve = _.value.live
         ),
         // Connections below here
-        simpleConnectionField[Version, Match](
+        relationshipField[Version, Match, UUID, Instant](
           name = "matches",
-          target = MatchSchema.Type,
+          targetType = MatchSchema.Type,
           description = "A list of games using this version",
           action = _.matches.getByVersionId,
-          cursorFn = _.created.toString
+          cursorFn = (m: Match) ⇒ m.created,
+          idFn = (v: Version) ⇒ v.uuid
         )
     )
   )

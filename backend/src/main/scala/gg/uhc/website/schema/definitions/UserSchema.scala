@@ -1,5 +1,8 @@
 package gg.uhc.website.schema.definitions
 
+import java.time.Instant
+import java.util.UUID
+
 import gg.uhc.website.model._
 import sangria.schema._
 import gg.uhc.website.schema.SchemaContext
@@ -7,6 +10,8 @@ import gg.uhc.website.schema.helpers.ArgumentConverters._
 import gg.uhc.website.schema.helpers.ConnectionHelpers._
 import gg.uhc.website.schema.helpers.ConnectionIOConverters._
 import gg.uhc.website.schema.helpers.FieldHelpers._
+import gg.uhc.website.schema.scalars.InstantScalarTypeSupport._
+import gg.uhc.website.schema.scalars.UuidScalarTypeSupport._
 
 import scalaz.Scalaz._
 
@@ -54,54 +59,61 @@ object UserSchema extends HasSchemaType[User] with HasSchemaQueries {
           resolve = _.value.username
         ),
         // Connections below here
-        simpleConnectionField[User, Ban](
+        relationshipField[User, Ban, UUID, Instant](
           name = "bans",
-          target = BanSchema.Type,
+          targetType = BanSchema.Type,
           description = "All current bans applied to the given user",
           action = _.bans.getByBannedUserId,
-          cursorFn = _.created.toString
+          cursorFn = (b: Ban) ⇒ b.created,
+          idFn = (u: User) ⇒ u.uuid
         ),
-        simpleConnectionField[User, UserRole](
+        relationshipField[User, UserRole, UUID, UUID](
           name = "roles",
-          target = UserRoleSchema.Type,
+          targetType = UserRoleSchema.Type,
           description = "A list of user roles the user has",
           action = _.userRoles.getByUserId,
-          cursorFn = _.roleId.toString
+          cursorFn = (ur: UserRole) ⇒ ur.roleId,
+          idFn = (u: User) ⇒ u.uuid
         ),
-        simpleConnectionField[User, Network](
+        relationshipField[User, Network, UUID, UUID](
           name = "networks",
-          target = NetworkSchema.Type,
+          targetType = NetworkSchema.Type,
           description = "A list of networks the user owns",
           action = _.networks.getByOwnerUserId,
-          cursorFn = _.uuid.toString
+          cursorFn = (n: Network) ⇒ n.uuid,
+          idFn = (u: User) ⇒ u.uuid
         ),
-        simpleConnectionField[User, Match](
+        relationshipField[User, Match, UUID, Instant](
           name = "matches",
-          target = MatchSchema.Type,
+          targetType = MatchSchema.Type,
           description = "A list of games the user is/has hosted",
           action = _.matches.getByHostUserId,
-          cursorFn = _.created.toString
+          cursorFn = (m: Match) ⇒ m.created,
+          idFn = (u: User) ⇒ u.uuid
         ),
-        simpleConnectionField[User, Scenario](
+        relationshipField[User, Scenario, UUID, Instant](
           name = "scenarios",
-          target = ScenarioSchema.Type,
+          targetType = ScenarioSchema.Type,
           description = "A list of owned scenarios",
           action = _.scenarios.getByOwnerUserId,
-          cursorFn = _.uuid.toString
+          cursorFn = (s: Scenario) ⇒ s.created,
+          idFn = (u: User) ⇒ u.uuid
         ),
-        simpleConnectionField[User, NetworkPermission](
+        relationshipField[User, NetworkPermission, UUID, UUID](
           name = "networkPermissions",
-          target = NetworkPermissionSchema.Type,
+          targetType = NetworkPermissionSchema.Type,
           description = "A list of all networks with permissions",
           action = _.networkPermissions.getByUserId,
-          cursorFn = _.networkId.toString
+          cursorFn = (np: NetworkPermission) ⇒ np.networkId,
+          idFn = (u: User) ⇒ u.uuid
         ),
-        simpleConnectionField[User, Server](
+        relationshipField[User, Server, UUID, UUID](
           name = "servers",
-          target = ServerSchema.Type,
+          targetType = ServerSchema.Type,
           description = "A list of all owned servers",
           action = _.servers.getByOwnerUserId,
-          cursorFn = _.uuid.toString
+          cursorFn = (s: Server) ⇒ s.uuid,
+          idFn = (u: User) ⇒ u.uuid
         )
     )
   )

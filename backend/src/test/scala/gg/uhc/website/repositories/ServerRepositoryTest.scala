@@ -1,6 +1,5 @@
 package gg.uhc.website.repositories
 
-import gg.uhc.website.schema.ForwardOnlyConnection
 import org.scalatest._
 
 @DoNotDiscover
@@ -14,5 +13,5 @@ class ServerRepositoryTest extends FlatSpec with BaseRepositoryTest {
     check(repo.getByIdsQuery(randIds))
 
   it should "have valid getByNetworkId query" in
-    check(repo.getByNetworkIdQuery(randId, ForwardOnlyConnection(after = Some(randId.toString), first = 10)))
+    check(repo.getByNetworkIdQuery(randId, Some(randId), 10))
 }

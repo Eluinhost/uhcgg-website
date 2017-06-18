@@ -1,8 +1,10 @@
 package gg.uhc.website.repositories
 
+import java.util.UUID
+
 import gg.uhc.website.model.NetworkPermission
 
-class NetworkPermissionRepository extends Repository[NetworkPermission] {
+class NetworkPermissionRepository extends Repository[NetworkPermission] with CanQueryRelations[NetworkPermission] {
   import doobie.imports._
   import doobie.postgres.imports._
 
@@ -11,15 +13,16 @@ class NetworkPermissionRepository extends Repository[NetworkPermission] {
   override private[repositories] val select: Fragment =
     fr"SELECT networkId, userId, isadmin FROM network_permissions".asInstanceOf[Fragment]
 
-  private[repositories] val getByNetworkIdQuery = generateConnectionQuery(
+  private[repositories] val getByNetworkIdQuery = connectionQuery[UUID, UUID](
     relColumn = "networkId",
-    sortColumn = "userId"
-  )
-  private[repositories] val getByUserIdQuery = generateConnectionQuery(
-    relColumn = "userId",
-    sortColumn = "networkId"
+    cursorColumn = "userId"
   )
 
-  val getByNetworkId: ListConnection = genericConnectionList(getByNetworkIdQuery)
-  val getByUserId: ListConnection    = genericConnectionList(getByUserIdQuery)
+  private[repositories] val getByUserIdQuery = connectionQuery[UUID, UUID](
+    relColumn = "userId",
+    cursorColumn = "networkId"
+  )
+
+  val getByNetworkId: LookupA[UUID, UUID] = getByNetworkIdQuery
+  val getByUserId: LookupA[UUID, UUID] = getByUserIdQuery
 }

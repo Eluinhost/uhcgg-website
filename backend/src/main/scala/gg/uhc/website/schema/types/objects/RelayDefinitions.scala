@@ -1,13 +1,14 @@
-package gg.uhc.website.schema.definitions
+package gg.uhc.website.schema.types.objects
+
 import java.util.UUID
 
-import gg.uhc.website.schema.SchemaContext
+import gg.uhc.website.schema.{Fetchers, SchemaContext}
 import sangria.relay.{GlobalId, Node, NodeDefinition}
 import sangria.schema._
 
 import scala.util.Try
 
-object RelaySchema extends HasSchemaQueries {
+object RelayDefinitions {
   val resolveGlobalId: (GlobalId, Context[SchemaContext, Unit]) ⇒ LeafAction[SchemaContext, Option[Node]] =
     (globalId, _) ⇒
       Try {
@@ -45,23 +46,18 @@ object RelaySchema extends HasSchemaQueries {
   val NodeDefinition(nodeInterface, nodeField, nodesField) = Node.definition(
     resolve = resolveGlobalId,
     possibleTypes = Node.possibleNodeTypes[SchemaContext, Node](
-      BanSchema.Type,
-      MatchSchema.Type,
-      NetworkSchema.Type,
-      RegionSchema.Type,
-      RoleSchema.Type,
-      ScenarioSchema.Type,
-      ServerSchema.Type,
-      StyleSchema.Type,
-      UserSchema.Type,
-      VersionSchema.Type
+      BanObjectType.Type,
+      MatchObjectType.Type,
+      NetworkObjectType.Type,
+      RegionObjectType.Type,
+      RoleObjectType.Type,
+      ScenarioObjectType.Type,
+      ServerObjectType.Type,
+      StyleObjectType.Type,
+      UserObjectType.Type,
+      VersionObjectType.Type
     ),
     complexity = None,
     tags = Nil
-  )
-
-  override val queries: List[Field[SchemaContext, Unit]] = fields(
-    nodeField,
-    nodesField
   )
 }

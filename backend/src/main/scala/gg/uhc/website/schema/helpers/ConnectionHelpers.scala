@@ -11,6 +11,43 @@ import scala.concurrent.Future
 object ConnectionHelpers extends ConnectionHelpers
 
 trait ConnectionHelpers {
+  def listingField[Target, Cursor: ScalarType](
+      name: String,
+      targetType: ObjectType[SchemaContext, Target],
+      description: String,
+      action: SchemaContext ⇒ (Option[Cursor], Long) ⇒ ConnectionIO[List[Target]],
+      cursorFn: (Target ⇒ Cursor)
+    ): Field[SchemaContext, Unit] =
+    Field(
+      name = name,
+      fieldType = Connection
+        .definition[SchemaContext, Connection, Target](targetType.name, targetType)
+        .connectionType,
+      arguments = ConnectionArguments.All[Cursor],
+      complexity = Some(
+        (_: SchemaContext, args: Args, childScore: Double) ⇒ 25 + (args.arg(ConnectionArguments.First) * childScore)
+      ),
+      description = Some(description),
+      resolve = ctx ⇒ resolveListing[Target, Cursor](action, cursorFn)(ctx)
+    )
+
+  def resolveListing[Target, Cursor: ScalarType](
+      action: SchemaContext ⇒ (Option[Cursor], Long) ⇒ ConnectionIO[List[Target]],
+      cursorFn: Target ⇒ Cursor
+    )(ctx: Context[SchemaContext, Unit]
+    ): Future[Connection[Target]] = {
+    // Use DB execution context
+    import ctx.ctx.run.ec
+
+    val ConnectionArguments(limit, cursor) = ConnectionArguments[Cursor](ctx)
+
+    val toRun: ConnectionIO[List[Target]] = action(ctx.ctx)(cursor, limit)
+
+    ctx.ctx
+      .run(toRun)
+      .map(generateConnection(_, cursorFn))
+  }
+
   def relationshipField[A, Target, RelId, Cursor: ScalarType](
       name: String,
       targetType: ObjectType[SchemaContext, Target],
@@ -26,7 +63,7 @@ trait ConnectionHelpers {
         .connectionType,
       arguments = ConnectionArguments.All[Cursor],
       complexity = Some(
-        (ctx: SchemaContext, args: Args, childScore: Double) ⇒ 25 + (args.arg(ConnectionArguments.First) * childScore)
+        (_: SchemaContext, args: Args, childScore: Double) ⇒ 25 + (args.arg(ConnectionArguments.First) * childScore)
       ),
       description = Some(description),
       resolve = ctx ⇒ resolveRelationship[A, Target, RelId, Cursor](action, cursorFn, idFn)(ctx)
@@ -46,18 +83,22 @@ trait ConnectionHelpers {
 
     val toRun: ConnectionIO[List[Target]] = action(ctx.ctx)(id, cursor, limit)
 
-    ctx.ctx.run(toRun).map { data ⇒
-      DefaultConnection(
-        PageInfo(
-          startCursor = data.headOption.map(cursorFn).map(_.toString),
-          endCursor = data.lastOption.map(cursorFn).map(_.toString),
-          hasPreviousPage = false,
-          hasNextPage = false // TODO we need to request n + 1 items from the DB to detect if there is a next page and cut the last item from the response
-        ),
-        data.map { row ⇒
-          Edge(row, cursorFn(row).toString)
-        }
-      )
-    }
+    ctx.ctx
+      .run(toRun)
+      .map(generateConnection(_, cursorFn))
   }
+
+  private def generateConnection[Target, Cursor](data: List[Target], cursorFn: Target ⇒ Cursor): Connection[Target] =
+    DefaultConnection(
+      PageInfo(
+        startCursor = data.headOption.map(cursorFn).map(_.toString),
+        endCursor = data.lastOption.map(cursorFn).map(_.toString),
+        hasPreviousPage = false,
+        hasNextPage = false
+        // TODO we need to request n + 1 items from the DB to detect if there is a next page and cut the last item from the response
+      ),
+      data.map { row ⇒
+        Edge(row, cursorFn(row).toString)
+      }
+    )
 }

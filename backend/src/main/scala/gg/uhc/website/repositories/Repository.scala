@@ -2,12 +2,12 @@ package gg.uhc.website.repositories
 
 import java.util.UUID
 
+import doobie.free.connection
 import doobie.imports._
 import doobie.postgres.imports._
 import gg.uhc.website.repositories.HasRelationColumns.{RelationshipLookup, RelationshipQuery}
 
-import scalaz.Scalaz._
-import scalaz._
+import scalaz.NonEmptyList
 
 object SortDirection {
   case object ASC extends SortDirection {
@@ -151,7 +151,7 @@ trait HasIdColumn[A, Id] { self: Repository[A] ⇒
     * @param limit limit to x amount of items
     * @param after only show items after this ID
     */
-  private[repositories] def listingQuery(limit: Long, after: Option[Id]) =
+  private[repositories] def listingQuery(after: Option[Id], limit: Long) =
     (
       select ++
         Fragments.whereAndOpt(
@@ -160,6 +160,14 @@ trait HasIdColumn[A, Id] { self: Repository[A] ⇒
         limitTo(limit) ++
         orderBy(column = "uuid", SortDirection.ASC)
     ).query[A]
+
+  /**
+    * Look up a listing of all items sorted by their ID
+    *
+    * @param limit limit to x number of items
+    * @param after only show items after this ID
+    */
+  def listing(after: Option[Id], limit: Long): ConnectionIO[List[A]] = listingQuery(after, limit).list
 
   /**
     * Lookup an item by it's ID
@@ -181,7 +189,7 @@ trait HasIdColumn[A, Id] { self: Repository[A] ⇒
       // if at least one item in IDs run the query
       case a +: as ⇒ getByIdsQuery(NonEmptyList(a, as: _*)).list
       // otherwise don't run anything and use an empty list instead
-      case _ ⇒ List.empty[A].point[ConnectionIO]
+      case _ ⇒ connection.raw(_ ⇒ List.empty[A])
     }
 }
 
@@ -233,7 +241,7 @@ trait HasRelationColumns[A] { self: Repository[A] ⇒
       (
         select ++
           Fragments.whereAndOpt(
-            relColumnFilter(relId).some, // always filter by the rel column
+            Some(relColumnFilter(relId)), // always filter by the rel column
             cursor.map(cursorFilter(cursorColumn, _)) // optionally add the filter for the cursor value
           ) ++
           // Add an order by to make after cursors work + always add a limit

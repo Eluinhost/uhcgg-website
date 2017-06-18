@@ -1,8 +1,8 @@
-package gg.uhc.website.schema.definitions
+package gg.uhc.website.schema.types.objects
 
 import gg.uhc.website.schema.SchemaContext
 import sangria.schema._
 
-trait HasSchemaType[T] {
+trait HasObjectType[T] {
   val Type: ObjectType[SchemaContext, T]
 }

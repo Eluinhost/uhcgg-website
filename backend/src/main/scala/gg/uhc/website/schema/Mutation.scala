@@ -3,8 +3,7 @@ package gg.uhc.website.schema
 import java.util.UUID
 
 import doobie.imports.ConnectionIO
-import gg.uhc.website.model.Role
-import gg.uhc.website.model.User
+import gg.uhc.website.model.{Role, User}
 import gg.uhc.website.security.RegistrationSession
 
 import scalaz.OptionT

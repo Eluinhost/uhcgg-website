@@ -1,32 +1,21 @@
-package gg.uhc.website.schema.definitions
+package gg.uhc.website.schema.types.objects
 
 import java.util.UUID
 
 import gg.uhc.website.model.{Network, NetworkPermission, Server}
-import gg.uhc.website.schema.SchemaContext
 import gg.uhc.website.schema.helpers.ConnectionHelpers._
-import gg.uhc.website.schema.helpers.ConnectionIOConverters._
 import gg.uhc.website.schema.helpers.FieldHelpers._
-import gg.uhc.website.schema.scalars.UuidScalarTypeSupport._
+import gg.uhc.website.schema.types.scalars.UuidScalarType._
+import gg.uhc.website.schema.{Fetchers, SchemaContext}
 import sangria.schema._
 
 import scalaz.Scalaz._
 
-object NetworkSchema extends HasSchemaType[Network] with HasSchemaQueries {
-  override val queries: List[Field[SchemaContext, Unit]] = fields(
-    Field(
-      "networks",
-      ListType(Type),
-      arguments = Nil, // TODO replace with a connection for pagination purposes
-      resolve = implicit ctx ⇒ ctx.ctx.networks.getAll,
-      description = "Fetches all versions".some
-    )
-  )
-
+object NetworkObjectType extends HasObjectType[Network] {
   override lazy val Type: ObjectType[SchemaContext, Network] = ObjectType[SchemaContext, Network](
     name = "Network",
     description = "A collection of servers",
-    interfaces = interfaces[SchemaContext, Network](RelaySchema.nodeInterface),
+    interfaces = interfaces[SchemaContext, Network](RelayDefinitions.nodeInterface),
     fieldsFn = () ⇒
       fields[SchemaContext, Network](
         globalIdField,
@@ -55,14 +44,14 @@ object NetworkSchema extends HasSchemaType[Network] with HasSchemaQueries {
         // relations below here
         Field(
           name = "owner",
-          fieldType = UserSchema.Type,
+          fieldType = UserObjectType.Type,
           description = "The owner of the network, has full control".some,
           resolve = ctx ⇒ Fetchers.users.defer(ctx.value.ownerUserId)
         ),
         // connections below here
         relationshipField[Network, Server, UUID, UUID](
           name = "servers",
-          targetType = ServerSchema.Type,
+          targetType = ServerObjectType.Type,
           description = "A list of all servers belonging to this network",
           action = _.servers.getByNetworkId,
           cursorFn = (server: Server) ⇒ server.uuid,
@@ -70,7 +59,7 @@ object NetworkSchema extends HasSchemaType[Network] with HasSchemaQueries {
         ),
         relationshipField[Network, NetworkPermission, UUID, UUID](
           name = "permissions",
-          targetType = NetworkPermissionSchema.Type,
+          targetType = NetworkPermissionObjectType.Type,
           description = "A list of all users with permissions to this network",
           action = _.networkPermissions.getByNetworkId,
           cursorFn = (np: NetworkPermission) ⇒ np.userId,

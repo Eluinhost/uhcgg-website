@@ -1,4 +1,4 @@
-package gg.uhc.website.schema.definitions
+package gg.uhc.website.schema.types.objects
 
 import java.time.Instant
 import java.util.UUID
@@ -6,28 +6,17 @@ import java.util.UUID
 import gg.uhc.website.model.{Match, Style}
 import gg.uhc.website.schema.SchemaContext
 import gg.uhc.website.schema.helpers.ConnectionHelpers._
-import gg.uhc.website.schema.helpers.ConnectionIOConverters._
 import gg.uhc.website.schema.helpers.FieldHelpers._
-import gg.uhc.website.schema.scalars.InstantScalarTypeSupport._
+import gg.uhc.website.schema.types.scalars.InstantScalarType._
 import sangria.schema._
 
 import scalaz.Scalaz._
 
-object StyleSchema extends HasSchemaType[Style] with HasSchemaQueries {
-  override val queries: List[Field[SchemaContext, Unit]] = fields(
-    Field(
-      "styles",
-      ListType(Type), // TODO replace with a connection for pagination purposes
-      arguments = Nil,
-      resolve = implicit ctx ⇒ ctx.ctx.styles.getAll,
-      description = "Fetches all styles".some
-    )
-  )
-
+object StyleObjectType extends HasObjectType[Style] {
   override lazy val Type: ObjectType[SchemaContext, Style] = ObjectType[SchemaContext, Style](
     name = "Style",
     description = "A team style for a match",
-    interfaces = interfaces[SchemaContext, Style](RelaySchema.nodeInterface),
+    interfaces = interfaces[SchemaContext, Style](RelayDefinitions.nodeInterface),
     fieldsFn = () ⇒
       fields[SchemaContext, Style](
         globalIdField,
@@ -59,7 +48,7 @@ object StyleSchema extends HasSchemaType[Style] with HasSchemaQueries {
         // Connections below here
         relationshipField[Style, Match, UUID, Instant](
           name = "matches",
-          targetType = MatchSchema.Type,
+          targetType = MatchObjectType.Type,
           description = "A list of games using this style",
           action = _.matches.getByStyleId,
           cursorFn = (m: Match) ⇒ m.created,

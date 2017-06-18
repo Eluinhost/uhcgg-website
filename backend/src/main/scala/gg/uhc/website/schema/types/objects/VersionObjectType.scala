@@ -1,4 +1,4 @@
-package gg.uhc.website.schema.definitions
+package gg.uhc.website.schema.types.objects
 
 import java.time.Instant
 import java.util.UUID
@@ -6,28 +6,17 @@ import java.util.UUID
 import gg.uhc.website.model.{Match, Version}
 import gg.uhc.website.schema.SchemaContext
 import gg.uhc.website.schema.helpers.ConnectionHelpers._
-import gg.uhc.website.schema.helpers.ConnectionIOConverters._
-import gg.uhc.website.schema.scalars.InstantScalarTypeSupport._
+import gg.uhc.website.schema.helpers.FieldHelpers._
+import gg.uhc.website.schema.types.scalars.InstantScalarType._
 import sangria.schema._
 
 import scalaz.Scalaz._
-import gg.uhc.website.schema.helpers.FieldHelpers._
 
-object VersionSchema extends HasSchemaType[Version] with HasSchemaQueries {
-  override val queries: List[Field[SchemaContext, Unit]] = fields(
-    Field(
-      "versions",
-      ListType(Type),
-      arguments = Nil, // TODO replace with a connection for pagination purposes
-      resolve = implicit ctx ⇒ ctx.ctx.versions.getAll,
-      description = "Fetches all versions".some
-    )
-  )
-
+object VersionObjectType extends HasObjectType[Version] {
   override lazy val Type: ObjectType[SchemaContext, Version] = ObjectType[SchemaContext, Version](
     name = "Version",
     description = "A choosable version for hosting",
-    interfaces = interfaces[SchemaContext, Version](RelaySchema.nodeInterface),
+    interfaces = interfaces[SchemaContext, Version](RelayDefinitions.nodeInterface),
     fieldsFn = () ⇒
       fields[SchemaContext, Version](
         globalIdField,
@@ -47,7 +36,7 @@ object VersionSchema extends HasSchemaType[Version] with HasSchemaQueries {
         // Connections below here
         relationshipField[Version, Match, UUID, Instant](
           name = "matches",
-          targetType = MatchSchema.Type,
+          targetType = MatchObjectType.Type,
           description = "A list of games using this version",
           action = _.matches.getByVersionId,
           cursorFn = (m: Match) ⇒ m.created,

@@ -1,32 +1,21 @@
-package gg.uhc.website.schema.definitions
+package gg.uhc.website.schema.types.objects
 
 import java.util.UUID
 
 import gg.uhc.website.model.{Role, UserRole}
 import gg.uhc.website.schema.SchemaContext
 import gg.uhc.website.schema.helpers.ConnectionHelpers._
-import gg.uhc.website.schema.helpers.ConnectionIOConverters._
 import gg.uhc.website.schema.helpers.FieldHelpers._
-import gg.uhc.website.schema.scalars.UuidScalarTypeSupport._
+import gg.uhc.website.schema.types.scalars.UuidScalarType._
 import sangria.schema._
 
 import scalaz.Scalaz._
 
-object RoleSchema extends HasSchemaType[Role] with HasSchemaQueries {
-  override val queries: List[Field[SchemaContext, Unit]] = fields(
-    Field(
-      "roles",
-      ListType(Type), // TODO replace with a connection for pagination purposes
-      arguments = Nil,
-      resolve = implicit ctx ⇒ ctx.ctx.roles.getAll,
-      description = "Fetches all roles".some
-    )
-  )
-
+object RoleObjectType extends HasObjectType[Role] {
   override lazy val Type: ObjectType[SchemaContext, Role] = ObjectType[SchemaContext, Role](
     name = "Role",
     description = "A website role to grant permission to a user",
-    interfaces = interfaces[SchemaContext, Role](RelaySchema.nodeInterface),
+    interfaces = interfaces[SchemaContext, Role](RelayDefinitions.nodeInterface),
     fieldsFn = () ⇒
       fields[SchemaContext, Role](
         globalIdField,
@@ -46,7 +35,7 @@ object RoleSchema extends HasSchemaType[Role] with HasSchemaQueries {
         // Connections below here
         relationshipField[Role, UserRole, UUID, UUID](
           name = "users",
-          targetType = UserRoleSchema.Type,
+          targetType = UserRoleObjectType.Type,
           description = "List of UserRole objects to get users with this role",
           action = _.userRoles.getByUserId,
           cursorFn = (ur: UserRole) ⇒ ur.roleId,

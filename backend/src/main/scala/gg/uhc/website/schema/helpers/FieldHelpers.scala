@@ -1,8 +1,8 @@
 package gg.uhc.website.schema.helpers
 
 import gg.uhc.website.model.{BaseNode, DeleteableFields, ModificationTimesFields}
-import gg.uhc.website.schema.scalars.InstantScalarTypeSupport._
-import gg.uhc.website.schema.scalars.UuidScalarTypeSupport._
+import gg.uhc.website.schema.types.scalars.InstantScalarType._
+import gg.uhc.website.schema.types.scalars.UuidScalarType._
 import sangria.relay.Node
 import sangria.schema.{BooleanType, Field}
 

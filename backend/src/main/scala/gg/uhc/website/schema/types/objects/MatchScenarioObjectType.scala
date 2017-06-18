@@ -1,12 +1,12 @@
-package gg.uhc.website.schema.definitions
+package gg.uhc.website.schema.types.objects
 
 import gg.uhc.website.model.MatchScenario
-import gg.uhc.website.schema.SchemaContext
+import gg.uhc.website.schema.{Fetchers, SchemaContext}
 import sangria.schema.{Field, ObjectType, fields}
 
 import scalaz.Scalaz._
 
-object MatchScenarioSchema extends HasSchemaType[MatchScenario] {
+object MatchScenarioObjectType extends HasObjectType[MatchScenario] {
   // TODO should be an edge type, not realy needed?
   override lazy val Type: ObjectType[SchemaContext, MatchScenario] = ObjectType[SchemaContext, MatchScenario](
     name = "MatchScenario",
@@ -15,13 +15,13 @@ object MatchScenarioSchema extends HasSchemaType[MatchScenario] {
       fields[SchemaContext, MatchScenario](
         Field(
           name = "match",
-          fieldType = MatchSchema.Type,
+          fieldType = MatchObjectType.Type,
           description = "The associated match".some,
           resolve = ctx ⇒ Fetchers.matches.defer(ctx.value.matchId)
         ),
         Field(
           name = "scenario",
-          fieldType = ScenarioSchema.Type,
+          fieldType = ScenarioObjectType.Type,
           description = "The associated scenario".some,
           resolve = ctx ⇒ Fetchers.scenarios.defer(ctx.value.scenarioId)
         )

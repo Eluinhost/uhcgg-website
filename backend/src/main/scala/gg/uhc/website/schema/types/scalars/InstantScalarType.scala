@@ -1,4 +1,4 @@
-package gg.uhc.website.schema.scalars
+package gg.uhc.website.schema.types.scalars
 
 import java.time.Instant
 
@@ -9,7 +9,7 @@ import scalaz.Scalaz._
 
 import scala.util.Try
 
-trait InstantScalarTypeSupport {
+trait InstantScalarType {
   private[this] def tryConvertLongToInstant(l: Long) =
     Try { Instant.ofEpochMilli(l) }.toEither.left.map(_ ⇒ DateCoercionViolation)
 
@@ -33,4 +33,4 @@ trait InstantScalarTypeSupport {
   )
 }
 
-object InstantScalarTypeSupport extends InstantScalarTypeSupport
+object InstantScalarType extends InstantScalarType

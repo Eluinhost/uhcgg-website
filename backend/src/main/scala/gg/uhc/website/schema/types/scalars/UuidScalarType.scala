@@ -1,4 +1,4 @@
-package gg.uhc.website.schema.scalars
+package gg.uhc.website.schema.types.scalars
 
 import java.util.UUID
 
@@ -9,7 +9,7 @@ import scalaz.Scalaz._
 
 import scala.util.Try
 
-trait UuidScalarTypeSupport {
+trait UuidScalarType {
   case object UuidCoercionViolation extends ValueCoercionViolation("UUID value expected")
   implicit val UuidType: ScalarType[UUID] = ScalarType[UUID](
     "UUID",
@@ -30,4 +30,4 @@ trait UuidScalarTypeSupport {
   )
 }
 
-object UuidScalarTypeSupport extends UuidScalarTypeSupport
+object UuidScalarType extends UuidScalarType

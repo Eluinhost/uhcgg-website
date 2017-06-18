@@ -7,8 +7,7 @@ import akka.stream.ActorMaterializer
 import com.softwaremill.tagging.@@
 import gg.uhc.website.CustomJsonCodec
 import gg.uhc.website.configuration.{MaxGraphQlComplexity, MaxGraphQlDepth}
-import gg.uhc.website.schema.definitions.{ApplicationSchema, Fetchers}
-import gg.uhc.website.schema.{AuthenticationException, AuthorisationException, QueryMetadata, SchemaContext}
+import gg.uhc.website.schema._
 import gg.uhc.website.security.RegistrationSession
 import io.circe.{Json, JsonObject}
 import io.circe.parser.parse
@@ -17,6 +16,7 @@ import sangria.execution._
 import sangria.execution.deferred.DeferredResolver
 import sangria.parser.{QueryParser, SyntaxError}
 import sangria.renderer.SchemaRenderer
+import sangria.schema.Schema
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -31,6 +31,7 @@ case class QueryTooNestedException(max: Int, actual: Int)
     extends Exception(s"Query exceeded max depth of $max, actual $actual")
 
 class GraphqlRoute(
+    schema: Schema[SchemaContext, Unit],
     createContext: () ⇒ SchemaContext,
     maxComplexity: Int @@ MaxGraphQlComplexity,
     maxDepth: Int @@ MaxGraphQlDepth)
@@ -46,7 +47,7 @@ class GraphqlRoute(
   /**
     * Render the schema once and serve that for each request
     */
-  lazy val renderedSchema: String = SchemaRenderer.renderSchema(ApplicationSchema)
+  lazy val renderedSchema: String = SchemaRenderer.renderSchema(schema)
 
   private val rejectionHandler = RejectionHandler.default
   private val logDuration = extractRequestContext.flatMap { ctx ⇒
@@ -122,7 +123,7 @@ class GraphqlRoute(
     ): Future[(StatusCode, Json)] =
     Executor
       .execute(
-        schema = ApplicationSchema,
+        schema = schema,
         queryAst = query,
         userContext = ctx,
         variables = Json.fromJsonObject(variables),

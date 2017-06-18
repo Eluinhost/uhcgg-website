@@ -1,12 +1,12 @@
-package gg.uhc.website.schema.definitions
+package gg.uhc.website.schema.types.objects
 
 import gg.uhc.website.model.NetworkPermission
-import gg.uhc.website.schema.SchemaContext
+import gg.uhc.website.schema.{Fetchers, SchemaContext}
 import sangria.schema._
 
 import scalaz.Scalaz._
 
-object NetworkPermissionSchema extends HasSchemaType[NetworkPermission] {
+object NetworkPermissionObjectType extends HasObjectType[NetworkPermission] {
   override lazy val Type: ObjectType[SchemaContext, NetworkPermission] = ObjectType[SchemaContext, NetworkPermission](
     name = "NetworkPermission",
     description = "Determine who has access to a network (owner always has all permissions",
@@ -21,13 +21,13 @@ object NetworkPermissionSchema extends HasSchemaType[NetworkPermission] {
         // relations below here
         Field(
           name = "network",
-          fieldType = NetworkSchema.Type,
+          fieldType = NetworkObjectType.Type,
           description = "The network these permissions apply to".some,
           resolve = ctx ⇒ Fetchers.networks.defer(ctx.value.networkId)
         ),
         Field(
           name = "user",
-          fieldType = UserSchema.Type,
+          fieldType = UserObjectType.Type,
           description = "The user these permissions apply to".some,
           resolve = ctx ⇒ Fetchers.users.defer(ctx.value.userId)
         )

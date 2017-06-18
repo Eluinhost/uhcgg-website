@@ -1,32 +1,21 @@
-package gg.uhc.website.schema.definitions
+package gg.uhc.website.schema.types.objects
 
 import java.util.UUID
 
 import gg.uhc.website.model.{Region, Server}
 import gg.uhc.website.schema.SchemaContext
 import gg.uhc.website.schema.helpers.ConnectionHelpers._
-import gg.uhc.website.schema.helpers.ConnectionIOConverters._
 import gg.uhc.website.schema.helpers.FieldHelpers._
-import gg.uhc.website.schema.scalars.UuidScalarTypeSupport._
-
+import gg.uhc.website.schema.types.scalars.UuidScalarType._
 import sangria.schema._
+
 import scalaz.Scalaz._
 
-object RegionSchema extends HasSchemaType[Region] with HasSchemaQueries {
-  override val queries: List[Field[SchemaContext, Unit]] = fields(
-    Field(
-      "regions",
-      ListType(Type),
-      arguments = Nil, // TODO replace with a connection for pagination purposes
-      resolve = implicit ctx ⇒ ctx.ctx.regions.getAll,
-      description = "Fetches all regions".some
-    )
-  )
-
+object RegionObjectType extends HasObjectType[Region] {
   override lazy val Type: ObjectType[SchemaContext, Region] = ObjectType[SchemaContext, Region](
     name = "Region",
     description = "A choosable region for hosting in",
-    interfaces = interfaces[SchemaContext, Region](RelaySchema.nodeInterface),
+    interfaces = interfaces[SchemaContext, Region](RelayDefinitions.nodeInterface),
     fieldsFn = () ⇒
       fields[SchemaContext, Region](
         globalIdField,
@@ -46,7 +35,7 @@ object RegionSchema extends HasSchemaType[Region] with HasSchemaQueries {
         // Connections below here
         relationshipField[Region, Server, UUID, UUID](
           name = "servers",
-          targetType = ServerSchema.Type,
+          targetType = ServerObjectType.Type,
           description = "A list of servers in this region",
           action = _.servers.getByRegionId,
           cursorFn = (s: Server) ⇒ s.uuid,

@@ -1,4 +1,4 @@
-package gg.uhc.website.schema.scalars
+package gg.uhc.website.schema.types.scalars
 
 import java.net.InetAddress
 
@@ -9,7 +9,7 @@ import scalaz.Scalaz._
 
 import scala.util.Try
 
-trait InetAddressScalarTypeSupport {
+trait InetScalarType {
   private[this] def tryConvertStringToInet(s: String) =
     Try { InetAddress.getByName(s) }.toEither.left.map(_ ⇒ InetCoercionViolation)
 
@@ -30,4 +30,4 @@ trait InetAddressScalarTypeSupport {
   )
 }
 
-object InetAddressScalarTypeSupport extends InetAddressScalarTypeSupport
+object InetScalarType extends InetScalarType

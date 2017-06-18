@@ -1,34 +1,23 @@
-package gg.uhc.website.schema.definitions
+package gg.uhc.website.schema.types.objects
 
 import java.time.Instant
 import java.util.UUID
 
 import gg.uhc.website.model.{Match, Server}
-import gg.uhc.website.schema.SchemaContext
 import gg.uhc.website.schema.helpers.ConnectionHelpers._
-import gg.uhc.website.schema.helpers.ConnectionIOConverters._
-import gg.uhc.website.schema.scalars.InetAddressScalarTypeSupport._
-import gg.uhc.website.schema.scalars.InstantScalarTypeSupport._
+import gg.uhc.website.schema.helpers.FieldHelpers._
+import gg.uhc.website.schema.types.scalars.InetScalarType._
+import gg.uhc.website.schema.types.scalars.InstantScalarType._
+import gg.uhc.website.schema.{Fetchers, SchemaContext}
 import sangria.schema._
 
 import scalaz.Scalaz._
-import gg.uhc.website.schema.helpers.FieldHelpers._
 
-object ServerSchema extends HasSchemaType[Server] with HasSchemaQueries {
-  override val queries: List[Field[SchemaContext, Unit]] = fields(
-    Field(
-      "servers",
-      ListType(Type),
-      arguments = Nil, // TODO replace with a connection for pagination purposes
-      resolve = implicit ctx ⇒ ctx.ctx.servers.getAll,
-      description = "Fetches all servers".some
-    )
-  )
-
+object ServerObjectType extends HasObjectType[Server] {
   override lazy val Type: ObjectType[SchemaContext, Server] = ObjectType[SchemaContext, Server](
     name = "Server",
     description = "A server that can be hosted on, must belong to a network",
-    interfaces = interfaces[SchemaContext, Server](RelaySchema.nodeInterface),
+    interfaces = interfaces[SchemaContext, Server](RelayDefinitions.nodeInterface),
     fieldsFn = () ⇒
       fields[SchemaContext, Server](
         globalIdField,
@@ -71,26 +60,26 @@ object ServerSchema extends HasSchemaType[Server] with HasSchemaQueries {
         //////////////////////////
         Field(
           name = "owner",
-          fieldType = UserSchema.Type,
+          fieldType = UserObjectType.Type,
           description = "The owner of this server, has control over this server".some,
           resolve = ctx ⇒ Fetchers.users.defer(ctx.value.ownerUserId)
         ),
         Field(
           name = "network",
-          fieldType = NetworkSchema.Type,
+          fieldType = NetworkObjectType.Type,
           description = "The network this server belongs to".some,
           resolve = ctx ⇒ Fetchers.networks.defer(ctx.value.networkId)
         ),
         Field(
           name = "region",
-          fieldType = RegionSchema.Type,
+          fieldType = RegionObjectType.Type,
           description = "The region the server is hosted in".some,
           resolve = ctx ⇒ Fetchers.regions.defer(ctx.value.regionId)
         ),
         // Connections below here
         relationshipField[Server, Match, UUID, Instant](
           name = "matches",
-          targetType = MatchSchema.Type,
+          targetType = MatchObjectType.Type,
           description = "A list of games hosted on this server",
           action = _.matches.getByServerId,
           cursorFn = (m: Match) ⇒ m.created,

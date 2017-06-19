@@ -2,10 +2,10 @@
 //  This file was automatically generated and should not be edited.
 
 export interface NetworkListQuery {
-  // Fetches all versions
-  networks: Array< NetworkListNetworkFragment & {
+  // List of all networks
+  networks: NetworkListNetworkConnectionFragment & {
     __typename: string,
-  } >;
+  };
 }
 
 export interface RegisterMutationVariables {
@@ -112,5 +112,27 @@ export interface NetworkListNetworkFragment {
   servers: NetworkListServerConnectionFragment & {
     __typename: string,
   };
+}
+
+export interface NetworkListNetworkConnectionFragment {
+  __typename: string;
+  // Information to aid in pagination.
+  pageInfo: {
+    __typename: string,
+    // When paginating backwards, the cursor to continue.
+    startCursor: string | null,
+    // When paginating forwards, the cursor to continue.
+    endCursor: string | null,
+    // When paginating forwards, are there more items?
+    hasNextPage: boolean,
+  };
+  // A list of edges.
+  edges: Array< {
+    __typename: string,
+    // The item at the end of the edge.
+    node: NetworkListNetworkFragment & {
+      __typename: string,
+    },
+  } > | null;
 }
 /* tslint:enable */

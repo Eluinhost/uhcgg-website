@@ -94,7 +94,7 @@ export const NetworkListComponent = graphql<NetworkListQuery>(queryNetworks)(({ 
         <NetworkTable
             loading={data.loading}
             style={{ marginTop: 30 }}
-            dataSource={data.networks || []}
+            dataSource={(data.networks ? data.networks.edges! : []).map(_ => _.node)}
             columns={networkColumns}
             rowKey={_ => _.id}
             pagination={false}
@@ -103,7 +103,7 @@ export const NetworkListComponent = graphql<NetworkListQuery>(queryNetworks)(({ 
                 <div>
                     <h2>Servers</h2>
                     <ServerTable
-                        dataSource={record.servers.edges!.map(_ => _.node)}
+                        dataSource={(record.servers.edges || []).map(_ => _.node)}
                         columns={serverColumns}
                         rowKey={_ => _.id}
                         pagination={false}

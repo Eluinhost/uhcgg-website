@@ -26,16 +26,19 @@ fragment NetworkList_Server on Server {
         ...NetworkList_Region
     }
 }
+
 fragment NetworkList_Region on Region {
     id
     rawId
     short
 }
+
 fragment NetworkList_Owner on User {
     id
     rawId
     username
 }
+
 fragment NetworkList_Network on Network {
     id
     rawId
@@ -50,8 +53,21 @@ fragment NetworkList_Network on Network {
     }
 }
 
+fragment NetworkList_NetworkConnection on NetworkConnection {
+    pageInfo {
+        startCursor
+        endCursor
+        hasNextPage
+    }
+    edges {
+        node {
+            ...NetworkList_Network
+        }
+    }
+}
+
 query NetworkList {
-    networks {
-        ...NetworkList_Network
+    networks(first: 8) {
+        ...NetworkList_NetworkConnection
     }
 }

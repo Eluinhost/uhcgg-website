@@ -9,7 +9,8 @@ module.exports = {
     entry: path.join(__dirname, 'src', 'main', 'typescript', 'index.tsx'),
     output: {
         filename: '[name].bundle.js',
-        path: __dirname + '/dist'
+        path: __dirname + '/dist',
+        publicPath: '/'
     },
     devtool: 'eval',
     resolve: {

@@ -6,29 +6,70 @@ import doobie.free.connection
 import doobie.imports._
 import doobie.postgres.imports._
 import gg.uhc.website.repositories.HasRelationColumns.{RelationshipLookup, RelationshipQuery}
+import scoobie.ast._
 
-import scalaz.NonEmptyList
+import scalaz._
+import Scalaz._
 
 object SortDirection {
-  case object ASC extends SortDirection {
-    override val sql: String = "ASC"
-  }
-  case object DESC extends SortDirection {
-    override val sql: String = "DESC"
-  }
+  case object ASC  extends SortDirection
+  case object DESC extends SortDirection
 }
 
-sealed trait SortDirection {
-  val sql: String
-}
+sealed trait SortDirection
+
+import scoobie.doobie.ScoobieFragmentProducer
+import scoobie.doobie.doo.postgres._
+import scoobie.snacks.mild.sql._
 
 trait Repository[A] {
   private[repositories] implicit val logHandler: LogHandler = LogHandler.jdkLogHandler
 
-  /**
-    * Implement to define the base SQL select query. e.g. `SELECT a, b, c, d FROM items`
-    */
-  private[repositories] val select: Fragment
+  private[repositories] implicit class QueryBuilderExtensions[F[_]](qb: QueryBuilder[F]) {
+    def where(queryComparison: Option[QueryComparison[F]]): QueryBuilder[F] =
+      queryComparison match {
+        case None ⇒
+          qb
+        case Some(comp) ⇒
+          qb where comp
+      }
+  }
+
+  private[repositories] implicit class QueryValueExtensions[F[_]](val a: QueryPath[F]) {
+    def in(values: NonEmptyList[QueryValue[F]]): QueryComparison[F] =
+      QueryIn(a, values.toList)
+
+    def in[V](values: NonEmptyList[V])(implicit ev: F[V]): QueryComparison[F] =
+      QueryIn(a, values.map(QueryParameter[F, V]).toList)
+  }
+
+  private[repositories] implicit class QueryComparisonExtensions[F[_]](val left: QueryComparison[F]) {
+    def and(right: Option[QueryComparison[F]]): QueryComparison[F] =
+      right.map(QueryAnd(left, _)).getOrElse(left)
+
+    def or(right: Option[QueryComparison[F]]): QueryComparison[F] =
+      right.map(QueryOr(left, _)).getOrElse(left)
+  }
+
+  private[repositories] implicit class QueryPathExtensions[F[_]](val f: QueryPath[F]) {
+    def sort(direction: SortDirection): QuerySort[F] =
+      direction match {
+        case SortDirection.ASC ⇒
+          QuerySortAsc(f)
+        case SortDirection.DESC ⇒
+          QuerySortDesc(f)
+      }
+  }
+
+  private[repositories] implicit class QuerySortExtensions[F[_]](val f: QuerySort[F]) {
+    def path: QueryPath[F] = f match {
+      case QuerySortAsc(path)  ⇒ path
+      case QuerySortDesc(path) ⇒ path
+      case _                   ⇒ throw new NotImplementedError()
+    }
+  }
+
+  private[repositories] val baseSelect: QueryBuilder[ScoobieFragmentProducer]
 
   /**
     * This is used to convert row responses back into domain objects.
@@ -37,113 +78,40 @@ trait Repository[A] {
     */
   private[repositories] implicit val composite: Composite[A]
 
-  /**
-    * Simple alias for Fragment.const
-    */
-  private[repositories] def const(raw: String): Fragment = Fragment.const(raw)
-
-  /**
-    * Simple alias for Fragment.empty
-    */
-  private[repositories] val empty: Fragment = Fragment.empty
-
-  /**
-    * Generates an SQL LIMIT clause
-    */
-  private[repositories] def limitTo(limit: Long): Fragment =
-    fr"LIMIT $limit".asInstanceOf[Fragment]
-
-  /**
-    * Filters result set to only include items after the given cursor.
-    *
-    * Makes SQL like `column > 'value'`
-    *
-    * This fragment won't make much sense unless an ORDER BY is applied to the cursor column also
-    *
-    * @param cursorColumn the column to apply the cursor to MUST BE SAFE TO USE IN A SQL STRING
-    * @param cursor the cursor item to filter on, shows items AFTER this item
-    * @tparam Cursor the type of the cursor column/item
-    */
-  private[repositories] def cursorFilter[Cursor: Param](cursorColumn: String, cursor: Cursor): Fragment =
-    const(s"$cursorColumn > ") ++ fr"$cursor".asInstanceOf[Fragment]
-
-  // Adds an order by for the given cursor column + direction
-  /**
-    * Orders by the specified column + direction.
-    *
-    * Makes SQL like `ORDER BY column ASC`
-    *
-    * @param column the name of the column to sort on MUST BE SAFE TO USE IN AN SQL STRING
-    * @param direction which way to sort the column
-    */
-  private[repositories] def orderBy(column: String, direction: SortDirection) =
-    const(s"ORDER BY $column ${direction.sql} ")
-
-  /**
-    * Filter where a specific column is equal to the provided value
-    *
-    * @param column the name of the column to check. MUST BE SAFE SQL
-    * @param v the value to filter by
-    */
-  private[repositories] def columnEqFilter[V: Param](column: String, v: V): Fragment =
-    const(s"$column = ") ++ fr"$v".asInstanceOf[Fragment]
-
   private[repositories] def getAllQuery: Query0[A] =
-    select.query[A]
+    baseSelect.build.query[A]
 
   def getAll: ConnectionIO[List[A]] = getAllQuery.list
 }
 
 trait HasUuidIdColumn[A] extends HasIdColumn[A, UUID] { self: Repository[A] ⇒
-  override private[repositories] val idColumn: String     = "uuid"
-  override private[repositories] val idParam: Param[UUID] = implicitly[Param[UUID]]
+  override private[repositories] val idFragmentProducer: ScoobieFragmentProducer[UUID] =
+    implicitly[ScoobieFragmentProducer[UUID]]
 }
 
 trait HasIdColumn[A, Id] { self: Repository[A] ⇒
   private[repositories] implicit val logHandler: LogHandler
 
-  /**
-    * This is used to convert row responses back into domain objects.
-    *
-    * Simple implementation can be done like `override val idParam: Param[Id] = implicitly`
-    */
-  private[repositories] implicit val idParam: Param[Id]
+  private[repositories] implicit val idFragmentProducer: ScoobieFragmentProducer[Id]
 
   /**
-    * Name of the column that holds the ID for this type
+    * Path of the column that holds the ID for this type
     */
-  private[repositories] val idColumn: String
-
-  /**
-    * Filter for finding by a specific ID
-    * @param id the ID to lookup
-    */
-  private[repositories] def idFilter(id: Id): Fragment =
-    columnEqFilter(idColumn, id)
+  private[repositories] val idColumn: QueryPath[ScoobieFragmentProducer]
 
   /**
     * Query to find by the specific ID
     * @param id the ID to lookup
     */
   private[repositories] def getByIdQuery(id: Id): Query0[A] =
-    (
-      select ++
-        Fragments.whereAnd(
-          idFilter(id)
-        )
-    ).query[A]
+    (baseSelect where (idColumn === QueryParameter[ScoobieFragmentProducer, Id](id))).build.query[A]
 
   /**
     * Query to find any matching the specified IDs
     * @param ids the IDs to lookup
     */
   private[repositories] def getByIdsQuery(ids: NonEmptyList[Id]): Query0[A] =
-    (
-      select ++
-        Fragments.whereAnd(
-          Fragments.in(Fragment.const(s"$idColumn "), ids)
-        )
-    ).query[A]
+    (baseSelect where (idColumn in ids)).build.query[A]
 
   /**
     * Query to look up a 'listing' for items, cursor is the ID column
@@ -151,15 +119,9 @@ trait HasIdColumn[A, Id] { self: Repository[A] ⇒
     * @param limit limit to x amount of items
     * @param after only show items after this ID
     */
-  private[repositories] def listingQuery(after: Option[Id], limit: Int) =
-    (
-      select ++
-        Fragments.whereAndOpt(
-          after.map(cursorFilter(idColumn, _))
-        ) ++
-        orderBy(column = "uuid", SortDirection.ASC) ++
-        limitTo(limit)
-    ).query[A]
+  private[repositories] def listingQuery(after: Option[Id], limit: Int): Query0[A] =
+    (baseSelect where after.map(id ⇒ idColumn > QueryParameter[ScoobieFragmentProducer, Id](id)) orderBy idColumn.asc limit limit).build
+      .query[A]
 
   /**
     * Look up a listing of all items sorted by their ID
@@ -217,37 +179,26 @@ trait HasRelationColumns[A] { self: Repository[A] ⇒
     *
     * e.g. look up all servers that belong to the given network
     * ->
-    * `SELECT columns FROM servers WHERE networkId = 'something' AND uuid > 'cursor' LIMIT 50 ORDER BY uuid`
+    * `SELECT columns FROM servers WHERE network_id = 'something' AND uuid > 'cursor' LIMIT 50 ORDER BY uuid`
     *
-    * @param relColumn the name of the column the relation is defined in. MUST BE SAFE SQL
-    * @param cursorColumn the name of the column the cursor is defined in. MUST BE SAFE SQL
-    * @param cursorDirection the direction to order the cursor by
+    * @param relColumn the name of the column the relation is defined in
+    * @param sort the cursor column + direction
     * @tparam RelId the type of the relation column
     * @tparam Cursor the type of the cursor column
     */
   private[repositories] def relationListingQuery[RelId, Cursor](
-      relColumn: String,
-      cursorColumn: String,
-      cursorDirection: SortDirection = SortDirection.ASC
-    )(implicit relParam: Param[RelId],
-      cursorParam: Param[Cursor]
+      relColumn: QueryPath[ScoobieFragmentProducer],
+      sort: QuerySort[ScoobieFragmentProducer]
+    )(implicit
+      relFragmentProducer: ScoobieFragmentProducer[RelId],
+      cursorFragmentProducer: ScoobieFragmentProducer[Cursor]
     ): QueryA[RelId, Cursor] = {
 
-    // Filters the result set to only things matching the relationship key
-    def relColumnFilter(relId: RelId): Fragment =
-      const(s"$relColumn = ") ++ fr"$relId".asInstanceOf[Fragment]
-
     def createQuery(relId: RelId, cursor: Option[Cursor], limit: Int): Query0[A] = {
-      (
-        select ++
-          Fragments.whereAndOpt(
-            Some(relColumnFilter(relId)), // always filter by the rel column
-            cursor.map(cursorFilter(cursorColumn, _)) // optionally add the filter for the cursor value
-          ) ++
-          // Add an order by to make after cursors work + always add a limit
-          orderBy(cursorColumn, cursorDirection) ++
-          limitTo(limit)
-      ).query[A]
+      val relFilter    = relColumn === QueryParameter[ScoobieFragmentProducer, RelId](relId)
+      val cursorFilter = cursor.map(cursor ⇒ sort.path > QueryParameter[ScoobieFragmentProducer, Cursor](cursor))
+
+      (baseSelect where (relFilter and cursorFilter) orderBy sort limit limit).build.query[A]
     }
 
     createQuery

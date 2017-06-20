@@ -70,8 +70,8 @@
 
         <!-- add the default role to every user -->
         <generate type="user_roles" count="1" consumer="ConsoleExporter,output">
-            <reference name="userid" targetType="users" script="user.uuid"/>
-            <attribute name="roleid" type="string" constant="{default_role_id}"/>
+            <reference name="user_id" targetType="users" script="user.uuid"/>
+            <attribute name="role_id" type="string" constant="{default_role_id}"/>
         </generate>
 
         <!-- add some random other roles to every user -->
@@ -83,8 +83,8 @@
                     consumer="ConsoleExporter,output"
                     count="{extra_role_count_dummy.count}"
                     unique="true">
-                <reference name="userid" targetType="users" script="user.uuid"/>
-                <attribute name="roleid" type="string" source="nonDefaultRoles.wgt.csv"/>
+                <reference name="user_id" targetType="users" script="user.uuid"/>
+                <attribute name="role_id" type="string" source="nonDefaultRoles.wgt.csv"/>
             </generate>
         </generate>
 
@@ -97,7 +97,7 @@
                     name="network"
                     count="{network_count_dummy.count}"
                     consumer="ConsoleExporter,store,output">
-                <reference name="ownerUserId" targetType="users" script="user.uuid"/>
+                <reference name="owner_user_id" targetType="users" script="user.uuid"/>
 
                 <id name="uuid" generator="uuidGen" unique="true"/>
                 <attribute name="name" source="networkNames.wgt.csv" validator="uniqueNetworkNounValidator" />
@@ -112,10 +112,10 @@
                         type="network_permissions"
                         count="1"
                         consumer="ConsoleExporter,output">
-                    <reference name="networkid" targetType="networks" script="network.uuid"/>
-                    <reference name="userid" targetType="users" script="user.uuid"/>
+                    <reference name="network_id" targetType="networks" script="network.uuid"/>
+                    <reference name="user_id" targetType="users" script="user.uuid"/>
 
-                    <attribute name="isAdmin" type="boolean" constant="true"/>
+                    <attribute name="is_admin" type="boolean" constant="true"/>
                 </generate>
 
                 <!-- each network should have 1-5 servers also owned by this user -->
@@ -124,8 +124,8 @@
                         minCount="1"
                         maxCount="5"
                         consumer="ConsoleExporter,store,output">
-                    <reference name="networkid" targetType="networks" script="network.uuid"/>
-                    <reference name="ownerUserId" targetType="users" script="user.uuid"/>
+                    <reference name="network_id" targetType="networks" script="network.uuid"/>
+                    <reference name="owner_user_id" targetType="users" script="user.uuid"/>
                     <variable name="serverNoun" generator="NounGenerator" validator="uniqueServerNounValidator"/>
 
                     <id name="uuid" generator="uuidGen" unique="true"/>
@@ -134,7 +134,7 @@
                     <attribute name="ip" generator="ipGenerator"/>
                     <attribute name="port" type="int" min="1" max="65565"/>
                     <attribute name="location" generator="NounGenerator"/>
-                    <attribute name="regionId" type="string" source="regions.wgt.csv" distribution="random"/>
+                    <attribute name="region_id" type="string" source="regions.wgt.csv" distribution="random"/>
                     <attribute name="created" generator="dtGen"/>
                     <attribute name="modified" generator="dtGen"/> <!-- TODO validate after created -->
                     <attribute name="deleted" type="boolean" trueQuota="0.05"/>
@@ -154,8 +154,8 @@
         <variable name="author" source="store" type="users" distribution="random"
                   selector="!_candidate.uuid.equals(user.uuid)"/>
 
-        <reference name="bannedUserId" targetType="users" script="user.uuid"/>
-        <reference name="authorUserId" targetType="users" script="author.uuid"/>
+        <reference name="banned_user_id" targetType="users" script="user.uuid"/>
+        <reference name="author_user_id" targetType="users" script="author.uuid"/>
         <attribute name="reason" generator="NounGenerator"/>
         <attribute name="created" generator="dtGen"/>
         <attribute name="modified" generator="dtGen"/>
@@ -176,7 +176,7 @@
         <attribute name="created" generator="dtGen"/>
         <attribute name="modified" generator="dtGen"/>
         <attribute name="deleted" type="boolean" trueQuota="0.1"/>
-        <reference name="ownerUserId" targetType="users" script="owner.uuid"/>
+        <reference name="owner_user_id" targetType="users" script="owner.uuid"/>
     </generate>
 
     <iterate source="store" type="networks" name="network" consumer="NoConsumer">
@@ -189,11 +189,11 @@
                     count="{network_permission_count_dummy.count}"
                     consumer="ConsoleExporter,output">
                 <variable name="user" source="store" type="users" distribution="random" unique="true"
-                          selector="!_candidate.uuid.equals(network.ownerUserId)"/>
+                          selector="!_candidate.uuid.equals(network.owner_user_id)"/>
 
-                <reference name="networkid" targetType="networks" script="network.uuid"/>
-                <reference name="userid" targetType="users" script="user.uuid"/>
-                <attribute name="isadmin" type="boolean" trueQuota="0.1"/>
+                <reference name="network_id" targetType="networks" script="network.uuid"/>
+                <reference name="user_id" targetType="users" script="user.uuid"/>
+                <attribute name="is_admin" type="boolean" trueQuota="0.1"/>
             </generate>
         </generate>
 
@@ -204,10 +204,10 @@
                 maxCount="2"
                 consumer="ConsoleExporter,output,store">
             <variable name="user" source="store" type="users" distribution="random"
-                      selector="!_candidate.uuid.equals(network.ownerUserId)"/>
+                      selector="!_candidate.uuid.equals(network.owner_user_id)"/>
 
-            <reference name="networkid" targetType="networks" script="network.uuid"/>
-            <reference name="ownerUserId" targetType="users" script="user.uuid"/>
+            <reference name="network_id" targetType="networks" script="network.uuid"/>
+            <reference name="owner_user_id" targetType="users" script="user.uuid"/>
             <variable name="serverNoun" generator="NounGenerator" validator="uniqueServerNounValidator"/>
 
             <id name="uuid" generator="uuidGen" unique="true"/>
@@ -216,7 +216,7 @@
             <attribute name="ip" generator="ipGenerator"/>
             <attribute name="port" type="int" min="1" max="65565"/>
             <attribute name="location" generator="NounGenerator"/>
-            <attribute name="regionId" type="string" source="regions.wgt.csv" distribution="random"/>
+            <attribute name="region_id" type="string" source="regions.wgt.csv" distribution="random"/>
             <attribute name="created" generator="dtGen"/>
             <attribute name="modified" generator="dtGen"/> <!-- TODO validate after created -->
             <attribute name="deleted" type="boolean" trueQuota="0.05"/>
@@ -232,10 +232,10 @@
         <variable name="server" source="store" type="servers" distribution="random"/>
 
         <id name="uuid" generator="uuidGen" unique="true"/>
-        <attribute name="hostUserId" script="server.ownerUserId"/>
-        <attribute name="serverid" script="server.uuid"/>
-        <attribute name="versionid" source="versions.wgt.csv"/>
-        <attribute name="styleid" source="styles.wgt.csv"/>
+        <attribute name="host_user_id" script="server.owner_user_id"/>
+        <attribute name="server_id" script="server.uuid"/>
+        <attribute name="version_id" source="versions.wgt.csv"/>
+        <attribute name="style_id" source="styles.wgt.csv"/>
         <attribute name="size" type="int" min="3" max="12"/> <!-- TODO technically not needed for all styles -->
         <attribute name="created" generator="dtGen"/>
         <attribute name="modified" generator="dtGen"/> <!-- TODO validate after created -->
@@ -249,8 +249,8 @@
                 consumer="ConsoleExporter,output">
             <variable name="scenario" source="store" type="scenarios" distribution="random" unique="true"/>
 
-            <attribute name="matchid" script="match.uuid"/>
-            <attribute name="scenarioid" script="scenario.uuid"/>
+            <attribute name="match_id" script="match.uuid"/>
+            <attribute name="scenario_id" script="scenario.uuid"/>
         </generate>
     </generate>
 </setup>

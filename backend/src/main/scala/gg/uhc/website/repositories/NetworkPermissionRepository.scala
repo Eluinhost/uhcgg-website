@@ -5,24 +5,30 @@ import java.util.UUID
 import gg.uhc.website.model.NetworkPermission
 
 class NetworkPermissionRepository extends Repository[NetworkPermission] with HasRelationColumns[NetworkPermission] {
+  import scoobie.doobie.doo.postgres._
+  import scoobie.snacks.mild.sql._
   import doobie.imports._
   import doobie.postgres.imports._
 
-  override private[repositories] val composite: Composite[NetworkPermission] = implicitly
+  override private[repositories] val composite: Composite[NetworkPermission] = implicitly[Composite[NetworkPermission]]
 
-  override private[repositories] val select: Fragment =
-    fr"SELECT networkId, userId, isadmin FROM network_permissions".asInstanceOf[Fragment]
+  override private[repositories] val baseSelect =
+    select(
+      p"network_id",
+      p"user_id",
+      p"is_admin"
+    ) from p"network_permissions"
 
   private[repositories] val getByNetworkIdQuery = relationListingQuery[UUID, UUID](
-    relColumn = "networkId",
-    cursorColumn = "userId"
+    relColumn = p"network_id",
+    sort = p"user_id".asc
   )
 
   private[repositories] val getByUserIdQuery = relationListingQuery[UUID, UUID](
-    relColumn = "userId",
-    cursorColumn = "networkId"
+    relColumn = p"user_id",
+    sort = p"network_id".asc
   )
 
   val getByNetworkId: LookupA[UUID, UUID] = getByNetworkIdQuery
-  val getByUserId: LookupA[UUID, UUID] = getByUserIdQuery
+  val getByUserId: LookupA[UUID, UUID]    = getByUserIdQuery
 }

@@ -42,34 +42,37 @@ object Settings {
     val benerator       = "0.9.8"
     val databeneCommons = "1.0.0"
     val javafaker       = "0.13"
+    val scoobieVersion  = "0.3.0"
     val slf4jLog4j12    = "1.6.4"
   }
 
   val backendDependencies = Def.setting(
     Seq(
-      "com.typesafe.akka"                  %% "akka-http"        % versions.akkaHttp,
-      "com.typesafe.akka"                  %% "akka-slf4j"       % versions.akkaSlf4j,
-      "ch.megard"                          %% "akka-http-cors"   % versions.akkaHttpCors,
-      "com.softwaremill.akka-http-session" %% "core"             % versions.akkaHttpSession,
-      "de.heikoseeberger"                  %% "akka-http-circe"  % versions.akkaHttpCirce,
-      "org.tpolecat"                       %% "doobie-core"      % versions.doobie,
-      "org.tpolecat"                       %% "doobie-hikari"    % versions.doobie,
-      "org.tpolecat"                       %% "doobie-postgres"  % versions.doobie,
-      "org.tpolecat"                       %% "doobie-scalatest" % versions.doobie,
-      "com.github.t3hnar"                  %% "scala-bcrypt"     % versions.bcrypt,
-      "org.postgresql"                     % "postgresql"        % versions.postgresql,
-      "org.flywaydb"                       % "flyway-core"       % versions.flyway,
-      "com.zaxxer"                         % "HikariCP"          % versions.hikaricp,
-      "ch.qos.logback"                     % "logback-classic"   % versions.logback,
-      "io.circe"                           %% "circe-generic"    % versions.circe,
-      "io.circe"                           %% "circe-java8"      % versions.circe,
-      "com.softwaremill.macwire"           %% "macros"           % versions.macwire % Provided,
-      "com.softwaremill.macwire"           %% "util"             % versions.macwire,
-      "org.sangria-graphql"                %% "sangria"          % versions.sangria,
-      "org.sangria-graphql"                %% "sangria-relay"    % versions.sangria,
-      "org.sangria-graphql"                %% "sangria-circe"    % versions.sangriaCirce,
-      "com.pauldijou"                      %% "jwt-circe"        % versions.jwtCirce,
-      "org.scalatest"                      %% "scalatest"        % versions.scalatest % "test"
+      "com.typesafe.akka"                  %% "akka-http"                         % versions.akkaHttp,
+      "com.typesafe.akka"                  %% "akka-slf4j"                        % versions.akkaSlf4j,
+      "ch.megard"                          %% "akka-http-cors"                    % versions.akkaHttpCors,
+      "com.softwaremill.akka-http-session" %% "core"                              % versions.akkaHttpSession,
+      "de.heikoseeberger"                  %% "akka-http-circe"                   % versions.akkaHttpCirce,
+      "org.tpolecat"                       %% "doobie-core"                       % versions.doobie,
+      "org.tpolecat"                       %% "doobie-hikari"                     % versions.doobie,
+      "org.tpolecat"                       %% "doobie-postgres"                   % versions.doobie,
+      "org.tpolecat"                       %% "doobie-scalatest"                  % versions.doobie,
+      "com.github.t3hnar"                  %% "scala-bcrypt"                      % versions.bcrypt,
+      "org.postgresql"                     % "postgresql"                         % versions.postgresql,
+      "org.flywaydb"                       % "flyway-core"                        % versions.flyway,
+      "com.zaxxer"                         % "HikariCP"                           % versions.hikaricp,
+      "ch.qos.logback"                     % "logback-classic"                    % versions.logback,
+      "io.circe"                           %% "circe-generic"                     % versions.circe,
+      "io.circe"                           %% "circe-java8"                       % versions.circe,
+      "com.softwaremill.macwire"           %% "macros"                            % versions.macwire % Provided,
+      "com.softwaremill.macwire"           %% "util"                              % versions.macwire,
+      "org.sangria-graphql"                %% "sangria"                           % versions.sangria,
+      "org.sangria-graphql"                %% "sangria-relay"                     % versions.sangria,
+      "org.sangria-graphql"                %% "sangria-circe"                     % versions.sangriaCirce,
+      "com.pauldijou"                      %% "jwt-circe"                         % versions.jwtCirce,
+      "com.github.jacoby6000"              %% "scoobie-contrib-doobie41-postgres" % versions.scoobieVersion,
+      "com.github.jacoby6000"              %% "scoobie-contrib-mild-sql-dsl"      % versions.scoobieVersion,
+      "org.scalatest"                      %% "scalatest"                         % versions.scalatest % "test"
     )
   )
 

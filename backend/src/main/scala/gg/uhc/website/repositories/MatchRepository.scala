@@ -4,28 +4,43 @@ import java.time.Instant
 import java.util.UUID
 
 import gg.uhc.website.model.Match
+import scoobie.doobie.ScoobieFragmentProducer
 
 class MatchRepository extends Repository[Match] with HasUuidIdColumn[Match] with HasRelationColumns[Match] {
+  import scoobie.ast._
+  import scoobie.doobie.doo.postgres._
+  import scoobie.snacks.mild.sql._
   import doobie.imports._
   import doobie.postgres.imports._
 
-  override private[repositories] val composite: Composite[Match] = implicitly
+  override private[repositories] val composite: Composite[Match] = implicitly[Composite[Match]]
 
-  override private[repositories] val select: Fragment =
-    fr"SELECT uuid, hostUserId, serverId, versionId, styleId, size, created, modified, deleted, starts FROM matches"
-      .asInstanceOf[Fragment]
+  override private[repositories] val baseSelect =
+    select(
+      p"uuid",
+      p"host_user_id",
+      p"server_id",
+      p"version_id",
+      p"style_id",
+      p"size",
+      p"created",
+      p"modified",
+      p"deleted",
+      p"starts"
+    ) from p"matches"
 
-  private[this] val genericRelationListing = (column: String) ⇒
+  override private[repositories] val idColumn = p"uuid"
+
+  private[this] val genericRelationListing = (column: QueryPath[ScoobieFragmentProducer]) ⇒
     relationListingQuery[UUID, Instant](
       relColumn = column,
-      cursorColumn = "created",
-      cursorDirection = SortDirection.DESC
+      sort = p"created".desc
   )
 
-  private[repositories] val getByServerIdQuery   = genericRelationListing("serverId")
-  private[repositories] val getByHostUserIdQuery = genericRelationListing("hostUserId")
-  private[repositories] val getByStyleIdQuery    = genericRelationListing("styleId")
-  private[repositories] val getByVersionIdQuery  = genericRelationListing("versionId")
+  private[repositories] val getByServerIdQuery   = genericRelationListing(p"server_id")
+  private[repositories] val getByHostUserIdQuery = genericRelationListing(p"host_user_id")
+  private[repositories] val getByStyleIdQuery    = genericRelationListing(p"style_id")
+  private[repositories] val getByVersionIdQuery  = genericRelationListing(p"version_id")
 
   val getByServerId: LookupA[UUID, Instant]   = getByServerIdQuery
   val getByHostUserId: LookupA[UUID, Instant] = getByHostUserIdQuery

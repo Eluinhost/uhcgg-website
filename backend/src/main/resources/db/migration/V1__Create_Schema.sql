@@ -18,46 +18,46 @@ CREATE TABLE users (
 );
 
 CREATE TABLE bans (
-  uuid         UUID        NOT NULL CONSTRAINT "PK__bans" PRIMARY KEY DEFAULT uuid.uuid_generate_v4(),
-  bannedUserId UUID        NOT NULL CONSTRAINT "FK__bans__users__bannedUserId" REFERENCES users (uuid),
-  authorUserId UUID        NOT NULL CONSTRAINT "FK__bans__users__authorUserId" REFERENCES users (uuid),
-  reason       TEXT        NOT NULL,
-  created      TIMESTAMPTZ NOT NULL,
-  modified     TIMESTAMPTZ NOT NULL,
-  expires      TIMESTAMPTZ NOT NULL
+  uuid           UUID        NOT NULL CONSTRAINT "PK__bans" PRIMARY KEY DEFAULT uuid.uuid_generate_v4(),
+  banned_user_id UUID        NOT NULL CONSTRAINT "FK__bans__users__banned_user_id" REFERENCES users (uuid),
+  author_user_id UUID        NOT NULL CONSTRAINT "FK__bans__users__author_user_id" REFERENCES users (uuid),
+  reason         TEXT        NOT NULL,
+  created        TIMESTAMPTZ NOT NULL,
+  modified       TIMESTAMPTZ NOT NULL,
+  expires        TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE user_roles (
-  userId UUID NOT NULL CONSTRAINT "FK__user_roles__users__userId" REFERENCES users (uuid),
-  roleId UUID NOT NULL CONSTRAINT "FK__user_roles__roles__roleId" REFERENCES roles (uuid)
+  user_id UUID NOT NULL CONSTRAINT "FK__user_roles__users__user_id" REFERENCES users (uuid),
+  role_id UUID NOT NULL CONSTRAINT "FK__user_roles__roles__role_id" REFERENCES roles (uuid)
 );
 
 CREATE TABLE scenarios (
-  uuid        UUID        NOT NULL CONSTRAINT "PK__scenarios" PRIMARY KEY DEFAULT uuid.uuid_generate_v4(),
-  name        TEXT        NOT NULL CONSTRAINT "UQ__scenarios__name" UNIQUE,
-  description TEXT        NOT NULL,
-  created     TIMESTAMPTZ NOT NULL,
-  modified    TIMESTAMPTZ NOT NULL,
-  deleted     BOOLEAN     NOT NULL                                        DEFAULT FALSE,
-  ownerUserId UUID        NOT NULL CONSTRAINT "FK__scenarios__users__ownerUserId" REFERENCES users (uuid)
+  uuid          UUID        NOT NULL CONSTRAINT "PK__scenarios" PRIMARY KEY DEFAULT uuid.uuid_generate_v4(),
+  name          TEXT        NOT NULL CONSTRAINT "UQ__scenarios__name" UNIQUE,
+  description   TEXT        NOT NULL,
+  created       TIMESTAMPTZ NOT NULL,
+  modified      TIMESTAMPTZ NOT NULL,
+  deleted       BOOLEAN     NOT NULL                                        DEFAULT FALSE,
+  owner_user_id UUID        NOT NULL CONSTRAINT "FK__scenarios__users__owner_user_id" REFERENCES users (uuid)
 );
 
 CREATE TABLE networks (
-  uuid        UUID        NOT NULL CONSTRAINT "PK__networks" PRIMARY KEY DEFAULT uuid.uuid_generate_v4(),
-  name        TEXT        NOT NULL CONSTRAINT "UQ__networks__name" UNIQUE,
-  tag         TEXT        NOT NULL CONSTRAINT "UQ__networks__tag" UNIQUE,
-  description TEXT        NOT NULL,
-  created     TIMESTAMPTZ NOT NULL,
-  modified    TIMESTAMPTZ NOT NULL,
-  deleted     BOOLEAN     NOT NULL                                       DEFAULT FALSE,
-  ownerUserId UUID        NOT NULL CONSTRAINT "FK__networks__users__ownerUserId" REFERENCES users (uuid)
+  uuid          UUID        NOT NULL CONSTRAINT "PK__networks" PRIMARY KEY DEFAULT uuid.uuid_generate_v4(),
+  name          TEXT        NOT NULL CONSTRAINT "UQ__networks__name" UNIQUE,
+  tag           TEXT        NOT NULL CONSTRAINT "UQ__networks__tag" UNIQUE,
+  description   TEXT        NOT NULL,
+  created       TIMESTAMPTZ NOT NULL,
+  modified      TIMESTAMPTZ NOT NULL,
+  deleted       BOOLEAN     NOT NULL                                       DEFAULT FALSE,
+  owner_user_id UUID        NOT NULL CONSTRAINT "FK__networks__users__owner_user_id" REFERENCES users (uuid)
 );
 
 CREATE TABLE network_permissions (
-  networkId UUID    NOT NULL CONSTRAINT "FK__network_permissions__networks__networkId" REFERENCES networks (uuid),
-  userId    UUID    NOT NULL CONSTRAINT "FK__network_permissions__users__userId" REFERENCES users (uuid),
-  isAdmin   BOOLEAN NOT NULL,
-  CONSTRAINT UQ__network_permissions__networkId__userId UNIQUE (networkId, userId)
+  network_id UUID    NOT NULL CONSTRAINT "FK__network_permissions__networks__network_id" REFERENCES networks (uuid),
+  user_id    UUID    NOT NULL CONSTRAINT "FK__network_permissions__users__user_id" REFERENCES users (uuid),
+  is_admin   BOOLEAN NOT NULL,
+  CONSTRAINT UQ__network_permissions__network_id__user_id UNIQUE (network_id, user_id)
 );
 
 CREATE TABLE regions (
@@ -67,18 +67,18 @@ CREATE TABLE regions (
 );
 
 CREATE TABLE servers (
-  uuid        UUID        NOT NULL CONSTRAINT "PK__servers" PRIMARY KEY DEFAULT uuid.uuid_generate_v4(),
-  ownerUserId UUID        NOT NULL CONSTRAINT "FK__servers__users__ownerUserId" REFERENCES users (uuid),
-  networkId   UUID        NOT NULL CONSTRAINT "FK__servers_networks__networkId" REFERENCES networks (uuid),
-  name        TEXT        NOT NULL CONSTRAINT "UQ__servers__name" UNIQUE,
-  address     TEXT,
-  ip          INET        NOT NULL,
-  port        INT,
-  location    TEXT        NOT NULL,
-  regionId    UUID        NOT NULL CONSTRAINT "FK__servers__regions__regionId" REFERENCES regions (uuid),
-  created     TIMESTAMPTZ NOT NULL,
-  modified    TIMESTAMPTZ NOT NULL,
-  deleted     BOOLEAN     NOT NULL                                      DEFAULT FALSE
+  uuid          UUID        NOT NULL CONSTRAINT "PK__servers" PRIMARY KEY DEFAULT uuid.uuid_generate_v4(),
+  owner_user_id UUID        NOT NULL CONSTRAINT "FK__servers__users__owner_user_id" REFERENCES users (uuid),
+  network_id     UUID        NOT NULL CONSTRAINT "FK__servers_networks__network_id" REFERENCES networks (uuid),
+  name          TEXT        NOT NULL CONSTRAINT "UQ__servers__name" UNIQUE,
+  address       TEXT,
+  ip            INET        NOT NULL,
+  port          INT,
+  location      TEXT        NOT NULL,
+  region_id     UUID        NOT NULL CONSTRAINT "FK__servers__regions__region_id" REFERENCES regions (uuid),
+  created       TIMESTAMPTZ NOT NULL,
+  modified      TIMESTAMPTZ NOT NULL,
+  deleted       BOOLEAN     NOT NULL                                      DEFAULT FALSE
 );
 
 CREATE TABLE versions (
@@ -88,30 +88,30 @@ CREATE TABLE versions (
 );
 
 CREATE TABLE styles (
-  uuid         UUID    NOT NULL CONSTRAINT "PK__styles" PRIMARY KEY DEFAULT uuid.uuid_generate_v4(),
-  shortName    TEXT    NOT NULL,
-  fullName     TEXT    NOT NULL,
-  description  TEXT    NOT NULL,
-  requiresSize BOOLEAN NOT NULL
+  uuid          UUID    NOT NULL CONSTRAINT "PK__styles" PRIMARY KEY DEFAULT uuid.uuid_generate_v4(),
+  short_name    TEXT    NOT NULL,
+  full_name     TEXT    NOT NULL,
+  description   TEXT    NOT NULL,
+  requires_size BOOLEAN NOT NULL
 );
 
 CREATE TABLE matches (
-  uuid       UUID        NOT NULL CONSTRAINT "PK__match" PRIMARY KEY DEFAULT uuid.uuid_generate_v4(),
-  hostUserId UUID        NOT NULL CONSTRAINT "FK__matches__users__hostUserId" REFERENCES users (uuid),
-  serverId   UUID        NOT NULL CONSTRAINT "FK__matches__servers__serverId" REFERENCES servers (uuid),
-  versionId  UUID        NOT NULL CONSTRAINT "FK__matches__version__versionId" REFERENCES versions (uuid),
-  styleId    UUID        NOT NULL CONSTRAINT "FK__matches__styles__styleId" REFERENCES styles (uuid),
-  size       INT,
-  created    TIMESTAMPTZ NOT NULL,
-  modified   TIMESTAMPTZ NOT NULL,
-  deleted    BOOLEAN     NOT NULL                                    DEFAULT FALSE,
-  starts     TIMESTAMPTZ NOT NULL
+  uuid         UUID        NOT NULL CONSTRAINT "PK__match" PRIMARY KEY DEFAULT uuid.uuid_generate_v4(),
+  host_user_id UUID        NOT NULL CONSTRAINT "FK__matches__users__host_user_id" REFERENCES users (uuid),
+  server_id    UUID        NOT NULL CONSTRAINT "FK__matches__servers__server_id" REFERENCES servers (uuid),
+  version_id   UUID        NOT NULL CONSTRAINT "FK__matches__version__version_id" REFERENCES versions (uuid),
+  style_id     UUID        NOT NULL CONSTRAINT "FK__matches__styles__style_id" REFERENCES styles (uuid),
+  size         INT,
+  created      TIMESTAMPTZ NOT NULL,
+  modified     TIMESTAMPTZ NOT NULL,
+  deleted      BOOLEAN     NOT NULL                                    DEFAULT FALSE,
+  starts       TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE match_scenarios (
-  matchId    UUID NOT NULL CONSTRAINT "FK__match_scenarios__matches__matchId" REFERENCES matches (uuid),
-  scenarioId UUID NOT NULL CONSTRAINT "FK__match_scenarios__scenarios__scenarioId" REFERENCES scenarios (uuid),
-  CONSTRAINT "PK__match_scenarios" PRIMARY KEY (matchId, scenarioId)
+  match_id    UUID NOT NULL CONSTRAINT "FK__match_scenarios__matches__match_id" REFERENCES matches (uuid),
+  scenario_id UUID NOT NULL CONSTRAINT "FK__match_scenarios__scenarios__scenario_id" REFERENCES scenarios (uuid),
+  CONSTRAINT "PK__match_scenarios" PRIMARY KEY (match_id, scenario_id)
 );
 
 ----------
@@ -135,7 +135,7 @@ INSERT INTO roles (uuid, name, permissions) VALUES
    '{"network.edit", "network.delete", "network.hosts.add", "network.hosts.remove", "network.owners.add", "network.owners.remove", "network.servers.add", "network.servers.remove", "servers.edit", "servers.delete", "matches.edit", "matches.delete", "accounts.edit", "accounts.ban", "accounts.roles", "scenario.edit", "scenario.delete"}'),
   ('00000000-0000-0000-0000-000000000003', 'admin', '{"versions", "styles"}');
 
-INSERT INTO styles (uuid, shortName, fullName, requiresSize, description) VALUES
+INSERT INTO styles (uuid, short_name, full_name, requires_size, description) VALUES
   ('00000000-0000-0000-0000-000000000000', 'FFA', 'Free for All', FALSE, 'TODO'), -- TODO
   ('00000000-0000-0000-0000-000000000001', 'cTo{{size}}', 'Chosen teams of {{size}}', TRUE, 'TODO'),
   ('00000000-0000-0000-0000-000000000002', 'rTo{{size}}', 'Random teams of {{size}}', TRUE, 'TODO'),

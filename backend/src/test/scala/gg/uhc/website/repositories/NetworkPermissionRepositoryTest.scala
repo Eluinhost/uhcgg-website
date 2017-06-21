@@ -7,5 +7,5 @@ class NetworkPermissionRepositoryTest extends FlatSpec with BaseRepositoryTest {
   val repo = new NetworkPermissionRepository
 
   it should "have valid getByNetworkId query" in
-    check(repo.getByNetworkIdQuery(randId, Some(randId), 10))
+    check(repo.getByNetworkIdQuery(RelationshipListingParameters(Some(randId), 10, randId)))
 }

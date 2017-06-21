@@ -33,10 +33,11 @@ class BanRepository extends Repository[Ban] with HasUuidIdColumn[Ban] with HasRe
   private[repositories] val getByBannedUserIdQuery = relationListingQuery[UUID, Instant](
     relColumn = p"banned_user_id",
     sort = p"created".desc
-  )
+  )(_)
 
   def getBansByExpiredStatus(showExpired: Boolean): ConnectionIO[List[Ban]] =
     getByExpiredStatusQuery(showExpired).list
 
-  val getByBannedUserId: LookupA[UUID, Instant] = getByBannedUserIdQuery
+  def getByBannedUserId(params: RelationshipListingParameters[UUID, Instant]): ConnectionIO[List[Ban]] =
+    getByBannedUserIdQuery(params).list
 }

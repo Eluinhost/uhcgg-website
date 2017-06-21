@@ -21,17 +21,21 @@ class UserRolesRepository extends Repository[UserRole] with HasRelationColumns[U
   private[repositories] val getByUserIdQuery = relationListingQuery[UUID, UUID](
     relColumn = p"user_id",
     sort = p"role_id".asc
-  )
+  )(_)
+
   private[repositories] val getByRoleIdQuery = relationListingQuery[UUID, UUID](
     relColumn = p"role_id",
     sort = p"user_id".asc
-  )
+  )(_)
 
   private[repositories] def getAllByUserIdQuery(userId: UUID) =
     (baseSelect where (p"user_id" === userId)).build.query[UserRole]
 
-  val getByUserId: LookupA[UUID, UUID] = getByUserIdQuery
-  val getByRoleId: LookupA[UUID, UUID] = getByRoleIdQuery
+  def getByUserId(params: RelationshipListingParameters[UUID, UUID]): ConnectionIO[List[UserRole]] =
+    getByUserIdQuery(params).list
+
+  def getByRoleId(params: RelationshipListingParameters[UUID, UUID]): ConnectionIO[List[UserRole]] =
+    getByRoleIdQuery(params).list
 
   def getAllByUserId(userId: UUID): ConnectionIO[List[UserRole]] =
     getAllByUserIdQuery(userId).list

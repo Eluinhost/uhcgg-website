@@ -1,7 +1,7 @@
 package gg.uhc.website.schema.helpers
 
 import doobie.imports.ConnectionIO
-import gg.uhc.website.repositories.HasRelationColumns.RelationshipLookup
+import gg.uhc.website.repositories.{DefaultListingParameters, ListingParameters, RelationshipListingParameters}
 import gg.uhc.website.schema.{ConnectionArguments, SchemaContext}
 import sangria.relay.{Connection, DefaultConnection, Edge, PageInfo}
 import sangria.schema.{Args, Context, Field, ObjectType, ScalarType}
@@ -15,7 +15,7 @@ trait ConnectionHelpers {
       name: String,
       targetType: ObjectType[SchemaContext, Target],
       description: String,
-      action: SchemaContext ⇒ (Option[Cursor], Int) ⇒ ConnectionIO[List[Target]],
+      action: SchemaContext ⇒ ListingParameters[Cursor] ⇒ ConnectionIO[List[Target]],
       cursorFn: (Target ⇒ Cursor)
     ): Field[SchemaContext, Unit] =
     Field(
@@ -32,17 +32,21 @@ trait ConnectionHelpers {
     )
 
   def resolveListing[Target, Cursor: ScalarType](
-      action: SchemaContext ⇒ (Option[Cursor], Int) ⇒ ConnectionIO[List[Target]],
+      action: SchemaContext ⇒ ListingParameters[Cursor] ⇒ ConnectionIO[List[Target]],
       cursorFn: Target ⇒ Cursor
     )(ctx: Context[SchemaContext, Unit]
     ): Future[Connection[Target]] = {
     // Use DB execution context
     import ctx.ctx.run.ec
 
-    val ConnectionArguments(limit, cursor) = ConnectionArguments[Cursor](ctx)
+    val (limit, cursor) = ConnectionArguments[Cursor](ctx)
 
     // We request 1 extra item to check if there is a next page
-    val toRun: ConnectionIO[List[Target]] = action(ctx.ctx)(cursor, limit + 1)
+    val toRun: ConnectionIO[List[Target]] = action(ctx.ctx)(
+      DefaultListingParameters(
+        after = cursor,
+        count = limit + 1
+      ))
 
     ctx.ctx
       .run(toRun)
@@ -53,7 +57,7 @@ trait ConnectionHelpers {
       name: String,
       targetType: ObjectType[SchemaContext, Target],
       description: String,
-      action: SchemaContext ⇒ RelationshipLookup[Target, RelId, Cursor],
+      action: SchemaContext ⇒ RelationshipListingParameters[RelId, Cursor] ⇒ ConnectionIO[List[Target]],
       cursorFn: (Target ⇒ Cursor), // TODO figure out how to move this to the repo query so it can be safer to use
       idFn: (A ⇒ RelId)
     ): Field[SchemaContext, A] =
@@ -71,7 +75,7 @@ trait ConnectionHelpers {
     )
 
   def resolveRelationship[A, Target, RelId, Cursor: ScalarType](
-      action: SchemaContext ⇒ RelationshipLookup[Target, RelId, Cursor],
+      action: SchemaContext ⇒ RelationshipListingParameters[RelId, Cursor] ⇒ ConnectionIO[List[Target]],
       cursorFn: (Target ⇒ Cursor),
       idFn: (A ⇒ RelId)
     )(ctx: Context[SchemaContext, A]
@@ -79,11 +83,16 @@ trait ConnectionHelpers {
     // Use DB execution context
     import ctx.ctx.run.ec
 
-    val id: RelId                          = idFn(ctx.value)
-    val ConnectionArguments(limit, cursor) = ConnectionArguments[Cursor](ctx)
+    val id: RelId       = idFn(ctx.value)
+    val (limit, cursor) = ConnectionArguments[Cursor](ctx)
 
     // We request 1 extra item to check if there is a next page
-    val toRun: ConnectionIO[List[Target]] = action(ctx.ctx)(id, cursor, limit + 1)
+    val toRun: ConnectionIO[List[Target]] = action(ctx.ctx)(
+      RelationshipListingParameters(
+        after = cursor,
+        count = limit + 1,
+        relId = id
+      ))
 
     ctx.ctx
       .run(toRun)

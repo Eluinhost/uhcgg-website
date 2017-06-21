@@ -33,17 +33,24 @@ class ServerRepository extends Repository[Server] with HasUuidIdColumn[Server] w
   private[repositories] val getByNetworkIdQuery = relationListingQuery[UUID, UUID](
     relColumn = p"network_id",
     sort = p"uuid".asc
-  )
+  )(_)
+
   private[repositories] val getByRegionIdQuery = relationListingQuery[UUID, UUID](
     relColumn = p"region_id",
     sort = p"uuid".asc
-  )
+  )(_)
+
   private[repositories] val getByOwnerUserIdQuery = relationListingQuery[UUID, UUID](
     relColumn = p"owner_user_id",
     sort = p"uuid".asc
-  )
+  )(_)
 
-  val getByNetworkId: LookupA[UUID, UUID]   = getByNetworkIdQuery
-  val getByRegionId: LookupA[UUID, UUID]    = getByRegionIdQuery
-  val getByOwnerUserId: LookupA[UUID, UUID] = getByOwnerUserIdQuery
+  def getByNetworkId(params: RelationshipListingParameters[UUID, UUID]): ConnectionIO[List[Server]] =
+    getByNetworkIdQuery(params).list
+
+  def getByRegionId(params: RelationshipListingParameters[UUID, UUID]): ConnectionIO[List[Server]] =
+    getByRegionIdQuery(params).list
+
+  def getByOwnerUserId(params: RelationshipListingParameters[UUID, UUID]): ConnectionIO[List[Server]] =
+    getByOwnerUserIdQuery(params).list
 }

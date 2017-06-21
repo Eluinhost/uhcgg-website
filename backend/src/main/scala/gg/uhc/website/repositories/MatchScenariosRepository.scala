@@ -13,7 +13,7 @@ class MatchScenariosRepository extends Repository[MatchScenario] with HasRelatio
   override private[repositories] val composite: Composite[MatchScenario] = implicitly[Composite[MatchScenario]]
 
   override private[repositories] val baseSelect =
-    select (
+    select(
       p"match_id",
       p"scenario_id"
     ) from p"match_scenarios"
@@ -23,12 +23,16 @@ class MatchScenariosRepository extends Repository[MatchScenario] with HasRelatio
   private[repositories] val getByScenarioIdQuery = relationListingQuery[UUID, UUID](
     relColumn = p"scenario_id",
     sort = p"match_id".asc
-  )
+  )(_)
+
   private[repositories] val getByMatchIdQuery = relationListingQuery[UUID, UUID](
     relColumn = p"match_id",
     sort = p"scenario_id".asc
-  )
+  )(_)
 
-  val getByScenarioId: LookupA[UUID, UUID] = getByScenarioIdQuery
-  val getByMatchId: LookupA[UUID, UUID]    = getByMatchIdQuery
+  def getByScenarioId(params: RelationshipListingParameters[UUID, UUID]): ConnectionIO[List[MatchScenario]] =
+    getByScenarioIdQuery(params).list
+
+  def getByMatchId(params: RelationshipListingParameters[UUID, UUID]): ConnectionIO[List[MatchScenario]] =
+    getByMatchIdQuery(params).list
 }

@@ -35,15 +35,22 @@ class MatchRepository extends Repository[Match] with HasUuidIdColumn[Match] with
     relationListingQuery[UUID, Instant](
       relColumn = column,
       sort = p"created".desc
-  )
+    )(_)
 
   private[repositories] val getByServerIdQuery   = genericRelationListing(p"server_id")
   private[repositories] val getByHostUserIdQuery = genericRelationListing(p"host_user_id")
   private[repositories] val getByStyleIdQuery    = genericRelationListing(p"style_id")
   private[repositories] val getByVersionIdQuery  = genericRelationListing(p"version_id")
 
-  val getByServerId: LookupA[UUID, Instant]   = getByServerIdQuery
-  val getByHostUserId: LookupA[UUID, Instant] = getByHostUserIdQuery
-  val getByStyleId: LookupA[UUID, Instant]    = getByStyleIdQuery
-  val getByVersionId: LookupA[UUID, Instant]  = getByVersionIdQuery
+  def getByServerId(params: RelationshipListingParameters[UUID, Instant]): ConnectionIO[List[Match]] =
+    getByServerIdQuery(params).list
+
+  def getByHostUserId(params: RelationshipListingParameters[UUID, Instant]): ConnectionIO[List[Match]] =
+    getByHostUserIdQuery(params).list
+
+  def getByStyleId(params: RelationshipListingParameters[UUID, Instant]): ConnectionIO[List[Match]] =
+    getByStyleIdQuery(params).list
+
+  def getByVersionId(params: RelationshipListingParameters[UUID, Instant]): ConnectionIO[List[Match]] =
+    getByVersionIdQuery(params).list
 }

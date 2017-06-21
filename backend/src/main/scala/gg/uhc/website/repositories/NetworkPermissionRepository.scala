@@ -22,13 +22,16 @@ class NetworkPermissionRepository extends Repository[NetworkPermission] with Has
   private[repositories] val getByNetworkIdQuery = relationListingQuery[UUID, UUID](
     relColumn = p"network_id",
     sort = p"user_id".asc
-  )
+  )(_)
 
   private[repositories] val getByUserIdQuery = relationListingQuery[UUID, UUID](
     relColumn = p"user_id",
     sort = p"network_id".asc
-  )
+  )(_)
 
-  val getByNetworkId: LookupA[UUID, UUID] = getByNetworkIdQuery
-  val getByUserId: LookupA[UUID, UUID]    = getByUserIdQuery
+  def getByNetworkId(params: RelationshipListingParameters[UUID, UUID]): ConnectionIO[List[NetworkPermission]] =
+    getByNetworkIdQuery(params).list
+
+  def getByUserId(params: RelationshipListingParameters[UUID, UUID]): ConnectionIO[List[NetworkPermission]] =
+    getByUserIdQuery(params).list
 }

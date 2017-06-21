@@ -29,7 +29,8 @@ class NetworkRepository extends Repository[Network] with HasUuidIdColumn[Network
   private[repositories] val getByOwnerUserIdQuery = relationListingQuery[UUID, UUID](
     relColumn = p"owner_user_id",
     sort = p"uuid".asc
-  )
+  )(_)
 
-  val getByOwnerUserId: LookupA[UUID, UUID] = getByOwnerUserIdQuery
+  def getByOwnerUserId(params: RelationshipListingParameters[UUID, UUID]): ConnectionIO[List[Network]] =
+    getByOwnerUserIdQuery(params).list
 }

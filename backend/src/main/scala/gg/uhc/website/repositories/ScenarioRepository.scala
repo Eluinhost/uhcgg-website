@@ -32,7 +32,8 @@ class ScenarioRepository
   private[repositories] val getByOwnerUserIdQuery = relationListingQuery[UUID, Instant](
     relColumn = p"owner_user_id",
     sort = p"created".desc
-  )
+  )(_)
 
-  val getByOwnerUserId: LookupA[UUID, Instant] = getByOwnerUserIdQuery
+  def getByOwnerUserId(params: RelationshipListingParameters[UUID, Instant]): ConnectionIO[List[Scenario]] =
+    getByOwnerUserIdQuery(params).list
 }

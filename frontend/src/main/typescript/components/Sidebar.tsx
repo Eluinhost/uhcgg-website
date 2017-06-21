@@ -59,7 +59,7 @@ const SidebarComponent: React.SFC<SidebarProps> = ({ location: { pathname }, col
             <Menu.Item key="/dev">
                 <Link to="/dev">
                     <span>
-                        <Icon type="fork" />
+                        <Icon type="api" />
                         <span className="nav-text">API</span>
                     </span>
                 </Link>

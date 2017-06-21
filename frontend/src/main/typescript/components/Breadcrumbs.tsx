@@ -29,6 +29,6 @@ export const Breadcrumbs: React.SFC<{}> = () =>
         <RouteBreadcrumb url="/" icon="home" text="Home" />
         <RouteBreadcrumb url="/register" icon="user" text="Register" />
         <RouteBreadcrumb url="/networks" icon="database" text="Networks" />
-        <RouteBreadcrumb url="/dev" icon="fork" text="API"/>
-        <RouteBreadcrumb url="/dev/schema" icon="book" text="Schema"/>
+        <RouteBreadcrumb url="/dev" icon="api" text="API"/>
+        <RouteBreadcrumb url="/dev/schema" icon="share-alt" text="Schema"/>
     </Breadcrumb>;

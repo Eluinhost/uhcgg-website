@@ -1,38 +1,3 @@
-fragment NetworkList_ServerConnection on ServerConnection {
-    pageInfo {
-        startCursor
-        endCursor
-    }
-    edges {
-        cursor
-        node {
-            ...NetworkList_Server
-        }
-    }
-}
-
-fragment NetworkList_Server on Server {
-    id
-    rawId
-    name
-    ip
-    address
-    location
-    port
-    owner {
-        ...NetworkList_Owner
-    }
-    region {
-        ...NetworkList_Region
-    }
-}
-
-fragment NetworkList_Region on Region {
-    id
-    rawId
-    short
-}
-
 fragment NetworkList_Owner on User {
     id
     rawId
@@ -48,14 +13,10 @@ fragment NetworkList_Network on Network {
     owner {
         ...NetworkList_Owner
     }
-    servers(first: 3) {
-        ...NetworkList_ServerConnection
-    }
 }
 
 fragment NetworkList_NetworkConnection on NetworkConnection {
     pageInfo {
-        startCursor
         endCursor
         hasNextPage
     }
@@ -66,8 +27,8 @@ fragment NetworkList_NetworkConnection on NetworkConnection {
     }
 }
 
-query NetworkList {
-    networks(first: 8) {
+query NetworkList($first: Int, $after: UUID) {
+    networks(first: $first, after: $after) {
         ...NetworkList_NetworkConnection
     }
 }

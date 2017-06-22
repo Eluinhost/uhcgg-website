@@ -1,0 +1,48 @@
+fragment ServerList_Region on Region {
+    id
+    rawId
+    short
+}
+
+fragment ServerList_Owner on User {
+    id
+    rawId
+    username
+}
+
+fragment ServerList_Server on Server {
+    id
+    rawId
+    name
+    ip
+    address
+    location
+    port
+    owner {
+        ...ServerList_Owner
+    }
+    region {
+        ...ServerList_Region
+    }
+}
+
+fragment ServerList_Network on Network {
+    servers(first: $first, after: $after) {
+        pageInfo {
+            endCursor
+            hasNextPage
+        }
+        edges {
+            node {
+                ...ServerList_Server
+            }
+        }
+    }
+}
+
+query ServerList($networkId: ID!, $after: UUID, $first: Int) {
+    node(id: $networkId) {
+        ...ServerList_Network
+    }
+}
+

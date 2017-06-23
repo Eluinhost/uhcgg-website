@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { OptionProps } from 'react-apollo';
-import { Table } from 'antd';
+import { Table, Button } from 'antd';
 import { TableColumnConfig } from 'antd/lib/table/Table';
 import { Link } from 'react-router-dom';
 
@@ -99,7 +99,14 @@ export const NetworkList = simpleGraphqlCursor({
                     </div>
                 }
             />
-            { hasMore && <button type='button' onClick={props.data!.fetchAnotherPage}>Load More</button> }
+            { hasMore && <Button
+                type="primary"
+                loading={props.data.loading}
+                onClick={props.data.fetchAnotherPage}
+                icon="ellipsis"
+            >
+                Show more
+            </Button> }
         </div>;
     }
 });

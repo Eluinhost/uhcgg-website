@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Table, Button } from 'antd';
+import { Table } from 'antd';
 import { TableColumnConfig} from 'antd/lib/table/Table';
 import { Link } from 'react-router-dom';
 import { OptionProps } from 'react-apollo';
@@ -7,7 +7,7 @@ import { OptionProps } from 'react-apollo';
 import { simpleGraphqlCursor } from '../../../apolloHelpers';
 import { ServerListQuery, ServerListQueryVariables, ServerListServerFragment} from '../../../graphql';
 import queryServers = require('../../../../graphql/ServerList.graphql');
-import { RefreshIcon } from '../../RefreshIcon';
+import { ListingButtons } from '../../ListingButtons';
 
 const tableColumns: TableColumnConfig<ServerListServerFragment>[] = [
     {
@@ -44,7 +44,8 @@ const tableColumns: TableColumnConfig<ServerListServerFragment>[] = [
 class ServerTable extends Table<ServerListServerFragment> {}
 
 export interface ServerListProps {
-    networkId: string
+    networkId: string,
+    serverName: string,
 }
 
 export const ServerList = simpleGraphqlCursor({
@@ -85,9 +86,17 @@ export const ServerList = simpleGraphqlCursor({
         }
 
         if (props.data.error) {
-            return <h4>
-                {props.data.error || 'Unknown Error'} <RefreshIcon {...props.data} />
-            </h4>;
+            return <div>
+                <h4>
+                    {props.data.error || 'Unknown Error'}
+                </h4>
+                <ListingButtons
+                    hasMore={false}
+                    loading={props.data!.loading}
+                    refetch={props.data!.refetch}
+                    fetchMore={() => {}}
+                />
+            </div>;
         }
 
         let servers: Array<ServerListServerFragment> = [];
@@ -100,7 +109,7 @@ export const ServerList = simpleGraphqlCursor({
 
         return <div>
             <h2>
-                Servers <RefreshIcon {...props.data} />
+                Servers in { props.serverName }
             </h2>
             <ServerTable
                 loading={props.data.loading}
@@ -112,14 +121,12 @@ export const ServerList = simpleGraphqlCursor({
                 bordered={false}
                 size='small'
             />
-            { hasMore && <Button
-                type="primary"
+            <ListingButtons
                 loading={props.data.loading}
-                onClick={props.data.fetchAnotherPage}
-                icon="ellipsis"
-            >
-                Show more
-            </Button> }
+                hasMore={hasMore}
+                refetch={() => props.data!.refetch()}
+                fetchMore={() => props.data!.fetchAnotherPage()}
+            />
         </div>;
     }
 });

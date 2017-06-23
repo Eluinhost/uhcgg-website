@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { OptionProps } from 'react-apollo';
-import { Table, Button } from 'antd';
+import { Table } from 'antd';
 import { TableColumnConfig } from 'antd/lib/table/Table';
 import { Link } from 'react-router-dom';
 
@@ -9,7 +9,7 @@ import queryNetworks = require('../../../../graphql/NetworkList.graphql');
 import { NetworkListNetworkFragment, NetworkListQuery, NetworkListQueryVariables } from '../../../graphql';
 import { simpleGraphqlCursor } from '../../../apolloHelpers';
 import { ServerList } from './ServerList';
-import { RefreshIcon } from '../../RefreshIcon';
+import { ListingButtons } from '../../ListingButtons';
 
 const tableColumns: TableColumnConfig<NetworkListNetworkFragment>[] = [
     {
@@ -66,9 +66,17 @@ export const NetworkList = simpleGraphqlCursor({
         }
 
         if (props.data.error) {
-            return <h4>
-                {props.data.error || 'Unknown Error'} <RefreshIcon {...props.data} />
-            </h4>;
+            return <div>
+                <h4>
+                    {props.data.error || 'Unknown Error'}
+                </h4>
+                <ListingButtons
+                    hasMore={false}
+                    loading={props.data!.loading}
+                    refetch={props.data!.refetch}
+                    fetchMore={() => {}}
+                />
+            </div>;
         }
 
         let networks: Array<NetworkListNetworkFragment> = [];
@@ -81,7 +89,7 @@ export const NetworkList = simpleGraphqlCursor({
 
         return <div>
             <h2>
-                All Networks <RefreshIcon { ...props.data } />
+                All Networks
             </h2>
             <NetworkTable
                 loading={props.data.loading}
@@ -93,20 +101,18 @@ export const NetworkList = simpleGraphqlCursor({
                 bordered={true}
                 expandedRowRender={(network: NetworkListNetworkFragment) =>
                     <div>
-                        <ServerList networkId={network.id} />
+                        <ServerList networkId={network.id} serverName={network.name} />
                         <h2>Description</h2>
                         { network.description }
                     </div>
                 }
             />
-            { hasMore && <Button
-                type="primary"
+            <ListingButtons
                 loading={props.data.loading}
-                onClick={props.data.fetchAnotherPage}
-                icon="ellipsis"
-            >
-                Show more
-            </Button> }
+                hasMore={hasMore}
+                refetch={() => props.data!.refetch()}
+                fetchMore={() => props.data!.fetchAnotherPage()}
+            />
         </div>;
     }
 });

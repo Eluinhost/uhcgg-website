@@ -101,17 +101,21 @@ export const NetworkList = simpleGraphqlCursor({
                 bordered={true}
                 expandedRowRender={(network: NetworkListNetworkFragment) =>
                     <div>
+                        <h2>{ network.name } [{ network.tag }]</h2>
+
+                        <div style={{ margin: 20 }}>
+                            { network.description }
+                        </div>
+
                         <ServerList networkId={network.id} serverName={network.name} />
-                        <h2>Description</h2>
-                        { network.description }
                     </div>
                 }
-            />
-            <ListingButtons
-                loading={props.data.loading}
-                hasMore={hasMore}
-                refetch={() => props.data!.refetch()}
-                fetchMore={() => props.data!.fetchAnotherPage()}
+                footer={() =>  <ListingButtons
+                    loading={props.data!.loading}
+                    hasMore={hasMore}
+                    refetch={() => props.data!.refetch()}
+                    fetchMore={() => props.data!.fetchAnotherPage()}
+                />}
             />
         </div>;
     }

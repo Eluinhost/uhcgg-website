@@ -107,26 +107,22 @@ export const ServerList = simpleGraphqlCursor({
             hasMore = props.data.node.servers.pageInfo.hasNextPage;
         }
 
-        return <div>
-            <h2>
-                Servers in { props.serverName }
-            </h2>
-            <ServerTable
-                loading={props.data.loading}
-                style={{marginTop: 30}}
-                dataSource={servers}
-                columns={tableColumns}
-                rowKey={_ => _.id}
-                pagination={false}
-                bordered={false}
-                size='small'
-            />
-            <ListingButtons
-                loading={props.data.loading}
+        return <ServerTable
+            loading={props.data.loading}
+            style={{marginTop: 30}}
+            dataSource={servers}
+            columns={tableColumns}
+            rowKey={_ => _.id}
+            pagination={false}
+            bordered={false}
+            size="small"
+            title={() => `Servers belonging to ${props.serverName}`}
+            footer={() =>  <ListingButtons
+                loading={props.data!.loading}
                 hasMore={hasMore}
                 refetch={() => props.data!.refetch()}
                 fetchMore={() => props.data!.fetchAnotherPage()}
-            />
-        </div>;
+            />}
+        />;
     }
 });

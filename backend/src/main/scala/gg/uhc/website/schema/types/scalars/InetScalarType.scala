@@ -18,7 +18,7 @@ trait InetScalarType {
   implicit val InetType: ScalarType[InetAddress] = ScalarType[InetAddress](
     "Inet",
     description = "An IP address".some,
-    coerceOutput = (i, _) ⇒ i.toString,
+    coerceOutput = (i, _) ⇒ i.toString.substring(1),
     coerceInput = {
       case ast.StringValue(i, _, _) ⇒ tryConvertStringToInet(i)
       case _                        ⇒ Left(InetCoercionViolation)

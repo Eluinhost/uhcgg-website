@@ -28,7 +28,7 @@ class BanRepository extends Repository[Ban] with HasUuidIdColumn[Ban] with HasRe
   override private[repositories] val idColumn = p"uuid"
 
   private[repositories] def getByExpiredStatusQuery(showExpired: Boolean): Query0[Ban] =
-    (baseSelect where showExpired.option(p"expires" > func"NOW"())).build.query[Ban]
+    (baseSelect where showExpired.option(p"expires" > func"now"())).build.query[Ban]
 
   private[repositories] val getByBannedUserIdQuery = relationListingQuery[UUID, Instant](
     relColumn = p"banned_user_id",

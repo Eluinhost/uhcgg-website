@@ -40,7 +40,7 @@ class UserRepository extends Repository[User] with HasUuidIdColumn[User] with Cu
     )).build.update
 
   private[repositories] def checkUsernameInUseQuery(username: String): Query0[Long] =
-    (select(func"COUNT" (p"username") as "COUNT") from p"users" where (p"username" === username)).build.query[Long]
+    (select(func"count" (p"username") as "count") from p"users" where (p"username" === username)).build.query[Long]
 
   private[repositories] def getByUsernamesQuery(usernames: NonEmptyList[String]): Query0[User] =
     (baseSelect where (p"username" in usernames)).build.query[User]

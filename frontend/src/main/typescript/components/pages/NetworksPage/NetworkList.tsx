@@ -1,38 +1,70 @@
 import * as React from 'react';
 import { OptionProps } from 'react-apollo';
-import { Table } from 'antd';
-import { TableColumnConfig } from 'antd/lib/table/Table';
 import { Link } from 'react-router-dom';
-
-import queryNetworks = require('../../../../graphql/NetworkList.graphql');
+import { Collapse } from "@blueprintjs/core";
 
 import { NetworkListNetworkFragment, NetworkListQuery, NetworkListQueryVariables } from '../../../graphql';
 import { simpleGraphqlCursor } from '../../../apolloHelpers';
 import { ServerList } from './ServerList';
 import { ListingButtons } from '../../ListingButtons';
 
-const tableColumns: TableColumnConfig<NetworkListNetworkFragment>[] = [
-    {
-        title: 'Tag',
-        dataIndex: 'tag',
-        render: text => <span style={{ fontWeight: 'bold' }}>{ text }</span>
-    },
-    {
-        title: 'Name',
-        dataIndex: 'name',
-    },
-    {
-        title: 'Owner',
-        dataIndex: 'owner.username',
-        render: text => <Link to={`/users/${text}`}>/u/{ text}</Link>
-    },
-    {
-        title: 'Id',
-        dataIndex: 'rawId'
-    }
-];
+import queryNetworks = require('../../../../graphql/NetworkList.graphql');
 
-class NetworkTable extends Table<NetworkListNetworkFragment> {}
+export interface NetworkListRowProps {
+    network: NetworkListNetworkFragment,
+    index: number
+}
+
+export class NetworkListRow extends React.Component<NetworkListRowProps, { isOpen: boolean }> {
+    constructor(props: NetworkListRowProps) {
+        super(props);
+
+        this.state = {
+            isOpen: false
+        }
+    }
+
+    toggle = () => {
+        this.setState(prev => ({
+            isOpen: !prev.isOpen
+        }))
+    };
+
+    render() {
+        return <div className="pt-card pt-elevation-0 pt-interactive network-list-row" onClick={this.toggle}>
+            <div className="network-list-row-index pt-text-muted">
+                { this.props.index + 1 }
+            </div>
+
+            <div className="network-list-row-header">
+                <div className="network-list-row-title">
+                    <span className="network-list-row-name">{ this.props.network.name }</span>
+                    <span className="network-list-row-tag">[{ this.props.network.tag }]</span>
+                </div>
+                <div className="network-list-row-owner">
+                    <Link to={`/users/${this.props.network.owner.username}`}>
+                        /u/{ this.props.network.owner.username}
+                    </Link>
+                </div>
+            </div>
+
+            <div onClick={e => e.stopPropagation()}>
+                <Collapse isOpen={this.state.isOpen} className="network-list-row-contents">
+                    <pre className="network-list-row-description">
+                        { /* TODO render as markdown */ }
+                        { this.props.network.description }
+                    </pre>
+
+                    <div className="network-list-row-servers">
+                        <h5>Servers</h5>
+
+                        { this.state.isOpen && <ServerList networkId={this.props.network.id} /> }
+                    </div>
+                </Collapse>
+            </div>
+        </div>;
+    }
+}
 
 export const NetworkList = simpleGraphqlCursor({
     query: queryNetworks,
@@ -91,32 +123,17 @@ export const NetworkList = simpleGraphqlCursor({
             <h2>
                 All Networks
             </h2>
-            <NetworkTable
-                loading={props.data.loading}
-                style={{ marginTop: 30 }}
-                dataSource={networks}
-                columns={tableColumns}
-                rowKey={network => network.id}
-                pagination={false}
-                bordered={true}
-                expandedRowRender={(network: NetworkListNetworkFragment) =>
-                    <div>
-                        <h2>{ network.name } [{ network.tag }]</h2>
 
-                        <div style={{ margin: 20 }}>
-                            { network.description }
-                        </div>
+            <div className="network-list">
+                { networks.map((network, index) => <NetworkListRow network={network} key={network.id} index={index} />) }
 
-                        <ServerList networkId={network.id} serverName={network.name} />
-                    </div>
-                }
-                footer={() =>  <ListingButtons
+                <ListingButtons
                     loading={props.data!.loading}
                     hasMore={hasMore}
                     refetch={() => props.data!.refetch()}
                     fetchMore={() => props.data!.fetchAnotherPage()}
-                />}
-            />
+                />
+            </div>
         </div>;
     }
 });

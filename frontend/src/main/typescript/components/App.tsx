@@ -1,8 +1,7 @@
 import * as React from 'react';
 import { BrowserRouter, Switch, Route } from 'react-router-dom';
 import { Breadcrumbs } from './Breadcrumbs';
-import { Sidebar } from './Sidebar';
-import { Layout } from 'antd';
+import { Colors } from '@blueprintjs/core';
 import { CSSProperties } from 'react';
 
 import { HomePage } from './pages/HomePage';
@@ -10,6 +9,7 @@ import { RegisterPage } from './pages/RegisterPage';
 import { NetworksPage } from './pages/NetworksPage';
 import { GraphiQLPage } from './pages/GraphiQLPage';
 import { GraphQLSchemaPage } from './pages/GraphQLSchemaPage';
+import { Sidebar } from './Sidebar';
 
 const pageContentStyle: CSSProperties = {
     flex: '1 1 auto',
@@ -21,7 +21,8 @@ const mainContentStyle: CSSProperties = {
     display: 'flex',
     flexDirection: 'column',
     width: '100%',
-    height: '100vh'
+    height: '100vh',
+    flex: '1 1 auto'
 };
 
 const footerStyle: CSSProperties = {
@@ -29,15 +30,14 @@ const footerStyle: CSSProperties = {
     paddingTop: 5,
     paddingBottom: 5,
     paddingRight: 15,
-    background: '#404040',
-    color: 'hsla(0,0%,100%,.67)'
+    background: Colors.DARK_GRAY2,
+    color: Colors.LIGHT_GRAY1
 };
 
 export const App: React.SFC<{}> = () =>
     <BrowserRouter>
-        <Layout style={{ minHeight: '100%' }} >
+        <div style={{ display: 'flex' }}>
             <Sidebar />
-
             <div style={mainContentStyle}>
                 <Breadcrumbs />
                 <div style={pageContentStyle}>
@@ -50,12 +50,12 @@ export const App: React.SFC<{}> = () =>
                     </Switch>
                 </div>
                 <div style={footerStyle}>
-                    <a href="#">Source Code</a>
+                    <a href="#" style={{ color: Colors.LIGHT_GRAY3 }}>Source Code</a>
                     &nbsp;|&nbsp;
-                    <a href="#">Bugs</a>
+                    <a href="#" style={{ color: Colors.LIGHT_GRAY3 }}>Bugs</a>
                     &nbsp;&nbsp;
                     ©&nbsp;2017&nbsp;Eluinhost
                 </div>
             </div>
-        </Layout>
+        </div>
     </BrowserRouter>;

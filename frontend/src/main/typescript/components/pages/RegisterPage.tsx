@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router';
 import { RegisterForm, RegisterFormProps } from '../RegisterForm';
-import { Button } from 'antd';
 import * as jwtDecode from 'jwt-decode';
 
 const FinalStepPage: React.SFC<RegisterFormProps> = props =>
@@ -32,15 +31,11 @@ const FirstStepPage: React.SFC<{}> = () =>
 
         <p>Something about goign to reddit erhe is a button</p>
 
-        <Button
-            type="primary"
-            htmlType="submit"
-            size="large"
+        <button
+            className="pt-button pt-icon-database"
             onClick={() => window.location.href = '/api/register'}
             style={{ marginTop: 20 }}
-        >
-            Register
-        </Button>
+        >Register</button>
     </div>;
 
 export const RegisterPage: React.SFC<RouteComponentProps<void>> = ({ location: { hash }}) => {

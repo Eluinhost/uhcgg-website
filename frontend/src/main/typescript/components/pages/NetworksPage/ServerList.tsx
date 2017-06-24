@@ -1,6 +1,4 @@
 import * as React from 'react';
-import { Table } from 'antd';
-import { TableColumnConfig} from 'antd/lib/table/Table';
 import { Link } from 'react-router-dom';
 import { OptionProps } from 'react-apollo';
 
@@ -8,44 +6,37 @@ import { simpleGraphqlCursor } from '../../../apolloHelpers';
 import { ServerListQuery, ServerListQueryVariables, ServerListServerFragment} from '../../../graphql';
 import queryServers = require('../../../../graphql/ServerList.graphql');
 import { ListingButtons } from '../../ListingButtons';
+import {Position, Tooltip} from "@blueprintjs/core";
 
-const tableColumns: TableColumnConfig<ServerListServerFragment>[] = [
-    {
-        title: 'Name',
-        dataIndex: 'name'
-    },
-    {
-        title: 'Address',
-        dataIndex: 'ip',
-        render: (text, record) =>
-            <span>
-                { record.address ? record.address : record.ip }:{ record.port ? record.port : '25565'}
-            </span>
-    },
-    {
-        title: 'Region',
-        dataIndex: 'region.short'
-    },
-    {
-        title: 'Location',
-        dataIndex: 'location'
-    },
-    {
-        title: 'Owner',
-        dataIndex: 'owner.username',
-        render: text => <Link to={`/users/${text}`}>/u/{ text}</Link>
-    },
-    {
-        title: 'Id',
-        dataIndex: 'rawId'
-    }
-];
+export const ServerListRow: React.SFC<{ server: ServerListServerFragment }> = ({ server }) =>
+    <div className="server-list-row">
+        <span className="server-list-row-name">{server.name}</span>
 
-class ServerTable extends Table<ServerListServerFragment> {}
+        <span className="pt-tag pt-intent-primary">{server.region.short}</span>
+        <span className="pt-tag pt-intent-success">{server.location}</span>
+
+        <span className="server-list-row-address">
+            {
+                server.address
+                    ? <Tooltip content={server.ip} position={Position.TOP}>
+                        { server.address }
+                    </Tooltip>
+                    : <span>{ server.ip }</span>
+            }
+            {
+                server.port && server.port != 25565 && <span>:{server.port}</span>
+            }
+        </span>
+
+        <span className="server-list-row-owner">
+            <Link to={`/users/${server.owner.username}`}>
+                /u/{ server.owner.username }
+            </Link>
+        </span>
+    </div>;
 
 export interface ServerListProps {
-    networkId: string,
-    serverName: string,
+    networkId: string
 }
 
 export const ServerList = simpleGraphqlCursor({
@@ -107,22 +98,15 @@ export const ServerList = simpleGraphqlCursor({
             hasMore = props.data.node.servers.pageInfo.hasNextPage;
         }
 
-        return <ServerTable
-            loading={props.data.loading}
-            style={{marginTop: 30}}
-            dataSource={servers}
-            columns={tableColumns}
-            rowKey={_ => _.id}
-            pagination={false}
-            bordered={false}
-            size="small"
-            title={() => `Servers belonging to ${props.serverName}`}
-            footer={() =>  <ListingButtons
+        return <div className="server-list">
+            { servers.map(server => <ServerListRow server={server} key={server.id} />) }
+
+            <ListingButtons
                 loading={props.data!.loading}
                 hasMore={hasMore}
                 refetch={() => props.data!.refetch()}
                 fetchMore={() => props.data!.fetchAnotherPage()}
-            />}
-        />;
+            />
+        </div>;
     }
 });

@@ -5,8 +5,13 @@ const { optimize, NamedModulesPlugin } = require('webpack');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
+const extractCss = new ExtractTextPlugin({
+    filename: "[name].[contenthash].css",
+    disable: process.env.NODE_ENV !== 'production'
+});
+
 module.exports = {
-    entry: path.join(__dirname, 'src', 'main', 'typescript', 'index.tsx'),
+    entry: [path.join(__dirname, 'src', 'main', 'typescript', 'index.tsx'), path.join(__dirname, 'src', 'main', 'sass', 'main.sass')],
     output: {
         filename: '[name].bundle.js',
         path: __dirname + '/dist',
@@ -25,6 +30,7 @@ module.exports = {
             },
             {
                 test: /\.tsx?$/,
+                exclude: /node_modules/,
                 loader: ['react-hot-loader/webpack', 'awesome-typescript-loader']
             },
             {
@@ -34,15 +40,23 @@ module.exports = {
                 exclude: /node_modules/
             },
             {
-                test: /\.css$/,
-                use: ExtractTextPlugin.extract({
+                test: /\.sass$/,
+                use: extractCss.extract({
                     publicPath: '/dist',
                     fallback: 'style-loader',
-                    use: 'css-loader'
+                    use: ['css-loader', 'sass-loader']
                 })
             },
             {
-                test: /\.png$/,
+                test: /\.css$/,
+                use: extractCss.extract({
+                    publicPath: '/dist',
+                    fallback: 'style-loader',
+                    use: ['css-loader']
+                })
+            },
+            {
+                test: /\.(eot|svg|ttf|woff|woff2|png)$/,
                 loader: 'file-loader'
             }
         ]
@@ -53,10 +67,7 @@ module.exports = {
             name: 'vendor',
             minChunks: module => module.context && module.context.indexOf('node_modules') !== -1
         }),
-        new ExtractTextPlugin({
-            filename: '[name].bundle.css',
-            allChunks: true
-        }),
+        extractCss,
         new HotModuleReplacementPlugin(),
         new HtmlWebpackPlugin({
             hash: true

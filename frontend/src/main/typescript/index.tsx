@@ -2,12 +2,6 @@ import {sidebar} from "./reducers";
 
 require('react-hot-loader/patch');
 
-require('antd/dist/antd.min.css');
-require('nprogress/nprogress.css');
-require('graphiql/graphiql.css');
-require('../css/main.css');
-require('graphql-voyager/dist/voyager.css');
-
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { ApolloClient, ApolloProvider, createNetworkInterface } from 'react-apollo';

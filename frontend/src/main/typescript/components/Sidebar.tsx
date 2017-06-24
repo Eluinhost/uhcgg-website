@@ -1,9 +1,8 @@
 import * as React from 'react';
-import { Link, withRouter, RouteComponentProps } from 'react-router-dom';
-import { Menu, Layout, Icon } from 'antd';
+import {Link, withRouter, RouteComponentProps, NavLink} from 'react-router-dom';
 import {SidebarActions} from "../actions";
-import {compose} from "ramda";
 import {connect_SD} from "../reduxUtil";
+import {Position, Tooltip} from "@blueprintjs/core";
 
 const logoUrl = require('../../images/logo.png');
 
@@ -15,60 +14,46 @@ export type SidebarDispatchProps = {
     toggle: () => void
 }
 
+interface SidebarItemProps {
+    text: string,
+    icon: string,
+    to: string,
+    tooltipDisabled: boolean,
+    exact?: boolean
+}
+
+const SidebarItem: React.SFC<SidebarItemProps> = ({ tooltipDisabled, text, icon , to, exact = false}) =>
+    <div className="sidebar-item">
+        <NavLink to={to} activeClassName="sidebar-item-active" exact={exact}>
+            <Tooltip content={text} isDisabled={tooltipDisabled} position={Position.RIGHT} hoverOpenDelay={400}>
+                <span className={`pt-icon pt-icon-${icon}`} />
+            </Tooltip>
+            <span className="nav-text">{ text }</span>
+        </NavLink>
+    </div>;
+
 export type SidebarProps = RouteComponentProps<void> & SidebarStateProps & SidebarDispatchProps;
 
 const SidebarComponent: React.SFC<SidebarProps> = ({ location: { pathname }, collapsed, toggle }) =>
-    <Layout.Sider width={200} style={{ height: '100vh', overflow: 'auto' }} collapsible={true} collapsed={collapsed} onCollapse={toggle} >
-        <div className="logo">
-            <Link to="/">
-                <img src={logoUrl} alt="logo" />
-                <div className="nav-text">uhc.gg</div>
-            </Link>
+    <div className={`${collapsed ? "sidebar sidebar-collapsed" : "sidebar"}`}>
+        <div className="sidebar-items">
+            <div className="sidebar-logo">
+                <Link to="/">
+                    <img src={logoUrl} alt="logo" />
+                    <div className="nav-text">uhc.gg</div>
+                </Link>
+            </div>
+
+            <SidebarItem text="Home" icon="home" to="/" exact={true} tooltipDisabled={!collapsed}/>
+            <SidebarItem text="Register" icon="user" to="/register" tooltipDisabled={!collapsed}/>
+            <SidebarItem text="Networks" icon="database" to="/networks" tooltipDisabled={!collapsed}/>
+            <SidebarItem text="API" icon="git-repo" to="/dev" tooltipDisabled={!collapsed}/>
         </div>
 
-        <Menu
-            mode="inline"
-            theme="dark"
-            selectedKeys={[ pathname ]}
-            style={{ height: '100%' }}
-        >
-            <Menu.Item key="/">
-                <Link to="/">
-                    <span>
-                        <Icon type="home" />
-                        <span className="nav-text">Home</span>
-                    </span>
-                </Link>
-            </Menu.Item>
-            <Menu.Item key="/register">
-                <Link to="/register">
-                    <span>
-                        <Icon type="user" />
-                        <span className="nav-text">Register</span>
-                     </span>
-                </Link>
-            </Menu.Item>
-            <Menu.Item key="/networks">
-                <Link to="/networks">
-                    <span>
-                        <Icon type="database" />
-                        <span className="nav-text">Networks</span>
-                    </span>
-                </Link>
-            </Menu.Item>
-            <Menu.Item key="/dev">
-                <Link to="/dev">
-                    <span>
-                        <Icon type="api" />
-                        <span className="nav-text">API</span>
-                    </span>
-                </Link>
-            </Menu.Item>
-        </Menu>
-    </Layout.Sider>;
-
-// required for antd to work properly
-(SidebarComponent as any).__ANT_LAYOUT_SIDER = true;
+        <div className="sidebar-toggle" onClick={toggle}>
+            <span className={`pt-icon pt-icon-${collapsed ? 'caret-right' : 'caret-left'}`}/>
+        </div>
+    </div>;
 
 export const Sidebar: React.ComponentClass<{}> =
     withRouter<{}>(

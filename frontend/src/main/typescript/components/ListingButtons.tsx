@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { Button } from 'antd';
 
 export interface ListingButtonsProps {
     hasMore: boolean,
@@ -9,21 +8,21 @@ export interface ListingButtonsProps {
 }
 
 export const ListingButtons: React.SFC<ListingButtonsProps> = ({ hasMore, loading, refetch, fetchMore }) =>
-    <div style={{ textAlign: 'center' }}>
-        <Button.Group>
-            { hasMore && <Button
-                loading={loading}
-                onClick={fetchMore}
-                icon="ellipsis"
+    <div className="pt-button-group listing-buttons">
+        { hasMore && <button
+            className="pt-button pt-icon-ellipsis"
+            role="button"
+            onClick={fetchMore}
+            disabled={loading}
             >
-                Show more
-            </Button> }
-            <Button
-                loading={loading}
-                icon="reload"
-                onClick={refetch}
+            Show more
+        </button> }
+        <button
+            className="pt-button pt-icon-reload"
+            disabled={loading}
+            onClick={refetch}
+            role="button"
             >
-                Refresh
-            </Button>
-        </Button.Group>
+            Refresh
+        </button>
     </div>;

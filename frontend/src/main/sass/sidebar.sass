@@ -1,0 +1,82 @@
+@import "~@blueprintjs/core/dist/variables"
+
+.sidebar
+  display: flex
+  flex-direction: column
+  background: $dark-gray2
+  height: 100vh
+  overflow-y: auto
+  width: 160px
+  overflow-x: hidden
+  color: $light-gray1
+
+  transition: width 1s ease-in-out
+
+  // when collpased reduce the size of the sidebar
+  // and fade out the text + increase margins
+  &.sidebar-collapsed
+    width: 50px
+    .nav-text
+      transition: opacity .5s
+      opacity: 0
+    .sidebar-item
+      transition: margin-top .5s ease-in-out .5s
+      margin-top: 30px
+    .sidebar-logo
+      transition: margin-bottom .5s ease-in-out .5s
+      margin-bottom: -30px
+
+  // Expand down to the toggle button
+  .sidebar-items
+    flex: 1 1 auto
+
+  // set the text opacity so transition works
+  .nav-text
+    transition: opacity .5s .5s
+    opacity: 1
+
+  a
+    color: $light-gray1
+
+    .pt-icon
+      font-size: 120%
+      margin-right: 8px
+      margin-left: 15px
+
+    &:hover
+      text-decoration: none
+      color: lighten($blue5, 10%)
+
+    &.sidebar-item-active
+      color: $blue5
+
+  .sidebar-item
+    transition: margin-top .5s ease-in-out
+    margin-top: 10px
+    width: 200px
+    font-size: $pt-font-size-large
+    overflow: hidden
+
+  .sidebar-logo
+    text-align: center
+    transition: margin-bottom .5s ease-in-out
+    margin-bottom: 30px
+
+    img
+      height: 32px
+      margin-left: auto
+      margin-right: auto
+      margin-top: 16px
+
+    .nav-text
+      font-size: 120%
+
+  .sidebar-toggle
+    text-align: center
+    font-size: $pt-font-size-large
+    padding-bottom: 15px
+    padding-top: 15px
+    cursor: pointer
+
+    &:hover
+      background: $dark-gray3

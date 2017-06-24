@@ -3,7 +3,7 @@ package gg.uhc.website.repositories
 import org.scalatest._
 
 @DoNotDiscover
-class NetworkPermissionRepositoryTest extends FlatSpec with BaseRepositoryTest {
+class NetworkPermissionRepositoryTest extends BaseRepositoryTest[NetworkPermissionRepository] {
   val repo = new NetworkPermissionRepository
 
   it should "have valid getByNetworkId query" in

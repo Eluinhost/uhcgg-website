@@ -3,7 +3,7 @@ package gg.uhc.website.repositories
 import org.scalatest._
 
 @DoNotDiscover
-class ScenarioRepositoryTest extends FlatSpec with BaseRepositoryTest {
+class ScenarioRepositoryTest extends BaseRepositoryTest[ScenarioRepository] {
   val repo = new ScenarioRepository
 
   "ScenarioRepository" should "have valid getByIdsQuery query" in

@@ -3,7 +3,7 @@ package gg.uhc.website.repositories
 import org.scalatest._
 
 @DoNotDiscover
-class BanRepositoryTest extends FlatSpec with BaseRepositoryTest {
+class BanRepositoryTest extends BaseRepositoryTest[BanRepository] {
   val repo = new BanRepository
 
   "BanRepository" should "have valid getByIdsQuery query" in

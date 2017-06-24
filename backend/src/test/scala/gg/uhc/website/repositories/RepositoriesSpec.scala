@@ -20,7 +20,7 @@ class RepositoriesSpec
       new VersionRepositoryTest
     )
     with BeforeAndAfterAll
-    with BaseRepositoryTest {
+    with HasDataSource {
   override def beforeAll(): Unit = {
     val flyway = new Flyway()
     flyway.setDataSource(dataSource)

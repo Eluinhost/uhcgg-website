@@ -3,7 +3,7 @@ package gg.uhc.website.repositories
 import org.scalatest._
 
 @DoNotDiscover
-class UserRolesRepositoryTest extends FlatSpec with BaseRepositoryTest {
+class UserRolesRepositoryTest extends BaseRepositoryTest[UserRolesRepository] {
   val repo = new UserRolesRepository
 
 

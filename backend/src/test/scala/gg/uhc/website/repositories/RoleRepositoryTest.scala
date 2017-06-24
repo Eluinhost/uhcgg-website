@@ -3,7 +3,7 @@ package gg.uhc.website.repositories
 import org.scalatest._
 
 @DoNotDiscover
-class RoleRepositoryTest extends FlatSpec with BaseRepositoryTest {
+class RoleRepositoryTest extends BaseRepositoryTest[RoleRepository] {
   val repo = new RoleRepository
 
   "Role Repository" should "have valid getAllQuery query" in

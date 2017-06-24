@@ -5,7 +5,7 @@ import org.scalatest._
 import scalaz.NonEmptyList
 
 @DoNotDiscover
-class UserRepositoryTest extends FlatSpec with BaseRepositoryTest {
+class UserRepositoryTest extends BaseRepositoryTest[UserRepository] {
   val repo = new UserRepository
 
   "UserRepository" should "have valid changePasswordQuery query" in

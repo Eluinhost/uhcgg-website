@@ -3,7 +3,7 @@ package gg.uhc.website.repositories
 import org.scalatest._
 
 @DoNotDiscover
-class ServerRepositoryTest extends FlatSpec with BaseRepositoryTest {
+class ServerRepositoryTest extends BaseRepositoryTest[ServerRepository] {
   val repo = new ServerRepository
 
   it should "have valid getByIdQuery query" in

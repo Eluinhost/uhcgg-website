@@ -3,7 +3,7 @@ package gg.uhc.website.repositories
 import org.scalatest._
 
 @DoNotDiscover
-class VersionRepositoryTest extends FlatSpec with BaseRepositoryTest {
+class VersionRepositoryTest extends BaseRepositoryTest[VersionRepository] {
   val repo = new VersionRepository
 
   "VersionRepository" should "have valid getAllQuery query" in

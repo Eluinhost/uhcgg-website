@@ -44,7 +44,8 @@
     "redux": "^3.6.0",
     "redux-actions": "^2.0.3",
     "redux-form": "^6.8.0",
-    "sass-loader": "^6.0.6"
+    "sass-loader": "^6.0.6",
+    "snuownd": "^1.1.0"
   },
   "devDependencies": {
     "apollo-codegen": "^0.12.8",

@@ -22,7 +22,7 @@ const mainContentStyle: CSSProperties = {
     flexDirection: 'column',
     width: '100%',
     height: '100vh',
-    flex: '1 1 auto'
+    overflowX: 'auto'
 };
 
 const footerStyle: CSSProperties = {
@@ -32,7 +32,7 @@ const footerStyle: CSSProperties = {
     paddingRight: 15,
     background: Colors.DARK_GRAY2,
     color: Colors.LIGHT_GRAY1
-};
+}; // TODO css this stuff
 
 export const App: React.SFC<{}> = () =>
     <BrowserRouter>

@@ -4026,6 +4026,10 @@ sntp@1.x.x:
   dependencies:
     hoek "2.x.x"
 
+snuownd@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/snuownd/-/snuownd-1.1.0.tgz#2c1ce8780a6f450a08466d92667ca72dc627d502"
+
 sockjs-client@1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/sockjs-client/-/sockjs-client-1.1.2.tgz#f0212a8550e4c9468c8cceaeefd2e3493c033ad5"

@@ -71,3 +71,15 @@ declare module 'graphql-voyager' {
     const value: GraphQLVoyager;
     export = value;
 }
+
+declare module 'snuownd' {
+    interface SnuOwndParser {
+        render(markdown: string): string
+    }
+    interface SnuOwnd {
+        getParser(): SnuOwndParser
+    }
+
+    const value: SnuOwnd;
+    export = value;
+}

@@ -2,6 +2,7 @@ import * as React from 'react';
 import { OptionProps } from 'react-apollo';
 import { Link } from 'react-router-dom';
 import { Collapse } from "@blueprintjs/core";
+import * as Snuownd from 'snuownd';
 
 import { NetworkListNetworkFragment, NetworkListQuery, NetworkListQueryVariables } from '../../../graphql';
 import { simpleGraphqlCursor } from '../../../apolloHelpers';
@@ -9,6 +10,8 @@ import { ServerList } from './ServerList';
 import { ListingButtons } from '../../ListingButtons';
 
 import queryNetworks = require('../../../../graphql/NetworkList.graphql');
+
+const parser = Snuownd.getParser();
 
 export interface NetworkListRowProps {
     network: NetworkListNetworkFragment,
@@ -50,16 +53,14 @@ export class NetworkListRow extends React.Component<NetworkListRowProps, { isOpe
 
             <div onClick={e => e.stopPropagation()}>
                 <Collapse isOpen={this.state.isOpen} className="network-list-row-contents">
-                    <pre className="network-list-row-description">
-                        { /* TODO render as markdown */ }
-                        { this.props.network.description }
-                    </pre>
-
                     <div className="network-list-row-servers">
                         <h5>Servers</h5>
 
                         { this.state.isOpen && <ServerList networkId={this.props.network.id} /> }
                     </div>
+
+                    <h5>Network Description</h5>
+                    <pre className="network-list-row-description" dangerouslySetInnerHTML={{ __html: parser.render(this.props.network.description)}} />
                 </Collapse>
             </div>
         </div>;

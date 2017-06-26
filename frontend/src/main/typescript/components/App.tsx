@@ -12,36 +12,13 @@ import { GraphQLSchemaPage } from './pages/GraphQLSchemaPage';
 import { Sidebar } from './Sidebar';
 import { NetworkView } from './pages/NetworkPage';
 
-const pageContentStyle: CSSProperties = {
-    flex: '1 1 auto',
-    overflowY: 'scroll',
-    height: 0 // Required otherwise it doesn't have a height set, flexbox handles the height after load though
-};
-
-const mainContentStyle: CSSProperties = {
-    display: 'flex',
-    flexDirection: 'column',
-    width: '100%',
-    height: '100vh',
-    overflowX: 'auto'
-};
-
-const footerStyle: CSSProperties = {
-    textAlign: 'right',
-    paddingTop: 5,
-    paddingBottom: 5,
-    paddingRight: 15,
-    background: Colors.DARK_GRAY2,
-    color: Colors.LIGHT_GRAY1
-}; // TODO css this stuff
-
 export const App: React.SFC<{}> = () =>
     <BrowserRouter>
         <div style={{ display: 'flex' }}>
             <Sidebar />
-            <div style={mainContentStyle}>
+            <div className="app-main-content">
                 <Breadcrumbs />
-                <div style={pageContentStyle}>
+                <div className="app-page-content">
                     <Switch>
                         <Route exact path="/" component={HomePage} />
                         <Route path="/register" component={RegisterPage} />
@@ -51,7 +28,7 @@ export const App: React.SFC<{}> = () =>
                         <Route path="/dev/schema" component={GraphQLSchemaPage} />
                     </Switch>
                 </div>
-                <div style={footerStyle}>
+                <div className="app-footer">
                     <a href="#" style={{ color: Colors.LIGHT_GRAY3 }}>Source Code</a>
                     &nbsp;|&nbsp;
                     <a href="#" style={{ color: Colors.LIGHT_GRAY3 }}>Bugs</a>

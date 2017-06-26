@@ -6,7 +6,7 @@ import { simpleGraphqlCursor } from '../../../apolloHelpers';
 import { ServerListQuery, ServerListQueryVariables, ServerListServerFragment} from '../../../graphql';
 import queryServers = require('../../../../graphql/ServerList.graphql');
 import { ListingButtons } from '../../ListingButtons';
-import {Position, Tooltip} from "@blueprintjs/core";
+import {Position, Tooltip, NonIdealState, Spinner} from "@blueprintjs/core";
 
 export const ServerListRow: React.SFC<{ server: ServerListServerFragment }> = ({ server }) =>
     <div className="server-list-row">
@@ -76,18 +76,24 @@ export const ServerList = simpleGraphqlCursor({
             throw new Error('expected data');
         }
 
+        if (props.data.loading) {
+            return <NonIdealState
+                action={<Spinner/>}
+                title="Loading data..."
+            />;
+        }
+
         if (props.data.error) {
-            return <div>
-                <h4>
-                    {props.data.error || 'Unknown Error'}
-                </h4>
-                <ListingButtons
+            return <NonIdealState
+                action={<ListingButtons
                     hasMore={false}
                     loading={props.data!.loading}
                     refetch={props.data!.refetch}
                     fetchMore={() => {}}
-                />
-            </div>;
+                />}
+                title={props.data.error.message || 'Unknown error'}
+                visual="error"
+            />;
         }
 
         let servers: Array<ServerListServerFragment> = [];

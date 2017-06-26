@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { OptionProps } from 'react-apollo';
 import { Link } from 'react-router-dom';
-import { Collapse } from "@blueprintjs/core";
+import { Collapse, NonIdealState, Spinner } from "@blueprintjs/core";
 import * as Snuownd from 'snuownd';
 
 import { NetworkListNetworkFragment, NetworkListQuery, NetworkListQueryVariables } from '../../../graphql';
@@ -98,18 +98,24 @@ export const NetworkList = simpleGraphqlCursor({
             throw new Error('expected data');
         }
 
+        if (props.data.loading) {
+            return <NonIdealState
+                action={<Spinner/>}
+                title="Loading data..."
+            />;
+        }
+
         if (props.data.error) {
-            return <div>
-                <h4>
-                    {props.data.error || 'Unknown Error'}
-                </h4>
-                <ListingButtons
+            return <NonIdealState
+                action={<ListingButtons
                     hasMore={false}
                     loading={props.data!.loading}
                     refetch={props.data!.refetch}
                     fetchMore={() => {}}
-                />
-            </div>;
+                />}
+                title={props.data.error.message || 'Unknown error'}
+                visual="error"
+            />;
         }
 
         let networks: Array<NetworkListNetworkFragment> = [];

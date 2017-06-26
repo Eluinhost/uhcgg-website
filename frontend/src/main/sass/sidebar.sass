@@ -25,12 +25,12 @@
       margin-left: 0
     // Space out the nav items more
     .sidebar-item
-      transition: margin-top .5s ease-in-out .5s
-      margin-top: 30px
+      transition: line-height .5s ease-in-out .5s
+      line-height: $pt-line-height * 3
     // reduce the gap between the icons and the logo where the site name used to be
     .sidebar-logo
       transition: margin-bottom .5s ease-in-out .5s
-      margin-bottom: -30px
+      margin-bottom: 0
 
   // Expand down to the toggle button
   .sidebar-items
@@ -47,7 +47,7 @@
 
     .pt-icon
       font-size: 120%
-      margin-right: 8px
+      margin-right: 10px
       margin-left: 15px
 
     &:hover
@@ -58,8 +58,8 @@
       color: $blue5
 
   .sidebar-item
-    transition: margin-top .5s ease-in-out
-    margin-top: 10px
+    transition: line-height .5s ease-in-out
+    line-height: $pt-line-height * 1.6
     width: 200px
     font-size: $pt-font-size-large
     overflow: hidden

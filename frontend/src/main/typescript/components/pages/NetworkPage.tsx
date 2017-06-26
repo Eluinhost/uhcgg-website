@@ -29,8 +29,8 @@ export const NetworkView = graphql<NetworkViewQuery, RouteComponentProps<Network
         return <NonIdealState action={<Spinner />} title="Loading data..." />
     }
 
-    if (!data.node) {
-        return <NonIdealState title="Not found" visual="geosearch"/>
+    if (!data.node || data.node.__typename !== "Network") {
+        return <NonIdealState title="Not found" description="Could not find the network with the given ID" visual="geosearch"/>
     }
 
     return <div className="network-view">

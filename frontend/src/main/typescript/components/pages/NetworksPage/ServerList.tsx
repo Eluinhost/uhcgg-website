@@ -49,24 +49,33 @@ export const ServerList = simpleGraphqlCursor({
         }
     },
     mapVariables(props: OptionProps<ServerListProps, ServerListQuery>): ServerListQueryVariables {
+        if (!props.data || !props.data.node || props.data.node.__typename !== "Network")
+            throw new Error('Expected to have a network node to expand');
+
         return {
             networkId: props.ownProps.networkId,
-            after: props.data!.node!.servers.pageInfo.endCursor,
+            after: props.data.node.servers.pageInfo.endCursor,
             first: 5
         }
     },
     mergeResults(last: ServerListQuery, next: ServerListQuery): ServerListQuery {
+        if (!last.node || last.node.__typename !== "Network")
+            throw new Error('Expected to be merging into a network node');
+
+        if (!next.node || next.node.__typename !== "Network")
+            throw new Error('Expected to be merging a network node in');
+
         return {
             ...last,
             node: {
                 ...last.node,
                 servers: {
-                    ...last.node!.servers,
+                    ...last.node.servers,
                     edges: [ // combine edges
-                        ...last.node!.servers.edges!,
-                        ...next.node!.servers.edges!
+                        ...last.node.servers.edges!,
+                        ...next.node.servers.edges!
                     ],
-                    pageInfo: next.node!.servers.pageInfo // replace pageInfo
+                    pageInfo: next.node.servers.pageInfo // replace pageInfo
                 }
             }
         }
@@ -96,13 +105,16 @@ export const ServerList = simpleGraphqlCursor({
             />;
         }
 
-        let servers: Array<ServerListServerFragment> = [];
-        let hasMore: boolean = false;
-
-        if (props.data.node && props.data.node.servers) {
-            servers = props.data.node.servers.edges!.map(edge => edge.node);
-            hasMore = props.data.node.servers.pageInfo.hasNextPage;
+        if (!props.data.node || props.data.node.__typename !== "Network") {
+            return <NonIdealState
+                title="Not Found"
+                description="Could not find a network with the given ID to lookup its servers"
+                visual="geosearch"
+            />;
         }
+
+        let servers: Array<ServerListServerFragment> = props.data.node.servers.edges!.map(edge => edge.node);
+        let hasMore: boolean = props.data.node.servers.pageInfo.hasNextPage;
 
         return <div className="server-list">
             { servers.map(server => <ServerListRow server={server} key={server.id} />) }

@@ -240,18 +240,18 @@ apollo-client@^1.4.0, apollo-client@^1.4.2:
     "@types/graphql" "^0.9.0"
     "@types/isomorphic-fetch" "0.0.34"
 
-apollo-codegen@^0.12.8:
-  version "0.12.8"
-  resolved "https://registry.yarnpkg.com/apollo-codegen/-/apollo-codegen-0.12.8.tgz#92cd42f3b86edbc78f3975a26d20c532ca966f89"
+apollo-codegen@^0.13.1:
+  version "0.13.1"
+  resolved "https://registry.yarnpkg.com/apollo-codegen/-/apollo-codegen-0.13.1.tgz#5825bc5382674b9879ece7c58dec9bc10082d841"
   dependencies:
-    babel-polyfill "^6.23.0"
     change-case "^3.0.0"
+    core-js "^2.4.1"
     glob "^7.0.5"
     graphql "^0.10.0"
-    inflected "^1.1.7"
+    inflected "^2.0.2"
     mkdirp "^0.5.1"
     node-fetch "^1.5.3"
-    source-map-support "^0.4.2"
+    source-map-support "^0.4.15"
     yargs "^8.0.1"
 
 aproba@^1.0.3:
@@ -401,14 +401,6 @@ babel-messages@^6.23.0:
   resolved "https://registry.yarnpkg.com/babel-messages/-/babel-messages-6.23.0.tgz#f3cdf4703858035b2a2951c6ec5edf6c62f2630e"
   dependencies:
     babel-runtime "^6.22.0"
-
-babel-polyfill@^6.23.0:
-  version "6.23.0"
-  resolved "https://registry.yarnpkg.com/babel-polyfill/-/babel-polyfill-6.23.0.tgz#8364ca62df8eafb830499f699177466c3b03499d"
-  dependencies:
-    babel-runtime "^6.22.0"
-    core-js "^2.4.0"
-    regenerator-runtime "^0.10.0"
 
 babel-runtime@^6.22.0:
   version "6.23.0"
@@ -917,7 +909,7 @@ core-js@^1.0.0:
   version "1.2.7"
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-1.2.7.tgz#652294c14651db28fa93bd2d5ff2983a4f08c636"
 
-core-js@^2.4.0:
+core-js@^2.4.0, core-js@^2.4.1:
   version "2.4.1"
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-2.4.1.tgz#4de911e667b0eae9124e34254b53aea6fc618d3e"
 
@@ -2023,9 +2015,9 @@ indexof@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/indexof/-/indexof-0.0.1.tgz#82dc336d232b9062179d05ab3293a66059fd435d"
 
-inflected@^1.1.7:
-  version "1.1.7"
-  resolved "https://registry.yarnpkg.com/inflected/-/inflected-1.1.7.tgz#c393df6e28472d0d77b3082ec3aa2091f4bc96f9"
+inflected@^2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/inflected/-/inflected-2.0.2.tgz#1bc31ac427ca5321b2a16cc56d6ff29fcd2ff80c"
 
 inflight@^1.0.4:
   version "1.0.6"
@@ -4074,7 +4066,7 @@ source-map-loader@^0.2.1:
     loader-utils "~0.2.2"
     source-map "~0.1.33"
 
-source-map-support@^0.4.15, source-map-support@^0.4.2:
+source-map-support@^0.4.15:
   version "0.4.15"
   resolved "https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.4.15.tgz#03202df65c06d2bd8c7ec2362a193056fef8d3b1"
   dependencies:

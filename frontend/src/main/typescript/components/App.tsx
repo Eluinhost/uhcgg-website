@@ -10,6 +10,7 @@ import { NetworksPage } from './pages/NetworksPage';
 import { GraphiQLPage } from './pages/GraphiQLPage';
 import { GraphQLSchemaPage } from './pages/GraphQLSchemaPage';
 import { Sidebar } from './Sidebar';
+import { NetworkView } from './pages/NetworkPage';
 
 const pageContentStyle: CSSProperties = {
     flex: '1 1 auto',
@@ -44,6 +45,7 @@ export const App: React.SFC<{}> = () =>
                     <Switch>
                         <Route exact path="/" component={HomePage} />
                         <Route path="/register" component={RegisterPage} />
+                        <Route path="/networks/:id" component={NetworkView} />
                         <Route path="/networks" component={NetworksPage} />
                         <Route exact path="/dev" component={GraphiQLPage}/>
                         <Route path="/dev/schema" component={GraphQLSchemaPage} />

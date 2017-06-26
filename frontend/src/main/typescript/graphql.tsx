@@ -13,6 +13,19 @@ export interface NetworkListQuery {
   };
 }
 
+export interface NetworkViewQueryVariables {
+  id: string;
+}
+
+export interface NetworkViewQuery {
+  // Fetches an object given its ID
+  node: NetworkViewNetworkFragment & {
+    __typename: string,
+    // The id of the object.
+    id: string,
+  } | null;
+}
+
 export interface ServerListQueryVariables {
   networkId: string;
   after: string | null;
@@ -23,6 +36,8 @@ export interface ServerListQuery {
   // Fetches an object given its ID
   node: ServerListNetworkFragment & {
     __typename: string,
+    // The id of the object.
+    id: string,
   } | null;
 }
 
@@ -88,6 +103,34 @@ export interface NetworkListNetworkConnectionFragment {
       __typename: string,
     },
   } > | null;
+}
+
+export interface NetworkViewNetworkFragment {
+  __typename: string;
+  // The raw unique ID of this item
+  rawId: string;
+  // When this item was first created
+  created: string;
+  // Whether this item has been deleted or not
+  deleted: boolean;
+  // When this item was last edited
+  modified: string;
+  // The unique name of this network
+  name: string;
+  // The unique tag of this network
+  tag: string;
+  // A markdown formatted description of this network
+  description: string;
+  // The owner of the network, has full control
+  owner: {
+    __typename: string,
+    // The ID of an object
+    id: string,
+    // The raw unique ID of this item
+    rawId: string,
+    // The unique username of this user
+    username: string,
+  };
 }
 
 export interface ServerListRegionFragment {

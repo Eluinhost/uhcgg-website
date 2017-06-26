@@ -1,0 +1,24 @@
+fragment NetworkViewNetwork on Network {
+    rawId
+
+    created
+    deleted
+    modified
+
+    name
+    tag
+    description
+
+    owner {
+        id
+        rawId
+        username
+    }
+}
+
+query NetworkView($id: ID!) {
+    node(id: $id) {
+        id
+        ...NetworkViewNetwork
+    }
+}

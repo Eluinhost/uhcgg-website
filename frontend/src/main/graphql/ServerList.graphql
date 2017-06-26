@@ -42,6 +42,7 @@ fragment ServerList_Network on Network {
 
 query ServerList($networkId: ID!, $after: UUID, $first: Int) {
     node(id: $networkId) {
+        id
         ...ServerList_Network
     }
 }

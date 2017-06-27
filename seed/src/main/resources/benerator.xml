@@ -132,8 +132,8 @@
                     <attribute name="name" source="serverNoun.singular"/>
                     <attribute name="address" generator="domainGenerator"/>
                     <attribute name="ip" generator="ipGenerator"/>
-                    <attribute name="port" type="int" min="1" max="65565"/>
-                    <attribute name="location" generator="NounGenerator"/>
+                    <attribute name="port" type="int" source="ports.wgt.csv"/>
+                    <attribute name="location" source="cities.csv" distribution="random"/>
                     <attribute name="region_id" type="string" source="regions.wgt.csv" distribution="random"/>
                     <attribute name="created" generator="dtGen"/>
                     <attribute name="modified" generator="dtGen"/> <!-- TODO validate after created -->
@@ -214,8 +214,8 @@
             <attribute name="name" source="serverNoun.singular"/>
             <attribute name="address" generator="domainGenerator"/>
             <attribute name="ip" generator="ipGenerator"/>
-            <attribute name="port" type="int" min="1" max="65565"/>
-            <attribute name="location" generator="NounGenerator"/>
+            <attribute name="port" type="int" source="ports.wgt.csv"/>
+            <attribute name="location" source="cities.csv" distribution="random"/>
             <attribute name="region_id" type="string" source="regions.wgt.csv" distribution="random"/>
             <attribute name="created" generator="dtGen"/>
             <attribute name="modified" generator="dtGen"/> <!-- TODO validate after created -->

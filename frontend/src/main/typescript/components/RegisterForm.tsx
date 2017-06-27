@@ -1,104 +1,93 @@
 import * as React from 'react';
-import {DefaultChildProps, graphql, MutationFunc} from 'react-apollo';
+import {DefaultChildProps, graphql } from 'react-apollo';
 import { RegisterMutation, RegisterMutationVariables } from '../graphql';
+import {FormProps, reduxForm, SubmissionError} from "redux-form";
+import {InputField} from "./fields/InputField";
 
 const registerMutation = require('../../graphql/register.graphql');
 
-// const formItemLayout = {
-//     labelCol: {
-//         xs: { span: 24 },
-//         sm: { span: 6 },
-//     } as FormItemColOption,
-//     wrapperCol: {
-//         xs: { span: 24 },
-//         sm: { span: 14 },
-//     } as FormItemColOption,
-// };
-//
-// const emailRules = [
-//     {
-//         required: true,
-//         message: 'An email must be provided'
-//     },
-//     {
-//         pattern: /^^[a-zA-Z0-9\.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
-//         message: 'Invalid email provided'
-//     }
-// ];
-//
-// const passwordRules = [
-//     { required: true, message: 'Please input your chosen password' },
-//     { pattern: /[a-z]+/, message: 'Must contain at least 1 lower case character'},
-//     { pattern: /[A-Z]+/, message: 'Must contain at least 1 upper case character'},
-//     { pattern: /[0-9]+/, message: 'Must contain at least 1 digit'},
-//     { pattern: /[^a-zA-Z0-9]+/, message: 'Must contain at least 1 special character'},
-//     { min: 8, message: 'Must contain at least 8 characters'}
-// ];
-//
-// const repeatPasswordRules = (form: WrappedFormUtils) => [
-//     { required: true, validator: (rule: any, value: any, callback: any) => {
-//         if (value !== form.getFieldValue('password')) {
-//             callback('Passwords do not match');
-//         } else {
-//             callback();
-//         }
-//     }}
-// ];
-//
-// const handleSubmit = (form: WrappedFormUtils, mutate: MutationFunc<RegisterMutation>, token: string) => (e: any) => {
-//     e.preventDefault();
-//
-//     form.validateFieldsAndScroll({}, (err: any, values: any) => {
-//         if (!err) {
-//             console.log('Received values of form: ', values);
-//
-//             const variables: RegisterMutationVariables = {
-//                 password: values.password,
-//                 token,
-//                 email: values.email
-//             };
-//
-//             mutate({ variables })
-//
-//             // TODO handle response
-//         }
-//     });
-// };
-//
+// Given in from the outside
 export interface RegisterFormProps {
     username: string,
     token: string
 }
-//
-// export const RegisterFormComponent: React.SFC<DefaultChildProps<RegisterFormProps & FormComponentProps, RegisterMutationVariables>> =
-//     ({ form, username, mutate, token }) =>
-//         <Form className="login-form" onSubmit={handleSubmit(form, mutate as MutationFunc<RegisterMutation>, token)}>
-//             <Form.Item {...formItemLayout} label="Username">
-//                 <Input prefix={<Icon type="user" style={{fontSize: 13}}/>} value={username} disabled={true} />
-//             </Form.Item>
-//             <Form.Item {...formItemLayout} label="Email">
-//                 {form.getFieldDecorator('email', {rules: emailRules})(
-//                     <Input prefix={<Icon type="user" style={{fontSize: 13}}/>} placeholder="Email"/>
-//                 )}
-//             </Form.Item>
-//             <Form.Item {...formItemLayout} label="Password">
-//                 {form.getFieldDecorator('password', {rules: passwordRules})(
-//                     <Input prefix={<Icon type="lock" style={{fontSize: 13}}/>} type="password" placeholder="Password"/>
-//                 )}
-//             </Form.Item>
-//             <Form.Item {...formItemLayout} label="Confirm Password">
-//                 {form.getFieldDecorator('confirm', {rules: repeatPasswordRules(form)})(
-//                     <Input prefix={<Icon type="lock" style={{fontSize: 13}}/>} type="password" placeholder="Confirm Password"/>
-//                 )}
-//             </Form.Item>
-//             <Form.Item {...formItemLayout}>
-//                 <Button type="primary" htmlType="submit" size="large">Register</Button>
-//             </Form.Item>
-//         </Form>;
-//
-// export const BoundRegisterFormComponent: React.ComponentClass<RegisterFormProps & FormComponentProps> =
-//     graphql<RegisterMutationVariables, RegisterFormProps & FormComponentProps>(registerMutation)(RegisterFormComponent);
-//
-// export const RegisterForm: React.SFC<RegisterFormProps> = Form.create()(BoundRegisterFormComponent);
 
-export const RegisterForm: React.SFC<RegisterFormProps> = () => <span> WIP </span>;
+// Data inside the form
+export interface RegisterFormData {
+    username: string,
+    email: string,
+    password: string,
+    repeat: string
+}
+
+// props from graphql binding
+export type RegisterFormGraphqlProps = DefaultChildProps<RegisterFormProps, RegisterMutation>
+// props from reduxForm binding
+export type RegisterFormFormProps = FormProps<RegisterFormData, RegisterFormProps, any>
+
+// TODO show time remaining on auth token ± a few seconds and lockout form if times out
+const FormComponent: React.SFC<RegisterFormFormProps & RegisterFormProps> =
+    ({ handleSubmit, username, error }) =>
+        <form className="register-form" onSubmit={handleSubmit}>
+            <InputField name="username" label="Username" placeholder={username} required disabled>
+                <div className="pt-form-helper-text">This is taken from your authorised account</div>
+            </InputField>
+            <InputField name="email" label="Email" required />
+            <InputField name="password" label="Password" required isPassword />
+            <InputField name="repeat" label="Repeat Password" required isPassword />
+
+            <button type="submit" className="pt-button" onClick={handleSubmit}>Register</button>
+            {
+                error && <div className="pt-callout pt-intent-danger">{ error }</div>
+            }
+        </form>;
+
+const WithBoundFormComponent: React.SFC<RegisterFormGraphqlProps & RegisterFormProps> =
+    reduxForm<RegisterFormData, RegisterFormGraphqlProps, any>({
+        form: 'register',
+        validate: values => {
+            const errors: {[key: string]: string} = {};
+
+            if (!values.email || !/^^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test(values.email)) {
+                errors.email = 'Invalid email provided';
+            }
+
+            if (!values.password) {
+                errors.password = 'Please input your chosen password'
+            } else if (values.password.length < 8) {
+                errors.password = 'Must be at least 8 characters long';
+            } else if (!/[a-z]+/.test(values.password)) {
+                errors.password = 'Must contain at least 1 lower case character';
+            } else if (!/[A-Z]+/.test(values.password)) {
+                errors.password = 'Must contain at least 1 upper case character';
+            } else if (!/[0-9]+/.test(values.password)) {
+                errors.password = 'Must contain at least 1 digit';
+            } else if (!/[^a-zA-Z0-9]+/.test(values.password)){
+                errors.password = 'Must contain at least 1 special character';
+            }
+
+            if (values.repeat !== values.password) {
+                errors.repeat = 'Does not match supplied password';
+            }
+
+            return errors;
+        },
+        onSubmit: (values, dispatch, props) => {
+            return props.mutate!({
+                variables: {
+                    token: props.token,
+                    email: values.email,
+                    password: values.password
+                } as RegisterMutationVariables
+            }).catch(err => {
+                console.error(err);
+                throw new SubmissionError({ _error: 'Invalid response from server' })
+            });
+            // TODO handle specific errors
+            // TODO something useful on success
+        }
+    })(FormComponent);
+
+export const RegisterForm: React.ComponentClass<RegisterFormProps> =
+    graphql<RegisterFormGraphqlProps, RegisterFormProps>(registerMutation)(WithBoundFormComponent);
+

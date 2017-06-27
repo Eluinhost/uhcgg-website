@@ -31,7 +31,8 @@ function initialState(sidebarCollapsed: boolean, apolloState: any): AppStore.All
         sidebar: {
             collapsed: sidebarCollapsed
         },
-        apollo: apolloState
+        apollo: apolloState,
+        form: {}
     }
 }
 

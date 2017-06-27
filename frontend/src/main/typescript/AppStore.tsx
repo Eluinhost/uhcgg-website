@@ -1,4 +1,5 @@
 import { Store as ApolloStore } from 'apollo-client/store'
+import { FormStateMap } from 'redux-form';
 
 export namespace AppStore {
     export type Sidebar = {
@@ -7,6 +8,7 @@ export namespace AppStore {
 
     export type All = {
         sidebar: Sidebar,
-        apollo: ApolloStore
+        apollo: ApolloStore,
+        form: FormStateMap
     }
 }

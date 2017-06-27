@@ -13,5 +13,5 @@ const fetchData: (query: string) => Promise<any> = query => fetch(
     }
 ).then(_ => _.json());
 
-export const GraphQLSchemaPage: React.SFC<{}> = () =>
+export const GraphQLSchemaPage: React.SFC = () =>
     <Voyager introspection={fetchData} displayOptions={{ skipRelay: true }} />;

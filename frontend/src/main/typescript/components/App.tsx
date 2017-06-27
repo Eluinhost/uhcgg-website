@@ -17,7 +17,7 @@ const PageRoute: React.SFC<RouteProps> = props =>
         <Route {...props} />
     </div>;
 
-export const App: React.SFC<{}> = () =>
+export const App: React.SFC = () =>
     <BrowserRouter>
         <div style={{ display: 'flex' }}>
             <Sidebar />

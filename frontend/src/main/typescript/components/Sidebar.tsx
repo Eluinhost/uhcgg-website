@@ -55,7 +55,7 @@ const SidebarComponent: React.SFC<SidebarProps> = ({ location: { pathname }, col
         </div>
     </div>;
 
-export const Sidebar: React.ComponentClass<{}> =
+export const Sidebar: React.ComponentClass =
     withRouter<{}>(
         connect_SD<SidebarStateProps, SidebarDispatchProps>(
             state => ({

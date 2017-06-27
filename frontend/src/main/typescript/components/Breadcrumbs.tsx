@@ -28,7 +28,7 @@ const ByIdBreadcrumb: React.SFC<{ url: string }> =
     ({ url }) => <Route path={`${url}/:id`} component={ByIdBreadcrumbLink}/>;
 
 
-export const Breadcrumbs: React.SFC<{}> = () =>
+export const Breadcrumbs: React.SFC = () =>
     <ul className="pt-breadcrumbs">
         <RouteBreadcrumb url="/" icon="home" text="Home" />
         <RouteBreadcrumb url="/register" icon="user" text="Register" />

@@ -8,7 +8,8 @@ import { ApolloClient, ApolloProvider, createNetworkInterface } from 'react-apol
 import { HTTPNetworkInterface } from 'apollo-client/transport/networkInterface';
 import {applyMiddleware, combineReducers, compose, createStore, Store} from 'redux';
 import { AppContainer } from 'react-hot-loader';
-import { omit } from 'ramda'
+import { omit } from 'ramda';
+import { reducer as formReducer } from 'redux-form';
 
 import { App } from './components/App';
 import { LoaderBarMiddleware } from './LoaderBarMiddleware';
@@ -44,7 +45,8 @@ const composeEnhancers: any =
 const reduxStore: Store<AppStore.All> = createStore<AppStore.All>(
     combineReducers<AppStore.All>({
         sidebar,
-        apollo: apolloClient.reducer()
+        apollo: apolloClient.reducer(),
+        form: formReducer
     }),
     composeEnhancers(
         applyMiddleware(apolloClient.middleware())

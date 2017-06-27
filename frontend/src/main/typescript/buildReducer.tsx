@@ -21,7 +21,7 @@ export function buildReducer<TState>(): builderObject<TState> {
             return this;
         },
         done() {
-            const mapClone = Object.assign({}, map);
+            const mapClone = { ...map };
             return (state: TState = {} as any, action: Action<any>) => {
                 let handler = mapClone[action.type];
                 return handler ? handler(state, action) : state;

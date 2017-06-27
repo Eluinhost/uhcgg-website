@@ -36,7 +36,7 @@ export class NetworkListRow extends React.Component<NetworkListRowProps, { isOpe
             <div className="network-list-row-index pt-text-muted">
                 { this.props.index + 1 }
             </div>
-            <Link to={`/networks/${this.props.network.rawId}`}>
+            <Link to={`/networks/${this.props.network.rawId}`} onClick={e => e.stopPropagation()}>
                 <div className="network-list-row-open pt-icon pt-icon-document-open" />
             </Link>
 
@@ -46,7 +46,7 @@ export class NetworkListRow extends React.Component<NetworkListRowProps, { isOpe
                     <span className="network-list-row-tag">[{ this.props.network.tag }]</span>
                 </div>
                 <div className="network-list-row-owner">
-                    <Link to={`/users/${this.props.network.owner.username}`}>
+                    <Link to={`/users/${this.props.network.owner.username}`} onClick={e => e.stopPropagation()}>
                         /u/{ this.props.network.owner.username}
                     </Link>
                 </div>

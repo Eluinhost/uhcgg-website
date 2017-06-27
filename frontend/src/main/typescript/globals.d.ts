@@ -83,3 +83,43 @@ declare module 'snuownd' {
     const value: SnuOwnd;
     export = value;
 }
+
+declare module 'react-transition-group' {
+    interface HTMLTransitionGroupProps<T> extends React.HTMLAttributes<T> {
+        component?: React.ReactType;
+        childFactory?(child: React.ReactElement<any>): React.ReactElement<any>;
+    }
+
+    interface TransitionGroupChildLifecycle {
+        componentWillAppear?(callback: () => void): void;
+        componentDidAppear?(): void;
+        componentWillEnter?(callback: () => void): void;
+        componentDidEnter?(): void;
+        componentWillLeave?(callback: () => void): void;
+        componentDidLeave?(): void;
+    }
+
+    type TransitionGroupProps = HTMLTransitionGroupProps<TransitionGroup>;
+
+    interface CSSTransitionGroupTransitionName {
+        enter: string;
+        enterActive?: string;
+        leave: string;
+        leaveActive?: string;
+        appear?: string;
+        appearActive?: string;
+    }
+
+    interface CSSTransitionGroupProps extends HTMLTransitionGroupProps<CSSTransitionGroup> {
+        transitionName: string | CSSTransitionGroupTransitionName;
+        transitionAppear?: boolean;
+        transitionAppearTimeout?: number;
+        transitionEnter?: boolean;
+        transitionEnterTimeout?: number;
+        transitionLeave?: boolean;
+        transitionLeaveTimeout?: number;
+    }
+
+    export const CSSTransitionGroup: React.SFC<CSSTransitionGroupProps>;
+    export const TransitionGroup: React.SFC<TransitionGroupProps>;
+}

@@ -26,7 +26,7 @@ const RegisterErrorPage: React.SFC<{ message: string, header: string }> = ({ mes
     </div>;
 
 const FirstStepPage: React.SFC<{}> = () =>
-    <div>
+    <div style={{ textAlign: 'center', marginTop: 30}}>
         <h1>Register an account</h1>
 
         <p>Something about goign to reddit erhe is a button</p>

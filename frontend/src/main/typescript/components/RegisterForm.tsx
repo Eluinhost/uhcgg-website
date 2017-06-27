@@ -1,8 +1,9 @@
 import * as React from 'react';
 import {DefaultChildProps, graphql } from 'react-apollo';
 import { RegisterMutation, RegisterMutationVariables } from '../graphql';
-import {FormProps, reduxForm, SubmissionError} from "redux-form";
+import {FormErrors, FormProps, reduxForm, SubmissionError} from "redux-form";
 import {InputField} from "./fields/InputField";
+import {isApolloError} from "apollo-client/errors/ApolloError";
 
 const registerMutation = require('../../graphql/register.graphql');
 
@@ -27,7 +28,7 @@ export type RegisterFormFormProps = FormProps<RegisterFormData, RegisterFormProp
 
 // TODO show time remaining on auth token ± a few seconds and lockout form if times out
 const FormComponent: React.SFC<RegisterFormFormProps & RegisterFormProps> =
-    ({ handleSubmit, username, error }) =>
+    ({ handleSubmit, username, error, valid, anyTouched }) =>
         <form className="register-form" onSubmit={handleSubmit}>
             <InputField name="username" label="Username" placeholder={username} required disabled>
                 <div className="pt-form-helper-text">This is taken from your authorised account</div>
@@ -36,9 +37,16 @@ const FormComponent: React.SFC<RegisterFormFormProps & RegisterFormProps> =
             <InputField name="password" label="Password" required isPassword />
             <InputField name="repeat" label="Repeat Password" required isPassword />
 
-            <button type="submit" className="pt-button" onClick={handleSubmit}>Register</button>
+            <button
+                type="submit"
+                className={`pt-button ${valid || !anyTouched ? 'pt-intent-success' : 'pt-intent-danger'}`}
+                disabled={anyTouched && !valid}
+                onClick={handleSubmit}
+            >Register</button>
             {
-                error && <div className="pt-callout pt-intent-danger">{ error }</div>
+                error && <div className="pt-callout pt-intent-danger pt-icon-warning-sign">
+                    { error }
+                </div>
             }
         </form>;
 
@@ -46,7 +54,7 @@ const WithBoundFormComponent: React.SFC<RegisterFormGraphqlProps & RegisterFormP
     reduxForm<RegisterFormData, RegisterFormGraphqlProps, any>({
         form: 'register',
         validate: values => {
-            const errors: {[key: string]: string} = {};
+            const errors: FormErrors<RegisterFormData> = {};
 
             if (!values.email || !/^^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test(values.email)) {
                 errors.email = 'Invalid email provided';
@@ -80,10 +88,14 @@ const WithBoundFormComponent: React.SFC<RegisterFormGraphqlProps & RegisterFormP
                     password: values.password
                 } as RegisterMutationVariables
             }).catch(err => {
-                console.error(err);
-                throw new SubmissionError({ _error: 'Invalid response from server' })
+                const errors: FormErrors<RegisterFormData> = {};
+
+                if (isApolloError(err)) {
+                    errors._error = err.graphQLErrors[0].message;
+                }
+
+                throw new SubmissionError(errors)
             });
-            // TODO handle specific errors
             // TODO something useful on success
         }
     })(FormComponent);

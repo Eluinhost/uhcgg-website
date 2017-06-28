@@ -58,12 +58,12 @@ class RegisterRoute(
   )
 
   def redirectToFrontend(username: String): Route = redirect(
-    s"/register#${registrationSession.generateStage2Token(username)}",
+    s"/register/${registrationSession.generateStage2Token(username).replaceAll("\\.", "/")}",
     StatusCodes.TemporaryRedirect
   )
 
   def redirectToFrontendWithError(error: String): Route = redirect(
-    s"/register#${registrationSession.generateErrorToken(header = "Unable to authenticate via Reddit", message = error)}",
+    s"/register/${registrationSession.generateErrorToken(header = "Unable to authenticate via Reddit", message = error).replaceAll("\\.","/")}",
     StatusCodes.TemporaryRedirect
   )
 

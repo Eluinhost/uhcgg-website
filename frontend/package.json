@@ -12,6 +12,7 @@
   "dependencies": {
     "@blueprintjs/core": "^1.21.0",
     "@types/jwt-decode": "^2.2.0",
+    "@types/moment": "^2.13.0",
     "@types/node": "^7.0.22",
     "@types/nprogress": "^0.0.29",
     "@types/prop-types": "^15.5.1",
@@ -33,6 +34,7 @@
     "isomorphic-fetch": "^2.2.1",
     "jwt-decode": "^2.2.0",
     "localforage": "^1.5.0",
+    "moment": "^2.18.1",
     "node-sass": "^4.5.3",
     "nprogress": "^0.2.0",
     "ramda": "^0.24.1",

@@ -1,11 +1,11 @@
 import * as React from 'react';
 import {DefaultChildProps, graphql } from 'react-apollo';
-import { RegisterMutation, RegisterMutationVariables } from '../graphql';
+import { RegisterMutation, RegisterMutationVariables } from '../../../graphql';
 import {FormErrors, FormProps, reduxForm, SubmissionError} from "redux-form";
-import {InputField} from "./fields/InputField";
+import {InputField} from "../../fields/InputField";
 import {isApolloError} from "apollo-client/errors/ApolloError";
 
-const registerMutation = require('../../graphql/register.graphql');
+const registerMutation = require('../../../../graphql/register.graphql');
 
 // Given in from the outside
 export interface RegisterFormProps {
@@ -26,7 +26,6 @@ export type RegisterFormGraphqlProps = DefaultChildProps<RegisterFormProps, Regi
 // props from reduxForm binding
 export type RegisterFormFormProps = FormProps<RegisterFormData, RegisterFormProps, any>
 
-// TODO show time remaining on auth token ± a few seconds and lockout form if times out
 const FormComponent: React.SFC<RegisterFormFormProps & RegisterFormProps> =
     ({ handleSubmit, username, error, valid, anyTouched }) =>
         <form className="register-form" onSubmit={handleSubmit}>

@@ -1,0 +1,1 @@
+export const START_REGISTER_URL = "/api/register";

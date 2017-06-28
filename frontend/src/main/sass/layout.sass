@@ -19,3 +19,34 @@
   flex: 1 1 auto
   overflow-y: auto
   height: 0 // Required otherwise it doesn't have a height set, flexbox handles the height after load though
+
+
+// Animations for route changes
+.app-route-enter
+  opacity: 0
+  transform: scale(0.5)
+
+.app-route-enter.app-route-enter-active
+  opacity: 1
+  transform: scale(1)
+  transition: opacity .6s ease-in, transform .6s ease-in
+
+.app-route-leave
+  opacity: 1
+  transform: scale(1)
+
+.app-route-leave.app-route-leave-active
+  opacity: 0
+  transform: scale(0.5)
+  transition: opacity .3s ease-out, transform .3s ease-out
+
+
+// The make sure the routes can 'overlay' each other allowing the animation to work
+.app-page-content
+  position: relative
+.page
+  position: absolute
+  top: 0
+  left: 0
+  right: 0
+  bottom: 0

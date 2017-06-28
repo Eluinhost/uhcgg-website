@@ -25,7 +25,7 @@ export class InputField extends React.PureComponent<InputFieldProps> {
     renderInputField = (wrapped: WrappedFieldProps<any>) =>
         <div className={`pt-form-group ${errorClass(wrapped.meta)}`}>
             <label className="pt-label">
-                {this.props.label}{this.props.required && '*'}
+                {this.props.label}{this.props.required && <span className="required-star">*</span>}
             </label>
             <div className="pt-form-content">
                 <input

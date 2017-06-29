@@ -10,6 +10,7 @@ import { ListingButtons } from '../../ListingButtons';
 
 import queryNetworks = require('../../../../graphql/NetworkList.graphql');
 import {Markdown} from "../../Markdown";
+import {InfinityScroll} from "../../InfinityScroll";
 
 export interface NetworkListRowProps {
     network: NetworkListNetworkFragment,
@@ -133,14 +134,41 @@ export const NetworkList = simpleGraphqlCursor({
             </h2>
 
             <div className="network-list">
-                { networks.map((network, index) => <NetworkListRow network={network} key={network.id} index={index} />) }
+                <button
+                    className="pt-button pt-icon-reload pt-intent-success refresh-button network-list-refresh"
+                    disabled={props.data.loading}
+                    onClick={() => props.data!.refetch()}
+                    role="button"
+                >
+                    <span className="pt-icon pt-icon-refresh" />
+                    Refresh List
+                </button>
 
-                <ListingButtons
-                    loading={props.data!.loading}
+                <InfinityScroll
+                    trigger={props.data.fetchAnotherPage}
                     hasMore={hasMore}
-                    refetch={() => props.data!.refetch()}
-                    fetchMore={() => props.data!.fetchAnotherPage()}
-                />
+                    noMoreItemsComponent={<div className="pt-callout pt-intent-danger network-list-footer-callout">
+                        <h5>There are no more networks left to load</h5>
+                        You can click here to try and re-check:
+                        &nbsp;
+                        <button
+                            className="pt-button pt-icon-reload pt-intent-success"
+                            disabled={props.data.loading}
+                            onClick={() => props.data!.fetchAnotherPage()}
+                            role="button"
+                        >
+                            <span className="pt-icon pt-icon-refresh" />
+                            Load more
+                        </button>
+                    </div>}
+                    loadingComponent={<div className="pt-callout pt-intent-primary pt-icon-search network-list-footer-callout">
+                        <h5>Loading more networks...</h5>
+                    </div>}
+                >
+                    { networks.map((network, index) =>
+                        <NetworkListRow network={network} key={network.id} index={index} />
+                    )}
+                </InfinityScroll>
             </div>
         </div>;
     }

@@ -42,6 +42,11 @@ class MatchRepository extends Repository[Match] with HasUuidIdColumn[Match] with
   private[repositories] val getByStyleIdQuery    = genericRelationListing(p"style_id")
   private[repositories] val getByVersionIdQuery  = genericRelationListing(p"version_id")
 
+  private[repositories] val getUpcomingMatchesQuery = relationListingQuery[Boolean, Instant](
+    relColumn = p"deleted",
+    sort = p"starts".desc
+  )(_)
+
   def getByServerId(params: RelationshipListingParameters[UUID, Instant]): ConnectionIO[List[Match]] =
     getByServerIdQuery(params).list
 
@@ -53,4 +58,7 @@ class MatchRepository extends Repository[Match] with HasUuidIdColumn[Match] with
 
   def getByVersionId(params: RelationshipListingParameters[UUID, Instant]): ConnectionIO[List[Match]] =
     getByVersionIdQuery(params).list
+
+  def getUpcomingMatches(params: RelationshipListingParameters[Boolean, Instant]): ConnectionIO[List[Match]] =
+    getUpcomingMatchesQuery(params).list
 }

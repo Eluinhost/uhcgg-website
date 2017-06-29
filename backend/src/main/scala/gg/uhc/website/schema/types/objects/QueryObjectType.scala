@@ -1,5 +1,6 @@
 package gg.uhc.website.schema.types.objects
 
+import java.time.Instant
 import java.util.UUID
 
 import gg.uhc.website.model._
@@ -8,6 +9,7 @@ import gg.uhc.website.schema.helpers.ConnectionHelpers._
 import gg.uhc.website.schema.helpers.ConnectionIOConverters._
 import gg.uhc.website.schema.helpers.ArgumentConverters._
 import gg.uhc.website.schema.types.scalars.UuidScalarType._
+import gg.uhc.website.schema.types.scalars.InstantScalarType._
 import gg.uhc.website.schema.types.objects.RelayDefinitions.{nodeField, nodesField}
 import sangria.schema._
 
@@ -30,12 +32,26 @@ object QueryObjectType extends HasObjectType[Unit] {
         action = _.bans.listing,
         cursorFn = (b: Ban) ⇒ b.uuid
       ),
-      listingField[Match, UUID]( // TODO this should be sorted by created
+      listingField[Match, UUID](
         name = "matches",
         targetType = MatchObjectType.Type,
         description = "List of all matches",
         action = _.matches.listing,
         cursorFn = (m: Match) ⇒ m.uuid
+      ),
+      listingField[Match, Instant](
+        name = "upcomingMatches",
+        targetType = MatchObjectType.Type,
+        description = "List of upcoming matches, sorted by opening first",
+        action = ctx ⇒ params ⇒ ctx.matches.getUpcomingMatches(params.withRelId(false)), // query for non-deleted
+        cursorFn = (m: Match) ⇒ m.starts
+      ),
+      listingField[Match, Instant](
+        name = "deletedUpcomingMatches",
+        targetType = MatchObjectType.Type,
+        description = "List of upcoming matches that have been deleted, sorted by opening first",
+        action = ctx ⇒ params ⇒ ctx.matches.getUpcomingMatches(params.withRelId(true)), // query for deleted
+        cursorFn = (m: Match) ⇒ m.starts
       ),
       listingField[Network, UUID](
         name = "networks",

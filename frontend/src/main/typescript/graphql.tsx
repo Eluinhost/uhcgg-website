@@ -1,6 +1,76 @@
 /* tslint:disable */
 //  This file was automatically generated and should not be edited.
 
+export type MatchListQueryVariables = {
+  first: number | null,
+  after: string | null,
+};
+
+export type MatchListQuery = {
+  // List of upcoming matches, sorted by opening first
+  upcomingMatches:  {
+    __typename: string,
+    // Information to aid in pagination.
+    pageInfo:  {
+      __typename: string,
+      // When paginating forwards, the cursor to continue.
+      endCursor: string | null,
+      // When paginating forwards, are there more items?
+      hasNextPage: boolean,
+    },
+    // A list of edges.
+    edges:  Array< {
+      __typename: string,
+      // The item at the end of the edge.
+      node:  {
+        __typename: string,
+        // The ID of an object
+        id: string,
+        // The raw unique ID of this item
+        rawId: string,
+        // When the match starts
+        starts: string,
+        // The host for this match
+        host:  {
+          __typename: string,
+          // The ID of an object
+          id: string,
+          // The raw unique ID of this item
+          rawId: string,
+          // The unique username of this user
+          username: string,
+        },
+        // The server this match is hosted on
+        server:  {
+          __typename: string,
+          // The ID of an object
+          id: string,
+        },
+        // The size relating to the specific style
+        size: number | null,
+        // The team style being hosted
+        style:  {
+          __typename: string,
+          // The ID of an object
+          id: string,
+          // A 'short' format template string
+          shortName: string,
+          // Whether the style requires a team size to also be provided or not
+          requiresSize: boolean,
+        },
+        // The version that is being hosted
+        version:  {
+          __typename: string,
+          // The ID of an object
+          id: string,
+          // The display name of this version
+          name: string,
+        },
+      },
+    } > | null,
+  },
+};
+
 export type NetworkListQueryVariables = {
   first: number | null,
   after: string | null,
@@ -243,6 +313,148 @@ export type RegisterMutation = {
     // The unique username of this user
     username: string,
   },
+};
+
+export type MatchListHostFragment = {
+  __typename: string,
+  // The ID of an object
+  id: string,
+  // The raw unique ID of this item
+  rawId: string,
+  // The unique username of this user
+  username: string,
+};
+
+export type MatchListServerFragment = {
+  __typename: string,
+  // The ID of an object
+  id: string,
+};
+
+export type MatchListStyleFragment = {
+  __typename: string,
+  // The ID of an object
+  id: string,
+  // A 'short' format template string
+  shortName: string,
+  // Whether the style requires a team size to also be provided or not
+  requiresSize: boolean,
+};
+
+export type MatchListVersionFragment = {
+  __typename: string,
+  // The ID of an object
+  id: string,
+  // The display name of this version
+  name: string,
+};
+
+export type MatchListMatchFragment = {
+  __typename: string,
+  // The ID of an object
+  id: string,
+  // The raw unique ID of this item
+  rawId: string,
+  // When the match starts
+  starts: string,
+  // The host for this match
+  host:  {
+    __typename: string,
+    // The ID of an object
+    id: string,
+    // The raw unique ID of this item
+    rawId: string,
+    // The unique username of this user
+    username: string,
+  },
+  // The server this match is hosted on
+  server:  {
+    __typename: string,
+    // The ID of an object
+    id: string,
+  },
+  // The size relating to the specific style
+  size: number | null,
+  // The team style being hosted
+  style:  {
+    __typename: string,
+    // The ID of an object
+    id: string,
+    // A 'short' format template string
+    shortName: string,
+    // Whether the style requires a team size to also be provided or not
+    requiresSize: boolean,
+  },
+  // The version that is being hosted
+  version:  {
+    __typename: string,
+    // The ID of an object
+    id: string,
+    // The display name of this version
+    name: string,
+  },
+};
+
+export type MatchListMatchConnectionFragment = {
+  __typename: string,
+  // Information to aid in pagination.
+  pageInfo:  {
+    __typename: string,
+    // When paginating forwards, the cursor to continue.
+    endCursor: string | null,
+    // When paginating forwards, are there more items?
+    hasNextPage: boolean,
+  },
+  // A list of edges.
+  edges:  Array< {
+    __typename: string,
+    // The item at the end of the edge.
+    node:  {
+      __typename: string,
+      // The ID of an object
+      id: string,
+      // The raw unique ID of this item
+      rawId: string,
+      // When the match starts
+      starts: string,
+      // The host for this match
+      host:  {
+        __typename: string,
+        // The ID of an object
+        id: string,
+        // The raw unique ID of this item
+        rawId: string,
+        // The unique username of this user
+        username: string,
+      },
+      // The server this match is hosted on
+      server:  {
+        __typename: string,
+        // The ID of an object
+        id: string,
+      },
+      // The size relating to the specific style
+      size: number | null,
+      // The team style being hosted
+      style:  {
+        __typename: string,
+        // The ID of an object
+        id: string,
+        // A 'short' format template string
+        shortName: string,
+        // Whether the style requires a team size to also be provided or not
+        requiresSize: boolean,
+      },
+      // The version that is being hosted
+      version:  {
+        __typename: string,
+        // The ID of an object
+        id: string,
+        // The display name of this version
+        name: string,
+      },
+    },
+  } > | null,
 };
 
 export type NetworkListOwnerFragment = {

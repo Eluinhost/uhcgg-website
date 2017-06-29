@@ -1,0 +1,58 @@
+fragment MatchList_Host on User {
+    id
+    rawId
+    username
+}
+
+fragment MatchList_Server on Server {
+    id
+}
+
+fragment MatchList_Style on Style {
+    id
+    shortName
+    requiresSize
+}
+
+fragment MatchList_Version on Version {
+    id
+    name
+}
+
+fragment MatchList_Match on Match {
+    id
+    rawId
+    starts
+    host {
+        ...MatchList_Host
+    }
+    server {
+        ...MatchList_Server
+    }
+    starts
+    size
+    style {
+        ...MatchList_Style
+    }
+    version {
+        ...MatchList_Version
+    }
+}
+
+fragment MatchList_MatchConnection on MatchConnection {
+    pageInfo {
+        endCursor
+        hasNextPage
+    }
+    edges {
+        node {
+            ...MatchList_Match
+        }
+    }
+}
+
+query MatchList($first: Int, $after: Instant) {
+    upcomingMatches(first: $first, after: $after) {
+        ...MatchList_MatchConnection
+    }
+}

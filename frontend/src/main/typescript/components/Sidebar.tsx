@@ -45,6 +45,7 @@ const SidebarComponent: React.SFC<SidebarProps> = ({ location: { pathname }, col
             </div>
 
             <SidebarItem text="Home" icon="home" to="/" exact={true} tooltipDisabled={!collapsed}/>
+            <SidebarItem text="Matches" icon="calendar" to="/matches" tooltipDisabled={!collapsed}/>
             <SidebarItem text="Register" icon="user" to="/register" tooltipDisabled={!collapsed}/>
             <SidebarItem text="Networks" icon="database" to="/networks" tooltipDisabled={!collapsed}/>
             <SidebarItem text="API" icon="git-repo" to="/dev" tooltipDisabled={!collapsed}/>

@@ -11,6 +11,7 @@ import { GraphiQLPage } from './pages/GraphiQLPage';
 import { GraphQLSchemaPage } from './pages/GraphQLSchemaPage';
 import { Sidebar } from './Sidebar';
 import { NetworkView } from './pages/NetworkPage';
+import {MatchesPage} from "./pages/MatchesPage/index";
 
 const PageRoute: React.SFC<RouteProps> = props =>
     <div className="page">
@@ -34,6 +35,7 @@ export const App: React.SFC = () =>
                     >
                     <Switch key={location.key} location={location}>
                         <PageRoute exact path="/" component={HomePage} />
+                        <PageRoute path="/matches" component={MatchesPage}/>
                         <PageRoute path="/register" component={RegisterPage} />
                         <PageRoute path="/networks/:id" component={NetworkView} />
                         <PageRoute path="/networks" component={NetworksPage} />

@@ -10,7 +10,7 @@ import sangria.schema._
 object MutationObjectType extends HasObjectType[Unit] {
   val usernameArg =
     Argument(name = "username", argumentType = StringType, description = "Username or email to login with")
-  val userIdArg   = Argument(name = "id", argumentType = UuidType, description = "Username or email to login with") // TODO don't require ID
+  val userIdArg   = Argument(name = "id", argumentType = UuidType, description = "User ID of account to change")
   val passwordArg = Argument(name = "password", argumentType = StringType, description = "Password for the account")
 
   val registerEmailArg =
@@ -31,8 +31,8 @@ object MutationObjectType extends HasObjectType[Unit] {
         resolve = implicit ctx ⇒ ctx.ctx.token(username = usernameArg.resolve, password = passwordArg.resolve)
       ),
       Field(
-        name = "changePassword", // TODO definitely remove this
-        fieldType = BooleanType,
+        name = "changePassword", // TODO this shouldn't require the user ID and should take it from the logged in session instead
+        fieldType = BooleanType, // TODO also this should require a logged in session too
         arguments = userIdArg :: passwordArg :: Nil,
         resolve = implicit ctx ⇒ ctx.ctx.changePassword(id = userIdArg.resolve, password = passwordArg.resolve)
       ),
